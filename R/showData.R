@@ -1,58 +1,349 @@
-
-#' Produces one of standard plots with statistics from the table.
+#' Plots higher level visulizations of basic statistics and relationships for the whole or part of the table data.
 #' 
-#' @param channel
-#' @param tableName
+#' \code{showData} is the basic plotting function in the \code{toaster} package, designed to produce set of 
+#' standard visualizations (see parameter \code{format}) in a single call. Depending on the \code{format} it 
+#' is a wrapper to other functions or simple plotting function. It does all work in a single call by combining 
+#' database round-trip (if necessary) and plotting functionality.
+#' 
+#' All formats support parameters \code{include} and \code{except} to include and exclude table columns respectively.
+#' The \code{include} list guarantees that no columns outside of the list will be included in the results. 
+#' The \code{excpet} list guarantees that its columns will not be included in the results.
+#' 
+#' Format \code{overview}: produce set of histograms - one for each statistic measure - across table columns. Thus,
+#' it allows to compare averages, IQR, etc. across all or selected columns.
+#' 
+#' Format \code{boxplot}: produce boxplots for table columns. Boxplots can belong to the same plot or can be placed
+#' inside facet each (see logical parameter \code{facet}).
+#' 
+#' Format \code{histogram}: produce histograms - one for each column - in a single plot or in facets (see logical 
+#' parameter \code{facet}).
+#' 
+#' Format \code{corr}: produce correlation matrix of numeric columns.
+#' 
+#' Format \code{scatterplot}: produce scatterplots of sampled data.
+#' 
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
+#' @param tableName Aster table name
 #' @param tableInfo pre-built summary of data to use (parameters \code{channel}, \code{tableName}, \code{where} will not apply)
-#' @param include
-#' @param except
-#' @param numeric include numeric columns (default is TRUE)
-#' @param datetime include date and time columns (default is TRUE)
-#' @param character include character columns (default is TRUE)
-#' @param format type of plot to use ('histogram', 'boxplot', or 'scatterplot')
+#' @param include a vector of column names to include. Output never contains attributes other than in the list.
+#' @param except a vector of column names to exclude. Output never contains attributes from the list.
+#' @param type what type of data to visualize: numerical (\code{"numeric"}), character (\code{"character"} or 
+#'   date/time (\code{"temporal"})
+#' @param format type of plot to use: \code{'overview'}, \code{'histogram'}, \code{'boxplot'}, \code{'corr'} for correlation 
+#'   matrix or \code{'scatterplot'}
+#' @param measures applies to format \code{'overview'} only. Use one or more of the following with \code{'numieric'} \code{type}:
+#'   maximum,minimum,average,deviation,0%,10%,25%,50%,75%,90%,100%,IQR. Use one or more of the following with \code{'character'}
+#'   \code{type}: distinct_count,not_null_count. By default all measures above are used per respeictive type.
+#' @param corrLabel column name to use to label correlation table: \code{'value'}, \code{'pair'}, or \code{'none'} (default)
+#' @param digits number of digits to use in correlation table text (when displaying correlation coefficient value)
+#' @param shape shape of correlation figure (default is 21)
+#' @param shapeSizeRange correlation figure size range
 #' @param facet Logical - if TRUE then divide plot into facets for each COLUMN (defualt is FALSE - no facets). 
-#' When set to TRUE and format is 'boxplot' facetScales defalut changes from 'fixed' to free'.
+#'   When set to TRUE and format is 'boxplot' scales defalut changes from 'fixed' to 'free'. Has no effect 
+#'   when format is 'corr'.
+#' @param numBins number of bins to use in histogram(s)
+#' @param useIQR logical indicates use of IQR interval to compute cutoff lower and upper bounds for values to be included in 
+#'   boxplot or histogram: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}, if FALSE then maximum and minimum are bounds (all values)
+#' @param extraPoints vector contains names of extra points to add to boxplot lines. 
+#' @param extraPointShape extra point shape (see 'Shape examples' in \link{aes_linetype_size_shape}).
+#' @param sampleFraction sample fraction to use in the sampling of data for \code{'scatterplot'}
+#' @param sampleSize if \code{sampleFraction} is not specified then size of sample must be specified for \code{'scatterplot'} 
+#' @param pointColour name of column with values to colour points in \code{'scatterplot'}  
+#' @param facetName name(s) of the column(s) to use for faceting when \code{format} is \code{'scatterplot'}. When single name 
+#'   then facet wrap kind of faceting is used. When two names then facet grid kind of faceting is used. It overrides \code{facet}
+#'   value in case of \code{'scatterplot'}. Must be part of column list (e.g. \code{include}) 
+#' @param regressionLine logical if TRUE then adds regression line to scatterplot
 #' @param ncol Number of columns in facet wrap
-#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
-#'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
-#'        parameter \code{scales}. Also see parameter \code{facet} for details on default values. )
-#' @return A ggplot visual
+#' @param scales Are scales shared across all facets: \code{"fixed"} - all are the same, \code{"free_x"} - vary across 
+#'   rows (x axis), \code{"free_y"} - vary across columns (Y axis) (default), \code{"free"} - both rows and columns 
+#'   (see in \code{facet_wrap} parameter \code{scales}. Also see parameter \code{facet} for details on default values. )
+#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical, horizontal (see 
+#'   \link{coord_flip}).
+#' @param paletteName palette name to use (run \code{display.brewer.all} to see available palettes)
+#' @param legendPosition legend position
+#' @param defaultTheme plot theme to use, default is \code{theme_bw}
+#' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @return A ggplot visual object
+#' @export
+#' @examples
+#' \donttest{
+#' # get summaries to save time by reusing it
+#' pitchingInfo = getTableSummary(asterConn, 'pitching_enh')
+#' battingInfo = getTableSummary(asterConn, 'batting_enh')
 #' 
-showData <- function(channel=NULL, tableName=NULL, tableInfo=NULL, include=NULL, except=NULL, where=NULL,
-                     numeric=TRUE, datetime=TRUE, character=TRUE,
-                     format=c('histogram','boxplot','scatterplot', 'corr'),
-                     size=1000,
-                     facet=FALSE, ncol=4, facetScales=ifelse(facet & format=='boxplot',"free", "fixed")) {
+#' # Boxplots
+#' # all numerical attributes
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot')
+#' # select certain attributes only
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
+#'          include=c('wp','whip', 'w', 'sv', 'sho', 'l', 'ktobb', 'ibb', 'hbp', 'fip', 'era', 'cg', 'bk', 'baopp'))
+#' # exclude certain attributes
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
+#'          except=c('item_id','ingredient_item_id', 'facility_id', 'rownum'))
+#' # flip coordinates
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot', coordFlip=TRUE)
+#' 
+#' # boxplot with facet (facet_wrap)
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
+#'          include=c('BFP','ER','H','IPouts','R','SO'), facet=TRUE, scales='free')
+#' 
+#' # Correlation matrix
+#' # on all numerical attributes
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='corr')
+#' 
+#' # correlation matrix on selected attributes
+#' # with labeling by attribute pair name and
+#' # controlling size of correlation bubbles
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('ERA','H','HR','GS','G','SV'), 
+#'          format='corr', corrLabel='pair', shapeSizeRange=c(5,25))
+#'
+#' # Histogram on all numeric attributes
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('HR'), format='histogram')
+#' 
+#' # Overview is a histogram of statistical measures across attributes
+#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='overview', type='numeric')
+#' 
+#' # Scatterplots
+#' # Scatterplot on pair of numerical attributes
+#' # with facet_wrap (single-valued facetName)
+#' showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
+#'          sampleSize=10000, facetName='activity_factor_id', 
+#'          where="activity_factor_id in (601, 611)")
+#' 
+#' # Scatterplot on pair of numerical attributes
+#' # with facet_grid (two-valued facetName)
+#' showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
+#'          sampleSize=10000, facetName=c('activity_factor_id','facility_id'), 
+#'          where="activity_factor_id in (601, 611) and facility_id in (1121,1219)")          
+#' }
+showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include = NULL, except = NULL, 
+                     type = 'numeric', format = 'histgoram', measures = NULL,
+                     title = paste("Table", toupper(tableName), format, "of", type, "columns"),
+                     numBins = 30, 
+                     useIQR = FALSE, extraPoints = NULL, extraPointShape = 15,
+                     sampleFraction = NULL, sampleSize = NULL, pointColour = NULL,
+                     facetName = NULL, regressionLine = FALSE,
+                     corrLabel = 'none', digits = 2, 
+                     shape = 21, shapeSizeRange = c(1,10),
+                     facet = FALSE, ncol = 4, scales = ifelse(facet & format=='boxplot',"free", "fixed"),
+                     coordFlip = FALSE, paletteName = "Set1", 
+                     baseSize = 12, baseFamily = "sans",
+                     legendPosition = "none",
+                     defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL, 
+                     where = NULL) {
   
+  # match argument values
+  type = match.arg(type, c('numeric','character','temporal'))
+  format = match.arg(format, c('overview','histogram','boxplot','scatterplot', 'corr'))
+  corrLabel = match.arg(corrLabel, c('none','value','pair'))
+  
+  where_clause = makeWhereClause(where)
+  
+  # facetName needs to be included if missing
+  if (!missing(include) & any(!(facetName %in% include))) {
+    include = unique(append(include, facetName))
+  }
+  
+  # colourPoint needs to be included if missing
+  if (!missing(include) & !missing(pointColour)) { 
+    if (!(pointColour %in% include)) {
+      include = unique(append(include, pointColour))
+    }
+  }
+      
   if (missing(tableInfo)) {
     summary = getTableSummary(channel, tableName, include=include, except=except, where=where, collect.mode=FALSE)
   }else {
     summary = includeExcludeColumns(tableInfo, include, except)
   }
   
+  # check that we have info for all required columns
+  if (!is.null(include)) {
+    if (!is.null(except)) {
+      include = setdiff(include, except)
+    }
+    if (any(!(include %in% summary$COLUMN_NAME))) {
+      stop(paste("Not all specified columns are in the table summary (tableInfo):", include[!(include %in% summary$COLUMN_NAME)]))
+    }
+  }
+  
+  dataNum = getNumericColumns(summary, names.only=FALSE)
+  dataChar = getCharacterColumns(summary, names.only=FALSE)
+  dataTemp = getDateTimeColumns(summary, names.only=FALSE)
+  
+  getPalette = colorRampPalette(brewer.pal(brewer.pal.info[paletteName,"maxcolors"], paletteName))
+  
   if (format=='boxplot') {
-    # reduce data set to numerical data types
-    data = getNumericColumns(summary, names.only=FALSE)
-
-    p = ggplot(data, aes(x = COLUMN_NAME)) +
-      geom_boxplot(aes(ymin = `0%`, lower = `25%`, middle = `50%`, upper = `75%`, ymax = `100%`),
-                   stat="identity", position="dodge") 
-  }else if (format=='corr') {
-    corrmat = computeCorrelations(channel, tableName, include=include, except=except, where=where)
+    if (type != 'numeric') {
+      warning("Automatically regressing to numerical types for format 'boxplot'")
+    }
     
-    p = createBubblechart(corrmat, "metric1", "metric2", "value", label="corr", fill="sign")
+    checkNonEmpty(dataNum)
+    
+    # compute boxplot bounds based on IQR flag
+    if (useIQR) {
+      dataNum$lower_bound = apply(dataNum[, c('minimum', "25%", "IQR")], 1, FUN=function(x) max(x['minimum'], x['25%']-1.5*x['IQR']))
+      dataNum$upper_bound = apply(dataNum[, c('maximum', "75%", "IQR")], 1, FUN=function(x) min(x['maximum'], x['75%']+1.5*x['IQR']))
+    }else {
+      dataNum$lower_bound = dataNum$minimum
+      dataNum$upper_bound = dataNum$maximum
+    }
+
+    p = ggplot(dataNum, aes_string(x = 'COLUMN_NAME')) +
+      geom_boxplot(aes_string(ymin = 'lower_bound', lower = '`25%`', middle = '`50%`', upper = '`75%`', ymax = 'upper_bound'),
+                   stat="identity", position="dodge") +
+      labs(title=title, x='Columns') 
+    
+    if (!missing(extraPoints))
+      for (point in extraPoints)
+        p = p + geom_point(aes_string(x = 'COLUMN_NAME', y = point), shape=extraPointShape)
+
+  }
+  else if (format=='corr') {
+    if (type != 'numeric') {
+      warning("Ignoring non-numeric types for format 'corr'")
+    }
+    
+    checkNonEmpty(dataNum)
+    
+    corrmat = computeCorrelations(channel, tableName, tableInfo=tableInfo, include=include, except=except, where=where)
+    corrmat = cbind(corrmat, valuePretty=prettyNum(corrmat[, 'value'], digits=digits) , none='')
+    corrmat$value = abs(corrmat$value)
+    corrLabelName = list('none', 'valuePretty', 'corr')[match(corrLabel, c('none','value','pair'))]
+    p = createBubblechart(corrmat, "metric1", "metric2", "value", label=corrLabelName, fill="sign",
+                          shape=shape, shapeSizeRange=shapeSizeRange, textSize=5, textVJust=0,
+                          title=title, 
+                          defaultTheme=defaultTheme,
+                          themeExtra=theme(axis.title = element_blank()))
+    
+    # force parameter facet to FALSE
+    facet = FALSE
+  }
+  else if (format=='histogram') {
+    all_hist = data.frame()
+    
+    if (type=='numeric') {
+      for(columnName in dataNum$COLUMN_NAME) {
+        hist = computeHistogram(channel, tableName, columnName, numbins=numBins, useIQR=useIQR, where=where)
+        if (nrow(hist) == 0) {
+          warning(paste("Histogram for column '", columnName, "' is empty - skipping it." ))
+        }else {
+          hist = cbind(COLUMN_NAME=columnName, hist)
+          all_hist= rbind(all_hist, hist)
+        }
+      }
+      
+      p = createHistogram(all_hist, x='bin', fill='COLUMN_NAME', facet='COLUMN_NAME', 
+                          title=title, xlab="Bins", ylab="Frequency",
+                          paletteValues = getPalette(length(unique(all_hist$COLUMN_NAME))),
+                          legendPosition=legendPosition,
+                          defaultTheme=defaultTheme, themeExtra=themeExtra)
+      
+      # force parameter facet to FALSE
+      facet = FALSE
+      
+    }
+    else if (type=='character') {
+      stop("Factor histograms are not supported by showData - use computeHistogram/createHistogram functions instead.")
+    }
+    else if (type=='temporal') {
+      stop("Datetime histograms are not supported by showData - use computeHistogram/createHistogram functions instead.")
+    }
+  }
+  else if (format=='scatterplot') {
+    # Validations
+    if (missing(sampleFraction) & missing(sampleSize)) {
+      stop("Scatterplot format requires sampleFraction or sampleSize specified.")
+    }
+    if (!missing(sampleFraction)) {
+      stopifnot(sampleFraction > 0, sampleFraction < 1)
+    }
+    if (missing(include) | length(include)<2) {
+      stop("Scatterplot format requires parameter 'include' define x and y coordiantes.")
+    }
+    if (any(!(include[1:2] %in% dataNum$COLUMN_NAME))) {
+      stop("Scatterplot format is valid for numerical data only.")
+    }
+    
+    columnList = paste(summary$COLUMN_NAME, collapse=', ')
+    if (missing(sampleFraction)) {
+      sampleFraction = min(1., sampleSize / dataNum$total_count[1])
+    }
+    sampleFractionStr = as.character(sampleFraction)
+    
+    data = sqlQuery(channel, paste0("SELECT ", columnList, 
+                                    "  FROM sample(
+                                              ON (SELECT * FROM ", tableName, where_clause, ") ",
+                                    "         SampleFraction('", sampleFractionStr, "'))"))
+    
+    p = ggplot(data, aes_string(x=include[1], y=include[2])) +
+      (if (missing(pointColour)) {
+        geom_point()
+      }else {
+        geom_point(aes_string(colour=pointColour)) 
+      }) +
+      (if (!missing(pointColour)) {
+        scale_colour_manual(values = getPalette(length(unique(data[,pointColour]))))
+      }) +
+      labs(title=title, x=include[1], y=include[2]) +
+      theme(legend.position=legendPosition) 
+    
+    if (regressionLine) {
+      p = p + geom_smooth(method=lm)
+    }
+    
+    if (!missing(facetName) & length(facetName)>0) {
+      if (length(facetName)==1) {
+        p = p + facet_wrap(as.formula(paste("~", facetName)), ncol=ncol, scales=scales)
+      }else {
+        p = p + facet_grid(as.formula(paste(facetName[[1]],"~",facetName[[2]])), scales=scales)
+      }
+      
+    }
+    
+    facet = FALSE
+  }
+  else if (format=='overview') {
+    if (type=='character' & missing(measures)) {
+      measures = c('distinct_count', 'not_null_count')
+    }
+    else if (type=='numeric' & missing(measures)) {
+      measures = c('maximum','minimum','average','deviation','0%','10%','25%','50%','75%','90%','100%','IQR')
+    }
+    
+    overview = melt(summary, id.vars='COLUMN_NAME', measure.vars=measures)
+    
+    p = ggplot(overview, aes_string(x='COLUMN_NAME')) +
+      geom_histogram(aes_string(y='value', fill='COLUMN_NAME'), stat="identity", position="dodge") +
+      scale_fill_manual(values = getPalette(nrow(summary))) +
+      facet_wrap(~variable, ncol=1, scales=scales) +
+      labs(title=title, x='Columns')
+    
+    # force facet to FALSE
+    facet = FALSE
   }
   
   if (facet) {
-    p = p + facet_wrap(~COLUMN_NAME, ncol=ncol, scales=facetScales)
+    p = p + facet_wrap(~COLUMN_NAME, ncol=ncol, scales=scales)
   }
   
-  if (format=='histogram') {
-    
-    p = ggplot(summary, aes(x = COLUMN_NAME)) +
-      geom_histogram(aes(y=distinct_count), stat="identity", position="dodge")
+  if (coordFlip) {
+    p = p + coord_flip()
   }
+  
+  p = p +
+    defaultTheme + themeExtra
   
   return(p)
 }
 
+
+#' Checks if vector or data set contains at least one element or column.
+#' Note that for data frame it will NOT check if it has 1 or more rows.
+#' 
+#' @param data vecotr to test
+#' 
+checkNonEmpty <- function(data) {
+  if (length(data) == 0L || nrow(data) == 0L) stop("Nothing to show: check lists of columns, include/except, type and plot compatibilities.")
+}

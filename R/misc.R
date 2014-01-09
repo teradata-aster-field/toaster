@@ -1,14 +1,15 @@
 require(RODBC)
 
-#' List Numeric Columns in Aster Table
+#' Filter numeric columns.
 #'
-#' This function selects numeric Aster columns.
+#' Selects numeric columns (names or rows) from table info data frame.
 #' 
-#' @param tableInfo data frame with all table columns, obtained by calling RODBC function \code{\link{sqlColumns}}
-#' @param names.only boolean flag indicating if function returns list of column names or a data frame
-#'   with columns info
+#' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}}.
 #' @param include a vector of column names to include. Output is restricted to this list.
 #' @param except a vector of column names to exclude. Output never contains names from this list.
+#' @param names logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
+#' @seealso \code{\link{getTableSummary}}
+#' @export
 #' 
 getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   numeric_types = c('integer',
@@ -27,7 +28,16 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 
 
 
-#' List character table columns
+#' Filter character columns.
+#' 
+#' Selects character columns (names or rows) from table info data frame.
+#' 
+#' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}}.
+#' @param include a vector of column names to include. Output is restricted to this list.
+#' @param except a vector of column names to exclude. Output never contains names from this list.
+#' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
+#' @seealso \code{\link{getTableSummary}}
+#' @export
 #' 
 getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   char_types = c('varchar',
@@ -38,7 +48,16 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 }
 
 
-#' List Date and Time Table Columns
+#' Filter Date and Time Table Columns
+#' 
+#' Selects date and time columns (names or rows) from table info data frame.
+#' 
+#' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}}.
+#' @param include a vector of column names to include. Output is restricted to this list.
+#' @param except a vector of column names to exclude. Output never contains names from this list.
+#' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
+#' @seealso \code{\link{getTableSummary}}
+#' @export
 #' 
 getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   datetime_types = c('date', 
@@ -48,6 +67,34 @@ getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except
                      'time with time zone')
   
   return(getColumns(tableInfo, datetime_types, names.only, include, except))
+}
+
+
+#' Filter columns by pattern
+#' 
+#' Selects columns with names matching regular expression pattern.
+#' 
+#' @param pattern character string containing a \link{regular expression} to be matched in the given table info.
+#' @param channel connection object as returned by \code{\link{odbcConnect}}. Only used in combination with \code{tableName}.
+#' @param tableName Aster table name to use. If missing then \code{tableInfo} will be used instead.
+#' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}} or \code{\link{sqlColumns}}.
+#' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
+#' @param ignore.case if TRUE case is ignored during matching, otherwise matching is case sensitive.
+#' @param invert logical. if TRUE return columns that do not match.
+#' @seealso \code{\link{grep}}
+#' @export
+#' 
+getMatchingColumns <- function (pattern, asterConn, tableName, tableInfo, names.only = TRUE, ignore.case = TRUE, invert = FALSE) {
+  
+  if (!missing(tableName)) {
+    tableInfo = sqlColumns(asterConn, tableName)
+  }
+  idx = grep(pattern, tableInfo$COLUMN_NAME, ignore.case=ignore.case, value=FALSE, invert=invert)
+  
+  if (names.only) 
+    return(tableInfo[idx, "COLUMN_NAME"])
+  else
+    return(tableInfo[idx, ])
 }
 
 
@@ -96,7 +143,7 @@ getColumns <- function (tableInfo, types, names.only, include, except) {
     return(result)
 }
 
-#' Helper Function
+#' Helper Function to construct SQL \code{WHERE} clause
 #' 
 makeWhereClause <- function (where) {
   
@@ -106,4 +153,26 @@ makeWhereClause <- function (where) {
     where_clause = paste(" WHERE", where, " ")
   
   return(where_clause)
+}
+
+#' Helper function to construct SQL \code{ORDER BY} clause
+#' 
+makeOrderByClause <- function (order) {
+  if (is.null(order))
+    orderby_clause = " "
+  else
+    orderby_clause = paste(" ORDER BY", paste(order, collapse=", "))
+  
+  return (orderby_clause)
+}
+
+#' Helper function to construct SQL \code{LIMIT} clause
+#' 
+makeLimitClause <- function (top) {
+  if (is.null(top)) 
+    limit_clause = " "
+  else
+    limit_clause = paste(" LIMIT", top)
+  
+  return (limit_clause)
 }

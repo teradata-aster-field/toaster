@@ -1,19 +1,29 @@
 Package: toaster
 Type: Package
-Title: R to Aster Desktop Analytics
+Title: Data manipulation and visualization with R and Aster Analytics
 Version: 0.1
-Date: 2013-09-30
 Author: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>
-Description: Functions to utilize Teradata Aster Big Data database and 
-    its SQL/MR analytical functions. Implements R interface to the 
-    family of Aster analytical functions that utilize built-in Map/Reduce
-    datastore and database engine by integrating them with R on desktop for
-    visualizations and data discovery with Aster Big Data database.
-Depends: R (>= 2.14)
-Imports: RODBC (>= 1.3-6), plyr (>= 1.8), reshape2 (>= 1.2.2), 
-    ggplot2 (>= 0.9.3.1), scales, RColorBrewer (>= 1.0-5), wordcloud (>= 2.4)
-Suggests: testthat
+Description: Tools to work with Aster Big Data database and Aster Analytics
+    Foundation functions in R. toaster utilizes Aster map-reduce analytical
+    functions with its big data relational store (for out of memory
+    computations) and ggplot-based graphics offering fast, consistent tools for
+    discovery and visualizations.
+    toaster suggests using ASter version 5.x or greater and requires Aster
+    Analytics Foundation 5.11 or greater.
+Depends:
+    R (>= 2.14),
+    RODBC (>= 1.3-9),
+    plyr (>= 1.8),
+    reshape2 (>= 1.2.2),
+    ggplot2 (>= 0.9.3.1),
+    scales,
+    RColorBrewer (>= 1.0-5),
+    wordcloud (>= 2.4),
+    ggmap (>= 2.3)
+Suggests:
+    testthat,
+    memoise
 License: GPL-2
 Collate:
     'toaster.R'
@@ -22,7 +32,8 @@ Collate:
     'computeCorrelations.R'
     'computeHistogram.R'
     'computeHeatmap.R'
-    'computeBarplot.R'
     'plotting.R'
+    'maps.R'
     'showData.R'
     'compute.R'
+    'computeBarchart.R'

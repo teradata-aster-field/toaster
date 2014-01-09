@@ -12,6 +12,12 @@ require(RODBC)
 #' @param aggregates SQL aggregates to compute. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}
 #' @param by for optional grouping by one or more columns for faceting or alike (effectively these elements
 #'   will be part of \code{GROUP BY ...})
+#' @param orderBy list of column names, aliases, references or their combinations to use in SQL \code{ORDER BY} 
+#' clause
+#' @param top if specified indicates number of bars to include in bar plot. In combination with \code{orderBy} 
+#'   it works as computing first \code{top} results.
+#' @param withMelt logical if TRUE then uses \link{reshape2} \code{\link{melt}} to transform result data frame
+#'  aggregate values into a molten data frame
 #' @param stringsAsFactors logical: should columns returned as character and not excluded by as. is and not converted to 
 #'   anything else be converted to factors?
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
@@ -28,7 +34,8 @@ require(RODBC)
 #' }
 computeBarchart <- function(channel, tableName, category,
                             aggregates = "COUNT(*) cnt", percent = FALSE,
-                            where = NULL, by = NULL, 
+                            where = NULL, orderBy = NULL, top = NULL, by = NULL, 
+                            withMelt = FALSE,
                             stringsAsFactors = FALSE, test = FALSE) {
   
   if (missing(tableName)) {
@@ -40,6 +47,10 @@ computeBarchart <- function(channel, tableName, category,
   }
   
   where_clause = makeWhereClause(where)
+  
+  orderby_clause = makeOrderByClause(orderBy)
+  
+  limit_clause = makeLimitClause(top)
   
   categoryExpr = sub(category, pattern = " [a-zA-Z0-9_]*$", replacement = "")
   
@@ -57,12 +68,20 @@ computeBarchart <- function(channel, tableName, category,
   
   sql = paste0("SELECT ", columnList, " FROM ", tableName,  
                where_clause,
-               " GROUP BY ", groupByList)
+               " GROUP BY ", groupByList,
+               orderby_clause, 
+               limit_clause)
   
   if (test) {
     return(sql)
   }else {
-    return(sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors))
+    df = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+    
+    if (withMelt) {
+      df = melt(df, id.vars=c(category, by))
+    }
+    
+    return(df)
   }
 
 }

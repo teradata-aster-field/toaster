@@ -1,38 +1,72 @@
-#' Compute column histogram
+#' Compute table column histogram
 #' 
-#' @param channel object as returned by \code{\link{odbcConnect}}
-#' @param tableName database table name
+#' \code{computeHistogram} uses Aster SQL/MR histogram function to compute a histogram on given 
+#' table column.
+#' 
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
+#' @param tableName Aster table name
 #' @param columnName table column name to compute histogram
+#' @param tableInfo pre-built summary of data to use (must have with \code{test=TRUE})
 #' @param columnFrequency logical indicates to build histogram of frequencies of column
+#' @param binMethod one of several methods to determine number and size of bins: \code{'manual'} indicates to use 
+#'   paramters below, both \code{'Sturges'} or \code{'Scott'} will use corresponding methods of computing number
+#'   of bins and width (see \url{http://en.wikipedia.org/wiki/Histogram#Number_of_bins_and_width}).
+#' @param binsize size (width) of discrete intervals defining histogram (all bins are equal)
+#' @param startvalue lower end (bound) of values to include in histogram
+#' @param endvalue upper end (bound) of values to include in histogram
+#' @param numbins number of bins to use in histogram
+#' @param useIQR logical indicates use of IQR interval to compute cutoff lower and upper bounds for values to be included in 
+#'   histogram: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}
 #' @param datepart field to extract from timestamp/date/time column to build histogram on
 #' @param useIQR logical indicates if to use IQR-range (Q1-1.5*IQR, Q3+1.5*IQR) to limit values profiled (TRUE by default)
+#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @param by for optional grouping by one or more values for faceting or alike
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).
+#' @param oldStyle logical indicates if old style histogram paramters are in use (before Aster AF 5.11)
 #' 
 #' @export
-computeHistogram <- function(channel, tableName, columnName, columnFrequency=FALSE,
-                             query=NULL,
-                             binsize=NULL, startvalue=NULL, endvalue=NULL, numbins=NULL,
-                             useIQR=TRUE,
-                             where=NULL, by=NULL, datepart=NULL) {
+#' @seealso computeBarchart
+#' 
+computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL, 
+                             columnFrequency = FALSE, binMethod = 'manual',
+                             binsize = NULL, startvalue = NULL, endvalue = NULL, numbins = NULL,
+                             useIQR = TRUE, datepart = NULL,
+                             where = NULL, by = NULL, test = FALSE, oldStyle = FALSE) {
+  
+  # match argument values
+  binMethod = match.arg(binMethod, c('manual', 'Sturges', 'Scott'))
+  
+  if (missing(tableName) | missing(columnName)) {
+    stop("Must provide table and column names.")
+  }
   
   where_clause = makeWhereClause(where)
   
   if (columnFrequency) {
     return (computeHistogramOfFrequencies(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, by))
+                                                where_clause, by, test))
   }
   
-  column_stats = getTableSummary(channel, tableName, include=columnName, where=where)
+  if (missing(tableInfo) & test) {
+    stop("Must provide tableInfo when test==TRUE.")
+  }
   
+  if (missing(tableInfo) | !(columnName %in% tableInfo$COLUMN_NAME)) {
+    column_stats = getTableSummary(channel, tableName, include=columnName, where=where, mock=test)
+  }else {
+    column_stats = tableInfo[tableInfo$COLUMN_NAME==columnName, ]
+  }
+    
   # check if histogram is for character column
-  # if so use SQL GROUP BY
+  # if so use computeBarchart
   if (isCharacterColumn(column_stats, columnName)) {
-    return (computeSQLHistogram(channel, tableName, columnName, 
-                                where_clause, by))
+    return (computeBarchart(channel, tableName, columnName, "COUNT(*) cnt", where_clause, by, test))
   }
   
   # set number of bins default if NULL
-  if (is.null(numbins)) {
+  if (binMethod=='manual' & is.null(numbins)) {
     numbins = 30
   }
   
@@ -42,152 +76,173 @@ computeHistogram <- function(channel, tableName, columnName, columnFrequency=FAL
     return (computeDateHistogram(channel, tableName, columnName, 
                                  binsize, startvalue, endvalue, numbins,
                                  useIQR,
-                                 where_clause, by, datepart))
+                                 where_clause, by, datepart, test))
   }
   
   # compute histogram parameters if missing
-  if (is.null(binsize) | is.null(startvalue) | is.null(endvalue)) {
+  if (binMethod=='manual') {
+    if (is.null(binsize) | is.null(startvalue) | is.null(endvalue)) {
+      IQR = column_stats[[1,"IQR"]]
+      MIN = column_stats[[1,"minimum"]]
+      MAX = column_stats[[1,"maximum"]]
+      Q1 = column_stats[[1,"25%"]]
+      Q3 = column_stats[[1,"75%"]]
     
-    IQR = column_stats[[1,"IQR"]]
-    MIN = column_stats[[1,"minimum"]]
-    MAX = column_stats[[1,"maximum"]]
-    Q1 = column_stats[[1,"25%"]]
-    Q3 = column_stats[[1,"75%"]]
+      if (is.null(startvalue)) {
+        if (useIQR) {
+          startvalue = max(MIN, Q1-1.5*IQR)
+        }else {
+          startvalue = MIN
+        }
+      }
     
-    if (is.null(startvalue)) {
-      if (useIQR) {
-        startvalue = max(MIN, Q1-1.5*IQR)
-      }else {
-        startvalue = MIN
+      if (is.null(endvalue)) {
+        if (useIQR) {
+          endvalue = min(MAX, Q3+1.5*IQR)
+        }else {
+          endvalue = MAX
+        }
+      }
+      
+      if (is.null(binsize)) {
+        binsize = (endvalue - startvalue) / numbins
       }
     }
     
-    if (is.null(endvalue)) {
-      if (useIQR) {
-        endvalue = min(MAX, Q3+1.5*IQR)
-      }else {
-        endvalue = MAX
-      }
-    }
+    histPrep = paste0(" binsize('", binsize, "')
+                        startvalue('", startvalue, "')
+                        endvalue('", endvalue, "') ")
     
-    if (is.null(binsize)) {
-      binsize = (endvalue - startvalue) / numbins
-    }
-    
-  }
-  
-  # No by clause - single histogram
-  if (is.null(by)) {
-    histogram = sqlQuery(channel,
-                       paste0("SELECT * 
-                                 FROM hist_reduce(
-                                        ON hist_map(
-                                          ON (SELECT cast(\"", columnName, "\" as numeric) ", columnName, " FROM ", tableName, where_clause,
-                                          "  ) 
-                                          binsize('", binsize, "')
-                                          startvalue('", startvalue, "')
-                                          endvalue('", endvalue, "')
-                                          value_column('", columnName, "')
-                                        ) 
-                                        partition by 1
-                                      )")
-                         
-    )
-  # By clause - multiple histograms for each value of 'by' attribute
   }else {
-    histogram = sqlQuery(channel,
-                         paste0("SELECT * 
-                                 FROM hist_reduce(
-                                        ON hist_map(
-                                          ON (SELECT \"", by, "\", cast(\"", columnName, "\" as numeric) ", columnName, " FROM ", tableName, where_clause,
-                                "  ) 
-                                          binsize('", binsize, "')
-                                          startvalue('", startvalue, "')
-                                          endvalue('", endvalue, "')
-                                          value_column('\"", columnName, "\"')
-                                          by('\"", by, "\"')
-                                        ) 
-                                        partition by \"", by, "\" 
-                                      )")
-                         
-    )
+    histPrep = paste0(" ON hist_prep(
+                          ON (SELECT ", " cast(", columnName, " as numeric) ", columnName, 
+                              " FROM ", tableName, where_clause, 
+                          "   )
+                          VALUE_COLUMN('", columnName, "') 
+                           ) as data_stat DIMENSION 
+                        BIN_SELECT('", binMethod, "') ")
   }
   
-  return (histogram)
+  if (!missing(by)) {
+    byClause = paste0(ifelse(oldStyle, "BY(", "GROUP_COLUMNS("), paste0("'", by, "'", collapse=", "), ")")
+    byPartition = paste(by, collapse=", ")
+    bySelect = paste0(byPartition, ", ")
+  }else {
+    byClause = " "
+    byPartition = " 1 "
+    bySelect = " "
+  }
+  
+  sql = paste0("SELECT * 
+                  FROM hist_reduce(
+                         ON hist_map(
+                           ON (SELECT ", bySelect, " cast(", columnName, " as numeric) ", columnName, 
+                               " FROM ", tableName, where_clause,
+                           "  ) as data_input PARTITION BY ANY ",
+                           histPrep,
+                       "   VALUE_COLUMN('", columnName, "') ",
+                           byClause,
+                       "   ) 
+                         partition by ", byPartition,
+                      ")")
+  
+#   # No by clause - single histogram
+#   if (is.null(by)) {
+#     sql = paste0("SELECT * 
+#                     FROM hist_reduce(
+#                            ON hist_map(
+#                              ON (SELECT cast(\"", columnName, "\" as numeric) ", columnName, " FROM ", tableName, where_clause,
+#                          "   ) 
+#                              binsize('", binsize, "')
+#                              startvalue('", startvalue, "')
+#                              endvalue('", endvalue, "')
+#                              value_column('", columnName, "')
+#                            ) 
+#                            partition by 1
+#                         )")
+#                          
+#   # By clause - multiple histograms for each value of 'by' attribute
+#   }else {
+#     sql = paste0("SELECT * 
+#                     FROM hist_reduce(
+#                            ON hist_map(
+#                              ON (SELECT \"", by, "\", cast(\"", columnName, "\" as numeric) ", columnName, " FROM ", tableName, where_clause,
+#                             "   ) 
+#                              binsize('", binsize, "')
+#                              startvalue('", startvalue, "')
+#                              endvalue('", endvalue, "')
+#                              value_column('\"", columnName, "\"')
+#                              GROUP_COLUMNS('\"", by, "\"')
+#                            ) 
+#                            partition by \"", by, "\" 
+#                          )")                         
+#   }
+  
+  if (test) {
+    return (sql)
+  }else {
+    return (sqlQuery(channel, sql))
+  }
+  
 }
 
 computeHistogramOfFrequencies <- function(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, by) {
+                                                where_clause, by, test) {
   
   if (is.null(by)) {
-    histogram = sqlQuery(channel,
-                         paste0("SELECT * 
-                                 FROM hist_reduce(
-                                        ON hist_map(
-                                          ON (SELECT \"", columnName, "\", count(*) cnt 
-                                                FROM ", tableName, where_clause,
-                                              " GROUP BY 1 
-                                            )
-                                          binsize('", binsize, "')
-                                          startvalue('", startvalue, "')
-                                          endvalue('", endvalue, "')
-                                          value_column('cnt')                                          
-                                        ) 
-                                        partition by 1 
-                                      )")
-    )
+     sql = paste0("SELECT * 
+             FROM hist_reduce(
+                    ON hist_map(
+                      ON (SELECT \"", columnName, "\", count(*) cnt 
+                            FROM ", tableName, where_clause,
+                          " GROUP BY 1 
+                        )
+                      binsize('", binsize, "')
+                      startvalue('", startvalue, "')
+                      endvalue('", endvalue, "')
+                      value_column('cnt')                                          
+                    ) 
+                    partition by 1 
+                  )")
+
   }else {
-    histogram = sqlQuery(channel,
-                         paste0("SELECT * 
-                                 FROM hist_reduce(
-                                        ON hist_map(                                          
-                                          ON (SELECT \"", by, "\", \"", columnName, "\", count(*) cnt 
-                                                FROM ", tableName, where_clause,
-                                "               GROUP BY 1, 2  
-                                            )
-                                          binsize('", binsize, "')
-                                          startvalue('", startvalue, "')
-                                          endvalue('", endvalue, "')
-                                          value_column('cnt')
-                                          by('\"", by, "\"')
-                                        ) 
-                                        partition by \"", by, "\" 
-                                      )")
-    )
+     sql = paste0("SELECT * 
+             FROM hist_reduce(
+                    ON hist_map(                                          
+                      ON (SELECT \"", by, "\", \"", columnName, "\", count(*) cnt 
+                            FROM ", tableName, where_clause,
+            "               GROUP BY 1, 2  
+                        )
+                      binsize('", binsize, "')
+                      startvalue('", startvalue, "')
+                      endvalue('", endvalue, "')
+                      value_column('cnt')
+                      by('\"", by, "\"')
+                    ) 
+                    partition by \"", by, "\" 
+                  )")
   }
   
-  return (histogram)
+  if (test) {
+    return (sql)
+  }else {
+    return (histogram = sqlQuery(channel,sql))
+  }
   
 }
 
-computeSQLHistogram <- function(channel, tableName, columnName, 
-                                where_clause, by=NULL) {
-  
-  if (is.null(by)) {
-    histogram = sqlQuery(channel,
-                         paste0("SELECT \"", columnName, "\", COUNT(*) cnt 
-                                   FROM ", tableName, where_clause,
-                                "GROUP BY 1 
-                                 ORDER BY 2 DESC ")
-                         )
-  }else {
-    histogram = sqlQuery(channel,
-                         paste0("SELECT \"", by, "\" by, \"", columnName, "\", COUNT(*) cnt
-                                   FROM ", tableName, where_clause,
-                                "GROUP BY 1, 2
-                                 ORDER BY 1 ASC, 3 DESC"))
-  }
-  
-  return (histogram)
-}
 
 computeDateHistogram <- function(channel, tableName, columnName, 
                                  binsize=NULL, startvalue=NULL, endvalue=NULL, numbins=NULL,
                                  useIQR=NULL,
-                                 where_clause, by=NULL, datepart='DAY') {
+                                 where_clause, by=NULL, datepart='DAY', test) {
   
   if (is.null(binsize) | is.null(startvalue) | is.null(endvalue)) {
+    
+    if (test) {
+      stop("Must have parameters binsize, startvalue, and endvalue specified for datetime types and test==TRUE.")
+    }
     
     # compute percentiles first
     percentiles = sqlQuery(channel,
@@ -229,23 +284,26 @@ computeDateHistogram <- function(channel, tableName, columnName,
   
   # No by clause - single histogram
   if (is.null(by)) {
-    histogram = sqlQuery(channel,
-                         paste0("SELECT * 
-                                 FROM hist_reduce(
-                                        ON hist_map(
-                                          ON (SELECT EXTRACT('", datepart, "' FROM \"", columnName, "\" ) dp FROM ", tableName, where_clause,
-                                "  ) 
-                                          binsize('", binsize, "')
-                                          startvalue('", startvalue, "')
-                                          endvalue('", endvalue, "')
-                                          value_column('dp')
-                                        ) 
-                                        partition by 1
-                                      )")
+       sql = paste0("SELECT * 
+                       FROM hist_reduce(
+                              ON hist_map(
+                                ON (SELECT EXTRACT('", datepart, "' FROM \"", columnName, "\" ) dp FROM ", tableName, where_clause,
+                      "  ) 
+                                binsize('", binsize, "')
+                                startvalue('", startvalue, "')
+                                endvalue('", endvalue, "')
+                                value_column('dp')
+                              ) 
+                              partition by 1
+                            )")
                          
-    )
   # By clause - multiple histograms for each value of 'by' attribute
   }
   
-  return (histogram)
+  if (test) {
+    return(sql)
+  }else {
+    return (sqlQuery(channel, sql))
+  }
+  
 }

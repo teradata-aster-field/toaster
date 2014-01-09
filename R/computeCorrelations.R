@@ -1,35 +1,51 @@
 #' Compute correlations between all or specified numeric columns in a table
 #'
-#' @param channel object as returned by \code{\link{odbcConnect}}
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name
-#' @param include a vector of column names to include. Output is restricted to this list.
-#' @param except a vector of column names to exclude. Output never contains names from this list.
-#' 
+#' @param tableInfo pre-built summary of data to use (must have with \code{test=TRUE})
+#' @param include a vector of column names to include. Output never contains attributes other than in the list.
+#' @param except a vector of column names to exclude. Output never contains attributes from the list.
+#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @export
-computeCorrelations <- function(channel, tableName, include=NULL, except=NULL, where=NULL) {
-  table_info = sqlColumns(channel, tableName)
+computeCorrelations <- function(channel, tableName, tableInfo, include, except=NULL, where=NULL, test=FALSE) {
   
-  columns = getNumericColumns(table_info, names.only=TRUE, include=include, except=except)
+  if (test & missing(tableInfo)) {
+    stop("Must provide tableInfo when test==TRUE.")
+  }
   
-  correlations = subset(expand.grid(columns, columns, stringsAsFactors = FALSE),
-                        subset=Var1<Var2)
+  if (missing(tableInfo)) {
+    tableInfo = sqlColumns(channel, tableName)
+  }
+  
+  columns = getNumericColumns(tableInfo, names.only=TRUE, include=include, except=except)
+  
+  correlations = expand.grid(columns, columns, stringsAsFactors = FALSE)
+  correlations = with(correlations, correlations[Var1<Var2,])
   correlations = apply(correlations, 1, function(x) paste(x, collapse=':'))
   
   sqlmr_correlations = paste(correlations, collapse="', '")
-  sql_corr_columns = paste(columns, collapse="\", \"")
+  sql_corr_columns = paste(columns, collapse=", ")
   
   where_clause = makeWhereClause(where)
   
-  rs_corrs = sqlQuery(channel, 
-                      paste0("SELECT * FROM corr_reduce(
+   
+  sql = paste0("SELECT * FROM corr_reduce(
                   ON corr_map(
-                    ON ( SELECT \"", sql_corr_columns, "\" FROM ", tableName, where_clause, 
+                    ON ( SELECT ", sql_corr_columns, " FROM ", tableName, where_clause, 
                     " )
                     columnpairs( '", sqlmr_correlations, "')
                     key_name('key')
                   )
                   partition by key
-                )"))
+                )")
+  
+  if (test) {
+    return (sql)
+  }else {
+    rs_corrs = sqlQuery(channel, sql)
+  }
   
   rs_corrs = cbind(rs_corrs, t(sapply(rs_corrs$corr, 
                                       FUN=function(v) unlist(strsplit(toString(v), split=":")))))
@@ -44,6 +60,10 @@ computeCorrelations <- function(channel, tableName, include=NULL, except=NULL, w
   # produce sign column
   signs = ifelse(sign(rs_corrs$value)>0, "1", ifelse(sign(rs_corrs$value)<0, "-1", "0"))
   rs_corrs$sign = factor(signs, levels=c("-1","0","1"), ordered=TRUE)
+  
+  # make metric columns ordered factors with the same levels (for sorting in plots)
+  rs_corrs$metric1 = factor(rs_corrs$metric1, levels=unique(rs_corrs$metric1), ordered=TRUE)
+  rs_corrs$metric2 = factor(rs_corrs$metric2, levels=unique(rs_corrs$metric1), ordered=TRUE)
   
   return(rs_corrs)
 }

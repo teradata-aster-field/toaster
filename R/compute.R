@@ -1,7 +1,6 @@
-#' Compute aggregates on a table.
+#' Compute table aggregates.
 #' 
-#' Computes aggregates by means of \code{SELECT ... GROUP BY} computation on Aster
-#' table.
+#' Computes aggregates by means of SQL \code{SELECT ... GROUP BY} on Aster table.
 #' 
 #' @param channel object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
@@ -12,7 +11,7 @@
 #'   anything else be converted to factors?
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
-#'   
+#' @aliases computeAggregates  
 #' @examples
 #' \donttest{
 #' data = compute(asterConn, "teams_enh",

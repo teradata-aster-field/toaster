@@ -12,7 +12,11 @@ Description: Tools to work with Aster Big Data database and Aster Analytics
     toaster suggests using ASter version 5.x or greater and requires Aster
     Analytics Foundation 5.11 or greater.
 Depends:
-    R (>= 2.14),
+    R (>= 2.14)
+Suggests:
+    testthat (>= 0.2),
+    memoise
+Imports:
     RODBC (>= 1.3-9),
     plyr (>= 1.8),
     reshape2 (>= 1.2.2),
@@ -21,9 +25,6 @@ Depends:
     RColorBrewer (>= 1.0-5),
     wordcloud (>= 2.4),
     ggmap (>= 2.3)
-Suggests:
-    testthat,
-    memoise
 License: GPL-2
 Collate:
     'toaster.R'

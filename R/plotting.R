@@ -330,13 +330,15 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
     themeExtra
   
   # plot the right-most labels 
+  dataTo = with(datam, datam[variable == rankTo, ])
   sg1 = sg + geom_line(size=lineSize) + 
-    geom_text(data = subset(datam, variable == rankTo), 
+    geom_text(data = dataTo,
               aes_string(x = 'fvariable', label='label_right'), size = textSize, hjust = 0) 
   
   # plot the left-most labels  
+  dataFrom = with(datam, datam[variable == rankFrom, ])
   sg1 = sg1 + 
-    geom_text(data = subset(datam, variable == rankFrom), 
+    geom_text(data = dataFrom,
               aes_string(x = 'fvariable', label='label_left'), size = textSize, hjust = 1)
   
   return(sg1)

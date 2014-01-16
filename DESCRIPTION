@@ -23,6 +23,7 @@ Imports:
     ggplot2 (>= 0.9.3.1),
     scales,
     RColorBrewer (>= 1.0-5),
+    grid,
     wordcloud (>= 2.4),
     ggmap (>= 2.3)
 License: GPL-2

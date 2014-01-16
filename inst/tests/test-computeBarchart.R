@@ -16,36 +16,31 @@ test_that("computeBarchart throws errors", {
 
 test_that("computeBarchart SQL is correct", {
   
-  expect_equal(replaceWhite(
-               computeBarchart(channel=NULL, tableName="pitching", category="playerid", test=TRUE)),
-               replaceWhite(
-                 "SELECT playerid, COUNT(*) cnt
-                    FROM pitching
-                   GROUP BY playerid ")
+  expect_equal_normalized(
+               computeBarchart(channel=NULL, tableName="pitching", category="playerid", test=TRUE),
+               "SELECT playerid, COUNT(*) cnt
+                  FROM pitching
+                 GROUP BY playerid "
                )
   
-  expect_equal(replaceWhite(
+  expect_equal_normalized(
                computeBarchart(channel=NULL, tableName="pitching", category="playerid", 
                                aggregates=c("AVG(era) avg_era", "AVG(w) avg_w"), where="decadeid between 1980 and 2010",
-                               by=c("lgid", "decadeid"), test=TRUE)
-               ),
-               replaceWhite(
-                 "SELECT playerid, lgid, decadeid, AVG(era) avg_era, AVG(w) avg_w 
-                    FROM pitching 
-                   WHERE decadeid between 1980 and 2010 
-                   GROUP BY playerid, lgid, decadeid ")
+                               by=c("lgid", "decadeid"), test=TRUE),
+               "SELECT playerid, lgid, decadeid, AVG(era) avg_era, AVG(w) avg_w 
+                  FROM pitching 
+                 WHERE decadeid between 1980 and 2010 
+                 GROUP BY playerid, lgid, decadeid "
                )
   
-  expect_equal(replaceWhite(
+  expect_equal_normalized(
     computeBarchart(channel=NULL, tableName="pitching", category="playerid", 
                     aggregates=c("AVG(era) avg_era", "AVG(w) avg_w"), where="decadeid between 1980 and 2010",
-                    test=TRUE)
-  ),
-               replaceWhite(
+                    test=TRUE),
                  "SELECT playerid, AVG(era) avg_era, AVG(w) avg_w 
                     FROM pitching 
                    WHERE decadeid between 1980 and 2010 
-                   GROUP BY playerid ")
+                   GROUP BY playerid "
   )
   
   
@@ -53,43 +48,38 @@ test_that("computeBarchart SQL is correct", {
 
 test_that("computeBarchar with Order by and Limit is correct", {
   
-  expect_equal(replaceWhite(
+  expect_equal_normalized(
     computeBarchart(channel=NULL, tableName="pitching", category="playerid", 
-                    orderBy=c('decadeid'), top=100, test=TRUE)),
-              replaceWhite(
+                    orderBy=c('decadeid'), top=100, test=TRUE),
                 "SELECT playerid, COUNT(*) cnt
                    FROM pitching
                   GROUP BY playerid
                   ORDER BY decadeid
-                  LIMIT 100")
+                  LIMIT 100"
               )
   
-  expect_equal(replaceWhite(
+  expect_equal_normalized(
     computeBarchart(channel=NULL, tableName="pitching", category="playerid", 
                     aggregates=c("AVG(era) avg_era", "AVG(w) avg_w"), where="decadeid between 1980 and 2010",
                     by=c("lgid", "decadeid"), 
-                    orderBy=c('decadeid'), top=100, test=TRUE)
-  ),
-               replaceWhite(
+                    orderBy=c('decadeid'), top=100, test=TRUE),
                  "SELECT playerid, lgid, decadeid, AVG(era) avg_era, AVG(w) avg_w 
                     FROM pitching 
                    WHERE decadeid between 1980 and 2010 
                    GROUP BY playerid, lgid, decadeid
                    ORDER BY decadeid
-                   LIMIT 100")
+                   LIMIT 100"
   )
   
-  expect_equal(replaceWhite(
+  expect_equal_normalized(
     computeBarchart(channel=NULL, tableName="pitching", category="playerid", 
                     aggregates=c("AVG(era) avg_era", "AVG(w) avg_w"), where="decadeid between 1980 and 2010",
-                    orderBy=c('decadeid'), top=100, test=TRUE)
-  ),
-               replaceWhite(
+                    orderBy=c('decadeid'), top=100, test=TRUE),
                  "SELECT playerid, AVG(era) avg_era, AVG(w) avg_w 
                     FROM pitching 
                    WHERE decadeid between 1980 and 2010 
                    GROUP BY playerid 
                    ORDER BY decadeid
-                   LIMIT 100")
+                   LIMIT 100"
   )
 })

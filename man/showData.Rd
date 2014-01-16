@@ -1,0 +1,228 @@
+\name{showData}
+\alias{showData}
+\title{Plots higher level visulizations of basic statistics and relationships for the whole or part of the table data.}
+\usage{
+  showData(channel = NULL, tableName = NULL,
+    tableInfo = NULL, include = NULL, except = NULL,
+    type = "numeric", format = "histgoram",
+    measures = NULL,
+    title = paste("Table", toupper(tableName), format, "of", type, "columns"),
+    numBins = 30, useIQR = FALSE, extraPoints = NULL,
+    extraPointShape = 15, sampleFraction = NULL,
+    sampleSize = NULL, pointColour = NULL,
+    facetName = NULL, regressionLine = FALSE,
+    corrLabel = "none", digits = 2, shape = 21,
+    shapeSizeRange = c(1, 10), facet = FALSE, ncol = 4,
+    scales = ifelse(facet & format == "boxplot", "free", "fixed"),
+    coordFlip = FALSE, paletteName = "Set1", baseSize = 12,
+    baseFamily = "sans", legendPosition = "none",
+    defaultTheme = theme_bw(base_size = baseSize),
+    themeExtra = NULL, where = NULL)
+}
+\arguments{
+  \item{channel}{connection object as returned by
+  \code{\link{odbcConnect}}}
+
+  \item{tableName}{Aster table name}
+
+  \item{tableInfo}{pre-built summary of data to use
+  (parameters \code{channel}, \code{tableName},
+  \code{where} will not apply)}
+
+  \item{include}{a vector of column names to include.
+  Output never contains attributes other than in the list.}
+
+  \item{except}{a vector of column names to exclude. Output
+  never contains attributes from the list.}
+
+  \item{type}{what type of data to visualize: numerical
+  (\code{"numeric"}), character (\code{"character"} or
+  date/time (\code{"temporal"})}
+
+  \item{format}{type of plot to use: \code{'overview'},
+  \code{'histogram'}, \code{'boxplot'}, \code{'corr'} for
+  correlation matrix or \code{'scatterplot'}}
+
+  \item{measures}{applies to format \code{'overview'} only.
+  Use one or more of the following with \code{'numieric'}
+  \code{type}:
+  maximum,minimum,average,deviation,0%,10%,25%,50%,75%,90%,100%,IQR.
+  Use one or more of the following with \code{'character'}
+  \code{type}: distinct_count,not_null_count. By default
+  all measures above are used per respeictive type.}
+
+  \item{corrLabel}{column name to use to label correlation
+  table: \code{'value'}, \code{'pair'}, or \code{'none'}
+  (default)}
+
+  \item{digits}{number of digits to use in correlation
+  table text (when displaying correlation coefficient
+  value)}
+
+  \item{shape}{shape of correlation figure (default is 21)}
+
+  \item{shapeSizeRange}{correlation figure size range}
+
+  \item{facet}{Logical - if TRUE then divide plot into
+  facets for each COLUMN (defualt is FALSE - no facets).
+  When set to TRUE and format is 'boxplot' scales defalut
+  changes from 'fixed' to 'free'. Has no effect when format
+  is 'corr'.}
+
+  \item{numBins}{number of bins to use in histogram(s)}
+
+  \item{useIQR}{logical indicates use of IQR interval to
+  compute cutoff lower and upper bounds for values to be
+  included in boxplot or histogram: \code{[Q1 - 1.5 * IQR,
+  Q3 + 1.5 * IQR], IQR = Q3 - Q1}, if FALSE then maximum
+  and minimum are bounds (all values)}
+
+  \item{extraPoints}{vector contains names of extra points
+  to add to boxplot lines.}
+
+  \item{extraPointShape}{extra point shape (see 'Shape
+  examples' in \link{aes_linetype_size_shape}).}
+
+  \item{sampleFraction}{sample fraction to use in the
+  sampling of data for \code{'scatterplot'}}
+
+  \item{sampleSize}{if \code{sampleFraction} is not
+  specified then size of sample must be specified for
+  \code{'scatterplot'}}
+
+  \item{pointColour}{name of column with values to colour
+  points in \code{'scatterplot'}}
+
+  \item{facetName}{name(s) of the column(s) to use for
+  faceting when \code{format} is \code{'scatterplot'}. When
+  single name then facet wrap kind of faceting is used.
+  When two names then facet grid kind of faceting is used.
+  It overrides \code{facet} value in case of
+  \code{'scatterplot'}. Must be part of column list (e.g.
+  \code{include})}
+
+  \item{regressionLine}{logical if TRUE then adds
+  regression line to scatterplot}
+
+  \item{ncol}{Number of columns in facet wrap}
+
+  \item{scales}{Are scales shared across all facets:
+  \code{"fixed"} - all are the same, \code{"free_x"} - vary
+  across rows (x axis), \code{"free_y"} - vary across
+  columns (Y axis) (default), \code{"free"} - both rows and
+  columns (see in \code{facet_wrap} parameter
+  \code{scales}. Also see parameter \code{facet} for
+  details on default values. )}
+
+  \item{coordFlip}{logical flipped cartesian coordinates so
+  that horizontal becomes vertical, and vertical,
+  horizontal (see \link{coord_flip}).}
+
+  \item{paletteName}{palette name to use (run
+  \code{display.brewer.all} to see available palettes)}
+
+  \item{legendPosition}{legend position}
+
+  \item{defaultTheme}{plot theme to use, default is
+  \code{theme_bw}}
+
+  \item{themeExtra}{any additional \code{ggplot2} theme
+  attributes to add}
+
+  \item{where}{SQL WHERE clause limiting data from the
+  table (use SQL as if in WHERE clause but omit keyword
+  WHERE)}
+}
+\value{
+  A ggplot visual object
+}
+\description{
+  \code{showData} is the basic plotting function in the
+  \code{toaster} package, designed to produce set of
+  standard visualizations (see parameter \code{format}) in
+  a single call. Depending on the \code{format} it is a
+  wrapper to other functions or simple plotting function.
+  It does all work in a single call by combining database
+  round-trip (if necessary) and plotting functionality.
+}
+\details{
+  All formats support parameters \code{include} and
+  \code{except} to include and exclude table columns
+  respectively. The \code{include} list guarantees that no
+  columns outside of the list will be included in the
+  results. The \code{excpet} list guarantees that its
+  columns will not be included in the results.
+
+  Format \code{overview}: produce set of histograms - one
+  for each statistic measure - across table columns. Thus,
+  it allows to compare averages, IQR, etc. across all or
+  selected columns.
+
+  Format \code{boxplot}: produce boxplots for table
+  columns. Boxplots can belong to the same plot or can be
+  placed inside facet each (see logical parameter
+  \code{facet}).
+
+  Format \code{histogram}: produce histograms - one for
+  each column - in a single plot or in facets (see logical
+  parameter \code{facet}).
+
+  Format \code{corr}: produce correlation matrix of numeric
+  columns.
+
+  Format \code{scatterplot}: produce scatterplots of
+  sampled data.
+}
+\examples{
+\donttest{
+# get summaries to save time by reusing it
+pitchingInfo = getTableSummary(asterConn, 'pitching_enh')
+battingInfo = getTableSummary(asterConn, 'batting_enh')
+
+# Boxplots
+# all numerical attributes
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot')
+# select certain attributes only
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot",
+         include=c('wp','whip', 'w', 'sv', 'sho', 'l', 'ktobb', 'ibb', 'hbp', 'fip', 'era', 'cg', 'bk', 'baopp'))
+# exclude certain attributes
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot",
+         except=c('item_id','ingredient_item_id', 'facility_id', 'rownum'))
+# flip coordinates
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot', coordFlip=TRUE)
+
+# boxplot with facet (facet_wrap)
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
+         include=c('BFP','ER','H','IPouts','R','SO'), facet=TRUE, scales='free')
+
+# Correlation matrix
+# on all numerical attributes
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='corr')
+
+# correlation matrix on selected attributes
+# with labeling by attribute pair name and
+# controlling size of correlation bubbles
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('ERA','H','HR','GS','G','SV'),
+         format='corr', corrLabel='pair', shapeSizeRange=c(5,25))
+
+# Histogram on all numeric attributes
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('HR'), format='histogram')
+
+# Overview is a histogram of statistical measures across attributes
+showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='overview', type='numeric')
+
+# Scatterplots
+# Scatterplot on pair of numerical attributes
+# with facet_wrap (single-valued facetName)
+showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
+         sampleSize=10000, facetName='activity_factor_id',
+         where="activity_factor_id in (601, 611)")
+
+# Scatterplot on pair of numerical attributes
+# with facet_grid (two-valued facetName)
+showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
+         sampleSize=10000, facetName=c('activity_factor_id','facility_id'),
+         where="activity_factor_id in (601, 611) and facility_id in (1121,1219)")
+}
+}
+

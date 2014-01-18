@@ -54,4 +54,15 @@ test_that("computeHeatmap SQL is correct", {
                             GROUP BY 1, 2, 3"
   )
   
+  expect_equal_normalized(computeHeatmap(channel=NULL, tableName="teams_enh", 
+                                         dimension1='franchid', dimension2='decadeid', 
+                                         aggregateFun='avg(w)', aggregateAlias='w',
+                                         where="decadeid >= 1950", by='lgid',
+                                         test=TRUE),
+                          "SELECT lgid, franchid, decadeid, avg(w) w
+                             FROM teams_enh
+                            WHERE decadeid >= 1950
+                            GROUP BY 1, 2, 3"
+  )
+  
 })

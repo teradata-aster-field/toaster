@@ -25,4 +25,15 @@ test_that("compute SQL is correct", {
                              FROM teams_enh  
                             GROUP BY name || ', ' || park, lgid, teamid, decadeid"                          
                           )
+  
+  expect_equal_normalized(compute(asterConn, "teams_enh",
+                                  by = c("teamid", "decadeid"),
+                                  aggregates = c("min(rank) minrank", "max(rank) maxrank"),
+                                  where = "lgid = 'AL'",
+                                  test = TRUE),
+                          "SELECT teamid, decadeid, min(rank) minrank, max(rank) maxrank
+                             FROM teams_enh
+                            WHERE lgid = 'AL'
+                            GROUP BY teamid, decadeid"
+                          )
 })

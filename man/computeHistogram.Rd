@@ -49,10 +49,6 @@
   \item{datepart}{field to extract from timestamp/date/time
   column to build histogram on}
 
-  \item{useIQR}{logical indicates if to use IQR-range
-  (Q1-1.5*IQR, Q3+1.5*IQR) to limit values profiled (TRUE
-  by default)}
-
   \item{where}{SQL WHERE clause limiting data from the
   table (use SQL as if in WHERE clause but omit keyword
   WHERE)}

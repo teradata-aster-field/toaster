@@ -7,7 +7,7 @@
 #' @param tableName table name.
 #' @param include a vector of column names to include. Output never contains attributes other than in the list.
 #' @param except a vector of column names to exclude. Output never contains attributes from the list.
-#' @param modeValue logical indicates if mode values should be computed (default is FALSE).
+#' @param modeValue logical indicates if mode values should be computed.
 #' @param percentiles list of percentiles (integers between 0 and 100) to collect (always collects 25th and 75th 
 #'   for IQR calculation). There is no penalty in specifying more percentiles as they get calculated in a single call 
 #'   for each column - no matter how many different values are requested.
@@ -141,7 +141,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
     table_info[column_idx, "maximum_str"] = column_stats[[1,"maximum"]]
   }
   
-  # Collect modes
+  # Compute modes
   if(modeValue) {
     for(column_name in table_info$COLUMN_NAME) {
       mode = sqlQuery(channel,

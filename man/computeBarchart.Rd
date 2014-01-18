@@ -27,6 +27,12 @@
   for faceting or alike (effectively these elements will be
   part of \code{GROUP BY ...})}
 
+  \item{percent}{logical:}
+
+  \item{where}{SQL WHERE clause limiting data from the
+  table (use SQL as if in WHERE clause but omit keyword
+  WHERE)}
+
   \item{orderBy}{list of column names, aliases, references
   or their combinations to use in SQL \code{ORDER BY}
   clause}

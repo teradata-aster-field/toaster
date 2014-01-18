@@ -4,11 +4,11 @@
 #' 
 #' @param channel object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
-#' @param by column names and expressions to group aggregates (with SQL \code{GROUP BY ...}). It may be 
-#'   table column names, valid SQL expressions and can contain otional alias (e.g. \code{"UPPER(car_make) make"})
+#' @param by column names and/or expressions to use as aggregates (with SQL \code{GROUP BY ...}). Each can be 
+#'   column name or valid SQL expression with otional alias (e.g. \code{"UPPER(car_make) make"})
 #' @param aggregates SQL aggregates to compute. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}
-#' @param stringsAsFactors logical: should columns returned as character and not excluded by as. is and not converted to 
-#'   anything else be converted to factors?
+#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE) 
+#' @param stringsAsFactors logical: should character vectors returned as part of results be converted to factors? 
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @aliases computeAggregates  
@@ -31,7 +31,7 @@ compute <- function(channel, tableName,
     stop("Must have table name.")
   }
   
-  if (missing(by) | length(by) == 0) {
+  if (missing(by) || length(by) == 0) {
     stop("Must have one or more columns/expressions in 'by' parameter.")
   }
   

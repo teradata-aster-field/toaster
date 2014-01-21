@@ -1,7 +1,7 @@
 Package: toaster
 Type: Package
 Title: Data manipulation and visualization with R and Aster Analytics
-Version: 0.1
+Version: 0.2
 Author: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Description: Tools to work with Aster Big Data database and Aster Analytics

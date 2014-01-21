@@ -33,18 +33,29 @@
 #'   is used to place each data point on the map. This parameter is ignored if \code{locationName} is defined.
 #' @param metricName name of the column to use for the artifact metric when displaying data.
 #' @param scaleRange a numeric vector of lenght 2 that specifies the minimum and maximum size of the
-#'   plotting symbol after transformation (see @param range in \code{\link{scale_size}})
-#' @param labelName name of the column to use for the artifact label when displaying data. 
-#' @param shapeColour color for shape.
-#' @param textColour color for text.
-#' @param textFamily font family to use (when available).
-#' @param textFace font style to apply to text: 'plain' (default), 'bold', 'italic', or 'bold.italic'.
+#'   plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}})
+#' @param labelName name of the column to use for the artifact label text when displaying data. 
+#' @param shapeColour color of of artifact placed on map.
+#' @param textColour color of artifact labels on map.
+#' @param textFamily font family (when available) to use for artfiact labels.
+#' @param textFace font style to apply to artifact labels: 'plain' (default), 'bold', 'italic', or 'bold.italic'.
+#' @param textSize font size of artifact labels.
+#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
+#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
+#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
+#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}).
+#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
+#'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
+#'        parameter \code{scales} )
 #' @param geocodeFun geocode function. Default is \code{\link{geocode}} but due to Google API 
-#'   restrictions use memoised version, e.g. \code{memoise(geocode)}, instead (see package \code{\link{memoise}}).
+#'   restrictions use memoised version, e.g. \code{memoise(geocode)}, instead (see package \pkg{memoise}).
 #' @param getmapFun get map function. Defayult is \code{\link{get_map}} but due to map APIs restrictions use memoised 
-#'   version, e.g. \code{memose(get_map)}, instead (see package \code{\link{memoise}})
+#'   version, e.g. \code{memose(get_map)}, instead (see package \pkg{memoise})
 #' @param urlonly return url only
 #' @param api_key an api key for cloudmade maps
+#' @param baseSize base font size
+#' @param baseFamily base font family
+#' @param title plot title
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
@@ -76,11 +87,11 @@ createMap <- function(data,
                       zoom = NULL,
                       locationName = NULL, 
                       lonName = "LONGITUDE", latName = "LATITUDE",
-                      facet = NULL, ncol = 1, facetScales = "fixed",
                       metricName = NULL, labelName = NULL, 
                       scaleRange = c(1,6),
-                      shapeColour = "gold2", 
+                      shapeColour = "red",
                       textColour = "black", textFamily='mono' , textFace="plain", textSize=4,
+                      facet = NULL, ncol = 1, facetScales = "fixed",
                       geocodeFun = memoise(geocode), getmapFun = get_map,
                       urlonly = FALSE, api_key = NULL,  
                       baseSize = 12, baseFamily = "sans", 
@@ -186,15 +197,4 @@ createMap <- function(data,
           axis.title.y = element_blank())
   
   return(p)
-}
-
-
-#' Creates map with 48 contiguous US states.
-#' 
-#' @param states vector of location strings to include in the map. Usually are names of states,
-#'   cities, counties or mix. Each location will be geocoded against Google API and average of 
-#'   resulting longitudes and lattitudes used. Use \code{zoom} and \code{scale} to fit them all
-#'   on  resulting map. If you dataset has been geocoded you may want not to use it.
-createUS48Map <- function() {
-  
 }

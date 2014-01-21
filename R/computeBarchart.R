@@ -5,7 +5,7 @@ require(RODBC)
 #' Computes data suitable for bar chart plotting with single category corresponding to a column or 
 #' an expression. Function can compute arbitrary number of aggregates.
 #' 
-#' @param channel object as returned by \code{\link{odbcConnect}}
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
 #' @param category column name or expression corresponding to bar chart category. Name may be 
 #'   valid SQL expression and can contain otional alias (e.g. \code{"UPPER(car_make) make"})

@@ -160,10 +160,18 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
 }
 
-#' Test if table has lookup column in another table
+#' convinience function to test if table has indeed a lookup column in another table.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param tableName data table name.
+#' @param columnName column name in data table.
+#' @param lookupTable lookup table name.
+#' @param lookupColumn column name in lookup table.
+#' @param ignoreCase ignore case when comparing data. May produce slower results, especially on 
+#'   partitioned data.
 #'
 #' @export
-isLookupForColumn  <- function(channel, tableName, columnName, lookupTable, lookupColumn=NULL,
+isLookupForColumn  <- function(channel, tableName, columnName, lookupTable, lookupColumn=columnName,
                                ignoreCase=FALSE) {
   
   # ignore case or not
@@ -179,7 +187,7 @@ isLookupForColumn  <- function(channel, tableName, columnName, lookupTable, look
                     )
   totalValues = result$cnt[[1]]
   
-  # check number of distinct values in the data set that have lookups in lookup table 
+  # check number of distinct values in lookup table 
   result = sqlQuery(channel,
                     paste0("SELECT COUNT(DISTINCT ", columnName, ") cnt 
                               FROM ", tableName, 

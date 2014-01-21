@@ -1,6 +1,8 @@
 \name{createPopPyramid}
 \alias{createPopPyramid}
-\title{Create population pyramid type of histogram.}
+\title{Create population pyramid type of histogram. Population pyramid consists of 2 parallel histograms
+defined on the same bin set and placed on the same vertical axis with one set of bars on the left and the
+other on the right.}
 \usage{
   createPopPyramid(data, bin = "bin_start",
     count = "bin_count", divideBy, values = NULL,
@@ -12,17 +14,40 @@
     themeExtra = NULL)
 }
 \arguments{
-  \item{data}{data frame contains computed histogram}
+  \item{data}{data frame contains 2 histograms for the same
+  bins. Bins are divided into 2 sets with parameter
+  \code{divideBy}.}
 
-  \item{bin}{histogram bin column name}
+  \item{bin}{name of a column containing bin labels or
+  interval values}
 
-  \item{count}{histogram bin count column name}
+  \item{count}{name of a column containing bin values or
+  counts (bin size)}
 
-  \item{divideBy}{column to divide histogram into two
-  halves}
+  \item{divideBy}{name of the column to divide data into
+  two histograms}
 
   \item{values}{two-valued vector containing values in
-  \code{divideBy} (optional)}
+  \code{divideBy} (optional). If missing then it uses 1st 2
+  values from column \code{divideBy} (sorted with default
+  order).}
+
+  \item{fillColours}{2-value vector with colours for left
+  and right histograms.}
+
+  \item{mainColour}{histogram bar colour.}
+
+  \item{baseSize}{base font size}
+
+  \item{baseFamily}{base font family}
+
+  \item{title}{plot title.}
+
+  \item{xlab}{a label for the x axis, defaults to a
+  description of x.}
+
+  \item{ylab}{a label for the y axis, defaults to a
+  description of y.}
 
   \item{legendPosition}{the position of legends. ("left",
   "right", "bottom", "top", or two-element numeric vector).
@@ -35,6 +60,9 @@
   attributes to add}
 }
 \description{
-  Create population pyramid type of histogram.
+  Create population pyramid type of histogram. Population
+  pyramid consists of 2 parallel histograms defined on the
+  same bin set and placed on the same vertical axis with
+  one set of bars on the left and the other on the right.
 }
 

@@ -8,23 +8,26 @@
     where = NULL, stringsAsFactors = FALSE, test = FALSE)
 }
 \arguments{
-  \item{channel}{object as returned by
+  \item{channel}{connection object as returned by
   \code{\link{odbcConnect}}}
 
   \item{tableName}{table name}
 
-  \item{by}{column names and expressions to group
-  aggregates (with SQL \code{GROUP BY ...}). It may be
-  table column names, valid SQL expressions and can contain
-  otional alias (e.g. \code{"UPPER(car_make) make"})}
+  \item{by}{column names and/or expressions to use as
+  aggregates (with SQL \code{GROUP BY ...}). Each can be
+  column name or valid SQL expression with otional alias
+  (e.g. \code{"UPPER(car_make) make"})}
 
   \item{aggregates}{SQL aggregates to compute. Aggregates
   may have optional aliases like in \code{"AVG(era)
   avg_era"}}
 
-  \item{stringsAsFactors}{logical: should columns returned
-  as character and not excluded by as. is and not converted
-  to anything else be converted to factors?}
+  \item{where}{SQL WHERE clause limiting data from the
+  table (use SQL as if in WHERE clause but omit keyword
+  WHERE)}
+
+  \item{stringsAsFactors}{logical: should character vectors
+  returned as part of results be converted to factors?}
 
   \item{test}{logical: if TRUE show what would be done,
   only (similar to parameter \code{test} in \link{RODBC}

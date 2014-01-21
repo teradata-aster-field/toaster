@@ -2,7 +2,7 @@ require(RODBC)
 
 #' computes data frame for heatmap visualizations
 #' 
-#' @param channel object as returned by \code{\link{odbcConnect}}
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
 #' @param dimension1 name of the column for for heatmap x values. This value along with \code{dimension2}
 #'   are x and y scales of heatmap table.

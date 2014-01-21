@@ -13,33 +13,56 @@
     themeExtra = NULL)
 }
 \arguments{
-  \item{data}{data set to visualize}
+  \item{data}{data frame contains data computed for
+  bubblechart}
 
-  \item{x}{name of a column containing x variable}
+  \item{x}{name of a column containing x variable values}
 
-  \item{y}{name of a column containing y variable}
+  \item{y}{name of a column containing y variable values}
 
-  \item{z}{name of a column containing bubble value}
+  \item{z}{name of a column containing bubble size value}
 
   \item{label}{name of a column containing bubble label}
 
-  \item{fill}{name of a column to use for fill colour}
+  \item{fill}{name of a column with values to use for
+  bubble colours}
 
-  \item{facet}{}
+  \item{facet}{name of a column to divide plot into facets
+  for specificed parameter (defualt is NULL - no facets).
+  If facet is single value then facet wrap applied (see
+  \code{\link{facet_wrap}}), otherwise facet grid (see
+  \code{\link{facet_grid}} with 1st 2 values of the
+  vector.}
 
-  \item{ncol}{}
+  \item{ncol}{number of facet columns (applies when single
+  facet column supplied only - see parameter
+  \code{facet}).}
 
-  \item{facetScales}{}
+  \item{facetScales}{Are scales shared across all facets:
+  "fixed" - all are the same, "free_x" - vary across rows
+  (x axis), "free_y" - vary across columns (Y axis)
+  (default), "free" - both rows and columns (see in
+  \code{facet_wrap} parameter \code{scales} )}
 
-  \item{xlim}{}
+  \item{xlim}{a vector specifying the data range for the x
+  scale and the default order of their display in the x
+  axis.}
 
-  \item{baseSize}{}
+  \item{baseSize}{base font size}
 
-  \item{baseFamily}{}
+  \item{baseFamily}{base font family}
 
   \item{shape}{bubble shape (default is 21)}
 
   \item{shapeSizeRange}{bubble size range}
+
+  \item{title}{plot title}
+
+  \item{xlab}{a label for the x axis, defaults to a
+  description of x.}
+
+  \item{ylab}{a label for the y axis, defaults to a
+  description of y.}
 
   \item{textSize}{size of text labels}
 

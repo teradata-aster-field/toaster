@@ -4,7 +4,12 @@
 \usage{
   theme_empty(baseSize = 12, baseFamily = "")
 }
+\arguments{
+  \item{baseSize}{base font size}
+
+  \item{baseFamily}{base font family}
+}
 \description{
-  Good to use with slopegraphs
+  Good to use with slopegraphs.
 }
 

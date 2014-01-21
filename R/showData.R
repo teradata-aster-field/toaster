@@ -34,6 +34,7 @@
 #' @param measures applies to format \code{'overview'} only. Use one or more of the following with \code{'numieric'} \code{type}:
 #'   maximum,minimum,average,deviation,0%,10%,25%,50%,75%,90%,100%,IQR. Use one or more of the following with \code{'character'}
 #'   \code{type}: distinct_count,not_null_count. By default all measures above are used per respeictive type.
+#' @param title plot title
 #' @param corrLabel column name to use to label correlation table: \code{'value'}, \code{'pair'}, or \code{'none'} (default)
 #' @param digits number of digits to use in correlation table text (when displaying correlation coefficient value)
 #' @param shape shape of correlation figure (default is 21)
@@ -60,6 +61,8 @@
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical, horizontal (see 
 #'   \link{coord_flip}).
 #' @param paletteName palette name to use (run \code{display.brewer.all} to see available palettes)
+#' @param baseSize base font size
+#' @param baseFamily base font family
 #' @param legendPosition legend position
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
@@ -153,7 +156,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
   }
       
   if (missing(tableInfo)) {
-    summary = getTableSummary(channel, tableName, include=include, except=except, where=where, collect.mode=FALSE)
+    summary = getTableSummary(channel, tableName, include=include, except=except, where=where)
   }else {
     summary = includeExcludeColumns(tableInfo, include, except)
   }

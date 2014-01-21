@@ -8,11 +8,11 @@
     location = NULL, locator = "center",
     boxBorderMargin = 10, zoom = NULL, locationName = NULL,
     lonName = "LONGITUDE", latName = "LATITUDE",
-    facet = NULL, ncol = 1, facetScales = "fixed",
     metricName = NULL, labelName = NULL,
     scaleRange = c(1, 6), shapeColour = "red",
     textColour = "black", textFamily = "mono",
-    textFace = "plain", textSize = 4,
+    textFace = "plain", textSize = 4, facet = NULL,
+    ncol = 1, facetScales = "fixed",
     geocodeFun = memoise(geocode), getmapFun = get_map,
     urlonly = FALSE, api_key = NULL, baseSize = 12,
     baseFamily = "sans", title = NULL,
@@ -91,21 +91,40 @@
 
   \item{scaleRange}{a numeric vector of lenght 2 that
   specifies the minimum and maximum size of the plotting
-  symbol after transformation (see}
-
-  \item{range}{in \code{\link{scale_size}})}
+  symbol after transformation (see parameter \code{range}
+  of \code{\link{scale_size}})}
 
   \item{labelName}{name of the column to use for the
-  artifact label when displaying data.}
+  artifact label text when displaying data.}
 
-  \item{shapeColour}{color for shape.}
+  \item{shapeColour}{color of of artifact placed on map.}
 
-  \item{textColour}{color for text.}
+  \item{textColour}{color of artifact labels on map.}
 
-  \item{textFamily}{font family to use (when available).}
+  \item{textFamily}{font family (when available) to use for
+  artfiact labels.}
 
-  \item{textFace}{font style to apply to text: 'plain'
-  (default), 'bold', 'italic', or 'bold.italic'.}
+  \item{textFace}{font style to apply to artifact labels:
+  'plain' (default), 'bold', 'italic', or 'bold.italic'.}
+
+  \item{textSize}{font size of artifact labels.}
+
+  \item{facet}{name of a column to divide plot into facets
+  for specificed parameter (defualt is NULL - no facets).
+  If facet is single value then facet wrap applied (see
+  \code{\link{facet_wrap}}), otherwise facet grid (see
+  \code{\link{facet_grid}} with 1st 2 values of the
+  vector.}
+
+  \item{ncol}{number of facet columns (applies when single
+  facet column supplied only - see parameter
+  \code{facet}).}
+
+  \item{facetScales}{Are scales shared across all facets:
+  "fixed" - all are the same, "free_x" - vary across rows
+  (x axis), "free_y" - vary across columns (Y axis)
+  (default), "free" - both rows and columns (see in
+  \code{facet_wrap} parameter \code{scales} )}
 
   \item{geocodeFun}{geocode function. Default is
   \code{\link{geocode}} but due to Google API restrictions
@@ -120,6 +139,12 @@
   \item{urlonly}{return url only}
 
   \item{api_key}{an api key for cloudmade maps}
+
+  \item{baseSize}{base font size}
+
+  \item{baseFamily}{base font family}
+
+  \item{title}{plot title}
 
   \item{legendPosition}{the position of legends. ("left",
   "right", "bottom", "top", or two-element numeric vector).

@@ -2,7 +2,7 @@
 \alias{getMatchingColumns}
 \title{Filter columns by pattern}
 \usage{
-  getMatchingColumns(pattern, asterConn, tableName,
+  getMatchingColumns(pattern, channel, tableName,
     tableInfo, names.only = TRUE, ignore.case = TRUE,
     invert = FALSE)
 }

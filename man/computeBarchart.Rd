@@ -9,7 +9,7 @@
     test = FALSE)
 }
 \arguments{
-  \item{channel}{object as returned by
+  \item{channel}{connection object as returned by
   \code{\link{odbcConnect}}}
 
   \item{tableName}{table name}

@@ -2,7 +2,7 @@
 #' 
 #' Computes aggregates by means of SQL \code{SELECT ... GROUP BY} on Aster table.
 #' 
-#' @param channel object as returned by \code{\link{odbcConnect}}
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
 #' @param by column names and/or expressions to use as aggregates (with SQL \code{GROUP BY ...}). Each can be 
 #'   column name or valid SQL expression with otional alias (e.g. \code{"UPPER(car_make) make"})

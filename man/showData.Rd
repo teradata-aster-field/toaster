@@ -51,6 +51,8 @@
   \code{type}: distinct_count,not_null_count. By default
   all measures above are used per respeictive type.}
 
+  \item{title}{plot title}
+
   \item{corrLabel}{column name to use to label correlation
   table: \code{'value'}, \code{'pair'}, or \code{'none'}
   (default)}
@@ -120,6 +122,10 @@
 
   \item{paletteName}{palette name to use (run
   \code{display.brewer.all} to see available palettes)}
+
+  \item{baseSize}{base font size}
+
+  \item{baseFamily}{base font family}
 
   \item{legendPosition}{legend position}
 

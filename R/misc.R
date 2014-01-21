@@ -5,9 +5,10 @@ require(RODBC)
 #' Selects numeric columns (names or rows) from table info data frame.
 #' 
 #' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}}.
+#' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
 #' @param include a vector of column names to include. Output is restricted to this list.
 #' @param except a vector of column names to exclude. Output never contains names from this list.
-#' @param names logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
+#' 
 #' @seealso \code{\link{getTableSummary}}
 #' @export
 #' 
@@ -84,10 +85,11 @@ getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except
 #' @seealso \code{\link{grep}}
 #' @export
 #' 
-getMatchingColumns <- function (pattern, asterConn, tableName, tableInfo, names.only = TRUE, ignore.case = TRUE, invert = FALSE) {
+getMatchingColumns <- function (pattern, channel, tableName, tableInfo, names.only = TRUE, 
+                                ignore.case = TRUE, invert = FALSE) {
   
   if (!missing(tableName)) {
-    tableInfo = sqlColumns(asterConn, tableName)
+    tableInfo = sqlColumns(channel, tableName)
   }
   idx = grep(pattern, tableInfo$COLUMN_NAME, ignore.case=ignore.case, value=FALSE, invert=invert)
   
@@ -118,6 +120,10 @@ isDateTimeColumn <- function (tableInfo, columnName) {
 
 #' Helper function to restrict list of columns
 #' 
+#' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}}.
+#' @param include a vector of column names to include. Output is restricted to this list.
+#' @param except a vector of column names to exclude. Output never contains names from this list.
+#' 
 includeExcludeColumns <- function (tableInfo, include, except) {
   result = tableInfo
   
@@ -132,6 +138,13 @@ includeExcludeColumns <- function (tableInfo, include, except) {
 
 #' Helper Function
 #' 
+#' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}} or \code{\link{sqlColumns}}.
+#' @param types vector with data types to select
+#' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
+#' @param include a vector of column names to include. Output is restricted to this list.
+#' @param except a vector of column names to exclude. Output never contains names from this list.
+#' 
+#' 
 getColumns <- function (tableInfo, types, names.only, include, except) {
   result = tableInfo[tableInfo$TYPE_NAME %in% types,]
   
@@ -145,6 +158,8 @@ getColumns <- function (tableInfo, types, names.only, include, except) {
 
 #' Helper Function to construct SQL \code{WHERE} clause
 #' 
+#' @param where SQL \code{WHERE} clause
+#' 
 makeWhereClause <- function (where) {
   
   if(is.null(where))
@@ -157,6 +172,8 @@ makeWhereClause <- function (where) {
 
 #' Helper function to construct SQL \code{ORDER BY} clause
 #' 
+#' @param order vector with column names and optional order directives (\code{asc/desc}).
+#' 
 makeOrderByClause <- function (order) {
   if (is.null(order))
     orderby_clause = " "
@@ -167,6 +184,8 @@ makeOrderByClause <- function (order) {
 }
 
 #' Helper function to construct SQL \code{LIMIT} clause
+#' 
+#' @param top number of rows to return
 #' 
 makeLimitClause <- function (top) {
   if (is.null(top)) 

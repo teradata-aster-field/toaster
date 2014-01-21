@@ -266,8 +266,11 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
 #'   \code{\link{facet_grid}} with 1st 2 values of the vector.
 #' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}). 
-#' @param facetScales
-#' @param xlim
+#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
+#'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
+#'        parameter \code{scales} )
+#' @param xlim a vector specifying the data range for the x scale and the default order of their display 
+#'   in the x axis.        
 #' @param baseSize base font size
 #' @param baseFamily base font family
 #' @param shape bubble shape (default is 21)

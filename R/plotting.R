@@ -1,10 +1,16 @@
-require(ggplot2)
-require(scales)
-require(RColorBrewer)
-require(reshape2)
-
 #' Create plot with Heatmap visualization
 #' 
+#' @param data data frame contains data computed for heatmap
+#' @param x name of a column containing x variable values
+#' @param y name of a column containing y variable values
+#' @param fill name of a column with values to map to heatmap gradient colors (\code{lowGradient}, 
+#'   \code{highGradient}, and optionally \code{midGradient}).
+#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
+#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
+#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
+#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}).
+#' @param baseSize base font size
+#' @param baseFamily base font family
 #' @param thresholdValue threshold to use to display data in heatmap (if NULL then do not use threshold)
 #' @param thresholdName name of data attribute from \code{data} to use (by defult use \code{fill})
 #' @param text if TRUE then display values in heatmap table (default: FALSE) 
@@ -17,6 +23,9 @@ require(reshape2)
 #' @param divergingColourGradient logical diverging colour gradient places emphasize on both low and high leaving
 #'   middle neutral. Use when both end grandient colours represent critical values such as negative and positive 
 #'   extremes (e.g. temprature, outliers, etc.)
+#' @param title plot title
+#' @param xlab a label for the x axis, defaults to a description of x.
+#' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
@@ -27,11 +36,11 @@ createHeatmap <- function(data, x, y, fill,
                           facet = NULL, ncol = 1, baseSize = 12, baseFamily = "sans",
                           thresholdValue = NULL, thresholdName = fill,
                           text = FALSE, textFill = fill, percent = FALSE, digits = ifelse(percent, 2, 4),
-                          title = paste("Heatmap by", fill), xlab = NULL, ylab = NULL,
                           divergingColourGradient = FALSE,
-                          lowGradient = ifelse(divergingColourGradient, muted("red"), "#132B43"), 
+                          lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"), 
                           midGradient = "white",
-                          highGradient = ifelse(divergingColourGradient, muted("blue"), "#56B1F7"), 
+                          highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"), 
+                          title = paste("Heatmap by", fill), xlab = x, ylab = y,
                           legendPosition = "right",
                           defaultTheme = theme_bw(base_size = baseSize),
                           themeExtra = NULL) {
@@ -75,6 +84,10 @@ createHeatmap <- function(data, x, y, fill,
 
 #' Create plot with Histogram visualization
 #' 
+#' @param data data frame contains computed histogram
+#' @param x name of a column containing bin labels or interval values
+#' @param y name of a column containing bin values or counts (bin size)
+#' @param fill name of a column with values to colour bars
 #' @param position histogram position parameter to use for overlapping bars: stack, dodge (defult), fill, identity 
 #' @param mainColour Perimeter color of histogram bars
 #' @param fillColour Fill color of histogram bars (applies only when \code{fill} is NULL)
@@ -83,16 +96,29 @@ createHeatmap <- function(data, x, y, fill,
 #' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
 #'  \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
-#' @param facet Divide plot into facets for specificed parameter (defualt is NULL - no facets). If facet is a single
-#'   value then facet wrap applied, otherwise facet grid using first and second values and ignoring the rest.
-#' @param ncol Number of columns in facet wrap
+#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
+#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
+#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
+#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}).
 #' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
 #'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
 #'        parameter \code{scales} )
+#' @param baseSize base font size
+#' @param baseFamily base font family
+#' @param xlim a character vector specifying the data range for the x scale and the default order of their display 
+#'   in the x axis.
+#' @param breaks a character vector giving the breaks as they should appear on the x axis.
 #' @param text if TRUE then display values above bars (default: FALSE) (this feature is in development)
 #' @param percent format text as percent 
 #' @param digits number of digits to use in text
-#' @param textVJust vertical justificaiton of text labels (relative to the top of bar)
+#' @param textVJust vertical justificaiton of text labels (relative to the top of bar).
+#' @param trend logical indicates if trend line is shown.
+#' @param trendLinetype trend line type 
+#' @param trendLinesize size of trend line
+#' @param trendLinecolour color of trend line
+#' @param title plot title
+#' @param xlab a label for the x axis, defaults to a description of x.
+#' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical, horizontal (see 
@@ -102,28 +128,45 @@ createHeatmap <- function(data, x, y, fill,
 #' @export
 #' @examples
 #' \donttest{
-#' # compute and plot histograms of AL teams pitching stats
+#' # AL teams pitching stats by decade
 #' bc = computeBarchart(conn, "pitching_enh", "teamid", 
 #' aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
 #' where="yearid >= 1990 and lgid='AL'", by="decadeid", withMelt=TRUE)
 #' 
-#' createHistogram(bc, "teamid", "value", fill="teamid", facet=c("variable", "decadeid"), legendPosition="bottom",
+#' createHistogram(bc, "teamid", "value", fill="teamid", 
+#'                 facet=c("variable", "decadeid"), 
+#'                 legendPosition="bottom",
 #'                 title = "AL Teams Pitching Stats by decades (1990-2012)",
 #'                 themeExtra = guides(fill=guide_legend(nrow=2)))
+#'
+#' # AL Teams Average Win-Loss Difference by Decade 
+#' franchwl = computeBarchart(conn, "teams_enh", "franchid",
+#'                            aggregates=c("AVG(w) w", "AVG(l) l", "AVG(w-l) wl"),
+#'                            by="decadeid",
+#'                            where="yearid >=1960 and lgid = 'AL'")
+#'
+#' createHistogram(franchwl, "decadeid", "wl", fill="franchid",
+#'                 facet="franchid", ncol=5, facetScales="fixed",
+#'                 legendPosition="none",
+#'                 trend=TRUE,
+#'                 title="Average W-L difference by decade per team (AL)",
+#'                 ylab="Average W-L")                  
+#'                 
 #' }
 createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, position="dodge", 
-                            facet=NULL, ncol=1, facetScales="free_y", baseSize = 12, baseFamily="sans", 
-                            xlim=NULL, breaks=NULL, 
-                            text=FALSE, percent=FALSE, digits=0, textVJust = -2,
-                            mainColour="black", fillColour="grey", 
-                            scaleGradient = NULL, paletteValues=NULL, palette="Set1", 
-                            # TODO: imlement trendLines
-                            trendLines=FALSE,  
-                            title=paste("Histgoram by", fill), xlab=x, ylab=y, 
-                            legendPosition="right",
+                            facet = NULL, ncol = 1, facetScales = "free_y", 
+                            baseSize = 12, baseFamily = "sans", 
+                            xlim = NULL, breaks = NULL, 
+                            text = FALSE, percent = FALSE, digits = 0, textVJust = -2,
+                            mainColour = "black", fillColour = "grey", 
+                            scaleGradient = NULL, paletteValues = NULL, palette = "Set1", 
+                            trend = FALSE, trendLinetype = "solid", trendLinesize = 1,
+                            trendLinecolour = "black",
+                            title = paste("Histgoram by", fill), xlab = x, ylab = y, 
+                            legendPosition = "right",
                             coordFlip = FALSE,
                             defaultTheme=theme_bw(base_size = baseSize),
-                            themeExtra=NULL) { 
+                            themeExtra = NULL) { 
   
   # Set text layer before ggplot 
   #   l = setTextLayer(text, data, y, percent, digits)
@@ -197,9 +240,12 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
   #     p = p + geom_text(aes(label=fill.value.text)) 
   #   }
   
-  if (trendLines) {
+  if (trend) {
+    dataTrend = data
+    dataTrend[, "X_trend_X"] = as.numeric(data[, x])
     p = p +
-      geom_line(data=data, aes_string(x=x, y=y), colour="black")
+      geom_line(data=dataTrend, aes_string(x="X_trend_X", y=y), linetype=trendLinetype, size=trendLinesize, 
+                colour=trendLinecolour)
   }
   
   if (coordFlip)
@@ -210,20 +256,25 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 
 #' Create plot with Bubble Chart visualization 
 #' 
-#' @param data data set to visualize
-#' @param x name of a column containing x variable
-#' @param y name of a column containing y variable
-#' @param z name of a column containing bubble value
+#' @param data data frame contains data computed for bubblechart
+#' @param x name of a column containing x variable values
+#' @param y name of a column containing y variable values
+#' @param z name of a column containing bubble size value
 #' @param label name of a column containing bubble label
-#' @param fill name of a column to use for fill colour
-#' @param facet
-#' @param ncol 
+#' @param fill name of a column with values to use for bubble colours
+#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
+#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
+#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
+#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}). 
 #' @param facetScales
 #' @param xlim
-#' @param baseSize
-#' @param baseFamily
+#' @param baseSize base font size
+#' @param baseFamily base font family
 #' @param shape bubble shape (default is 21)
 #' @param shapeSizeRange bubble size range
+#' @param title plot title
+#' @param xlab a label for the x axis, defaults to a description of x.
+#' @param ylab a label for the y axis, defaults to a description of y.
 #' @param textSize size of text labels
 #' @param textColour color of text labels
 #' @param textVJust vertical justificaiton of text labels (relative to the center of bubble)
@@ -269,20 +320,45 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 
 #' Create plot with Slope Graph visualization
 #' 
+#' @param data data frame contains data computed for slopegraph
+#' @param id name of column identifying each graph element having from (before) and to (after) pair of values
+#' @param rankFrom name of column with from (before) value
+#' @param rankTo name of column with to (after) value
+#' @param reverse logical reverse values if TRUE (smaller is better)
+#' @param na.rm logical value indicating whether NA values should be stripped before the visualization 
+#'   proceeds.
+#' @param scaleFactor scale factor applied to all values (-1 can be used instead of \code{reverse} TRUE).
+#' @param fromLabel label for left values (from or before)
+#' @param toLabel label for right values (to or after)
+#' @param classLabels pair of labels for to and from columns (or classes)
+#' @param classTextSize size of text for class labels
+#' @param colour default colour
+#' @param upColour colour of up slope
+#' @param downColour colour of down slope
+#' @param highlights vector with indexes of highlighted points
+#' @param lineSize size of slope lines
+#' @param textSize size of text
+#' @param panelGridColour background panel grid colour
+#' @param panelGridSize background panel grid size
+#' @param title plot title
+#' @param baseSize base font size
+#' @param baseFamily base font family
+#' 
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
 #' @export
 createSlopegraph <- function(data, id, rankFrom, rankTo, 
-                             reverse=TRUE, na.rm=FALSE, scaleFactor=1,
-                             fromLabel=rankFrom, toLabel=rankTo,
-                             title=paste("Slopegraph by", rankTo),
-                             baseSize=12, baseFamily="sans",
-                             classLabels=c(rankFrom, rankTo), classTextSize=12,
-                             colour="#999999", upColour="#D55E00", downColour="#009E73", highlights=integer(0),
-                             lineSize=0.15, textSize = 3.75, 
-                             panelGridColour="black", panelGridSize=0.1,
-                             defaultTheme=theme_bw(base_size = baseSize),
-                             themeExtra=NULL
+                             reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
+                             fromLabel = rankFrom, toLabel=rankTo,
+                             title = paste("Slopegraph by", rankTo),
+                             baseSize = 12, baseFamily = "sans",
+                             classLabels = c(rankFrom, rankTo), classTextSize = 12,
+                             colour = "#999999", upColour = "#D55E00", downColour = "#009E73", 
+                             highlights = integer(0),
+                             lineSize = 0.15, textSize = 3.75, 
+                             panelGridColour = "black", panelGridSize = 0.1,
+                             defaultTheme = theme_bw(base_size = baseSize),
+                             themeExtra = NULL
 ) {
   
   if (na.rm) {
@@ -353,12 +429,21 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @param freq their frequencies
 #' @param title plot title
 #' @param scale a vector indicating the range of the size of the words (default c(4,.5))
+#' @param minFreq words with frequency below \code{minFreq} will not be displayed
+#' @param maxWords Maximum number of words to be plotted (least frequent terms dropped).
 #' @param filename file name to use where to save graphics
-#' @param format format of graphics device to use
+#' @param format format of graphics device to save wordcloud image
+#' @param width the width of the output graphics device
+#' @param height the height of the output graphics device
+#' @param units the units in which \code{height} and \code{width} are given. Cab be \code{px} (pixels, 
+#'   the default), \code{in} (inches), \code{cm} or \code{mm}.
+#' @param palette color words from least to most frequent
+#' @param textCex title text size
 #' @export createWordcloud
 createWordcloud <- function(words, freq, title="Wordcloud", 
                             scale=c(8,.2), minFreq=10, maxWords=40,
-                            filename, format=c('png','bmp','jpeg','tiff','pdf'), width=480, height=480, units="px",
+                            filename, format=c('png','bmp','jpeg','tiff','pdf'), 
+                            width=480, height=480, units="px",
                             palette=brewer.pal(8,"Dark2"), textCex=1.) {
   
   # Obtain graphical device function
@@ -385,25 +470,36 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 }
 
 
-#' Create population pyramid type of histogram.
+#' Create population pyramid type of histogram. Population pyramid consists of 2 parallel histograms
+#' defined on the same bin set and placed on the same vertical axis with one set of bars on the left and the 
+#' other on the right.
 #' 
-#' @param data data frame contains computed histogram
-#' @param bin histogram bin column name
-#' @param count histogram bin count column name
-#' @param divideBy column to divide histogram into two halves
-#' @param values two-valued vector containing values in \code{divideBy} (optional)
+#' @param data data frame contains 2 histograms for the same bins. Bins are divided into 2 sets with
+#'   parameter \code{divideBy}.
+#' @param bin name of a column containing bin labels or interval values
+#' @param count name of a column containing bin values or counts (bin size)
+#' @param divideBy name of the column to divide data into two histograms
+#' @param values two-valued vector containing values in \code{divideBy} (optional). If missing then it
+#'   uses 1st 2 values from column \code{divideBy} (sorted with default order).
+#' @param fillColours 2-value vector with colours for left and right histograms.
+#' @param mainColour histogram bar colour. 
+#' @param baseSize base font size
+#' @param baseFamily base font family
+#' @param title plot title.
+#' @param xlab a label for the x axis, defaults to a description of x.
+#' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
 #' @export
-createPopPyramid <- function(data, bin='bin_start', count='bin_count', divideBy, values=NULL, 
+createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divideBy, values = NULL, 
                              fillColours=c('blue','red'), mainColour="black",
-                             baseSize = 12, baseFamily="sans", 
-                             title=paste("Population Pyramid Histogram"), xlab=bin, ylab=count,
-                             legendPosition="right",
-                             defaultTheme=theme_bw(base_size = baseSize),
-                             themeExtra=NULL) {
+                             baseSize = 12, baseFamily = "sans", 
+                             title=paste("Population Pyramid Histogram"), xlab = bin, ylab = count,
+                             legendPosition = "right",
+                             defaultTheme = theme_bw(base_size = baseSize),
+                             themeExtra = NULL) {
   if (missing(values)) {
     values = sort(unique(data[, divideBy]))[1:2]
   }
@@ -511,7 +607,10 @@ colorDiscretePalette <- function(paletteName="Set1") {
 
 #' Creates empty theme 
 #' 
-#' Good to use with slopegraphs
+#' Good to use with slopegraphs.
+#' 
+#' @param baseSize base font size
+#' @param baseFamily base font family
 #' 
 #' @export
 theme_empty <- function (baseSize = 12, baseFamily = "") 

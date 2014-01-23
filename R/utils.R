@@ -160,7 +160,9 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
 }
 
-#' convinience function to test if table has indeed a lookup column in another table.
+#' Validation of lookup data in database
+#' 
+#' Convinience function to test if table has indeed a lookup column in another table.
 #' 
 #' @param channel object as returned by \code{\link{odbcConnect}}.
 #' @param tableName data table name.
@@ -169,6 +171,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
 #' @param lookupColumn column name in lookup table.
 #' @param ignoreCase ignore case when comparing data. May produce slower results, especially on 
 #'   partitioned data.
+#'   
+#' @return TRUE if lookup relationship between tables and columns holds, otherwise FALSE
 #'
 #' @export
 isLookupForColumn  <- function(channel, tableName, columnName, lookupTable, lookupColumn=columnName,
@@ -239,7 +243,10 @@ viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, 
   col_indices = c("COLUMN_NAME")
   
   if(basic) {
-    col_indices = c(col_indices, "minimum", "maximum", "average", "deviation", "mode")
+    col_indices = c(col_indices, "minimum", "maximum", "average", "deviation")
+    if("mode" %in% names(tableInfo)) {
+      col_indices = c(col_indices, "mode")
+    } 
   }
   
   if(percentiles) {
@@ -254,105 +261,4 @@ viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, 
   View(tableInfo[, col_indices])
   
   return(1.0)
-}
-
-#' Joins two tables and lets use result in place of a table name.
-#'
-#' @param table1 name of 1st table to join (left position)
-#' @param table2 name of 2d table to join (right position)
-#' @param join type of join: \code{c('inner','left','right','full')}
-#' @param alias1 alias for 1st table
-#' @param alias2 alias for 2d table
-#' @param joinColumns one or more columns to join tables on. These column names are to be found in both joined tables. 
-#'   If tables have different column names to join on or condition is not simple equality then use parameter \code{joinCondition}
-#' @param joinCondition explicitly defined join condition, \code{joinColumns} will be ignored.
-#' @param select1 list of columns to select from 1st table
-#' @param select2 list of columns to select from 2d table
-#' @param alias table alias for join resultto use for resulting join
-#' @param smart if TRUE then select list for join will be constructed by function to eliminate 
-#'   duplicate columns (default is FALSE)
-#' @param channel if \code{smart} is TRUE then required to access table info
-#' @export
-#' @examples
-#' \donttest{
-#' # 2-column inner join
-#' joinTable('pitching','teams', c('teamid','yearid'))
-#' # same with columns selected from both tables
-#' joinTab joinTables('pitching', 'teams', 'inner', 'a', 'b', c('teamid','yearid'), 
-#'                    select2=c('rank','g','w','l','divwin','wcwin','lgwin','wswin'), 
-#'                    alias='myalis')
-#' }
-joinTables <- function(table1, table2, join='inner', alias1='a', alias2='b', joinColumns, joinCondition=NULL,
-                       select1="*", select2=NULL, alias='t', smart=FALSE, channel=NULL) {
-  
-  if (!smart && !missing(select1) && !missing(select2) && length(select1)>=1 && 
-        length(select2)>=1 && select1[[1]]=='*' && select1[[1]]==select2[[1]]) {
-    stop("Both tables can't select ALL (*) columns when joined together.")
-  }
-  
-  if (length(select1) > 1 & '*' %in% select1) {
-    stop("Select list (1st table) contains '*' and other names which is not allowed.")
-  }
-
-  if (length(select2) > 1 & '*' %in% select2) {
-    stop("Select list (2d table) contains '*' and other names which is not allowed.")
-  }
-  
-  if (any(select2 %in% select1)) {
-    stop("Select lists from joined tables can't contain same columns.")
-  }
-  
-  join = match.arg(join, c('inner','left','right','full'))
-  joinKeyword = list('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL OUTER JOIN')[match(join, c('inner','left','right','full'))]
-  
-  if (missing(joinCondition)) {
-    joinCondition = paste0(alias1,'.',joinColumns, '=', alias2,'.',joinColumns, collapse=' AND ')
-  }
-  
-  fromList = paste(table1, alias1, joinKeyword, table2, alias2, sep=' ')
-  
-  if (smart) {
-    fromList = makeJoinColumnList(channel, table1, table2, select1, select2)
-  }else {
-    selectList = ifelse(missing(select2), 
-                        paste0(alias1, '.', select1, collapse=', '),
-                        paste(paste0(alias1, '.', select1, collapse=', '), 
-                              paste0(alias2, '.', select2, collapse=', '), 
-                              sep=', ')
-    )
-  }
-  
-  return(paste("( SELECT", selectList, "FROM", fromList, "ON (", joinCondition, ") )", alias))
-}
-
-makeJoinColumnList <- function(channel, table1, table2, select1, select2) {
-  
-  if (is.null(select1)) {
-    select1 = character(0)
-  } 
-  if (is.null(select2)) {
-    select2 = character(0)
-  }
-  
-  if (select1 == "*") {
-    list1 = NULL
-  }else {
-    list1 = select1
-  }
-  
-  if (select2 == "*") {
-    list2 = NULL
-  }else {
-    list2 = select2
-  }
-  tableInfo1 = sqlColumns(channel, table1)
-  
-  tableInfo1 = includeExcludeColumns(tableInfo1, list1, NULL)
-  
-  tableInfo2 = sqlColumns(channel, table2)
-  
-  tableInfo2 = includeExcludeColumns(tableInfo2, list2, NULL)
-  
-  return(union(tableInfo1$COLUMN_NAME, tableInfo2$COLUMN_NAME))
-  
 }

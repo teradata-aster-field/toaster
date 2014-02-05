@@ -125,13 +125,15 @@ createHeatmap <- function(data, x, y, fill,
 #'   \link{coord_flip}).
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' 
 #' @export
+#' 
 #' @examples
 #' \donttest{
 #' # AL teams pitching stats by decade
-#' bc = computeBarchart(conn, "pitching_enh", "teamid", 
-#' aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
-#' where="yearid >= 1990 and lgid='AL'", by="decadeid", withMelt=TRUE)
+#' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid", 
+#'                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
+#'                      where="yearid >= 1990 and lgid='AL'", by="decadeid", withMelt=TRUE)
 #' 
 #' createHistogram(bc, "teamid", "value", fill="teamid", 
 #'                 facet=c("variable", "decadeid"), 
@@ -150,7 +152,15 @@ createHeatmap <- function(data, x, y, fill,
 #'                 legendPosition="none",
 #'                 trend=TRUE,
 #'                 title="Average W-L difference by decade per team (AL)",
-#'                 ylab="Average W-L")                  
+#'                 ylab="Average W-L")  
+#'                 
+#' # Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
+#' h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',
+#'                           binsize=0.2, startvalue=0, endvalue=10, by='teamid',
+#'                           where="yearID between 2000 and 2012 and teamid in ('NYA','TEX')")
+#' createHistogram(h2000s, fill='teamid', facet='teamid', 
+#'                 title='TEX vs. NYY 2000-2012', xlab='ERA', ylab='count',
+#'                 legendPosition='none')                
 #'                 
 #' }
 createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, position="dodge", 
@@ -275,6 +285,9 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param baseFamily base font family
 #' @param shape bubble shape (default is 21)
 #' @param shapeSizeRange bubble size range
+#' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
+#'  \code{palette} is ignored)
+#' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
 #' @param title plot title
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
@@ -291,6 +304,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                               facet = NULL, ncol = 1, facetScales = "fixed",
                               xlim = NULL, baseSize = 12, baseFamily = "sans",
                               shape = 21, shapeSizeRange = c(1,10),
+                              paletteValues = NULL, palette = "Set1",
                               title = paste("Bubble Chart by", fill), xlab = x, ylab = y, 
                               textSize = 4, textColour = "black", textVJust = 1,
                               legendPosition="right",
@@ -302,6 +316,12 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
     (if (!is.null(label)) 
       geom_text(size=textSize, colour=textColour, vjust=textVJust, show_guide=F)) +
     scale_size_continuous(range=shapeSizeRange) +
+    (if(!missing(fill))
+      if(!missing(paletteValues))
+        scale_fill_manual(values = paletteValues)
+      else if(!missing(palette))
+        scale_fill_manual(values = (colorDiscretePalette(palette))(length(unique(data[,fill]))))
+    ) +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
     theme(legend.position = legendPosition,
@@ -346,9 +366,9 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 #' @param title plot title
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' 
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' 
 #' @export
 createSlopegraph <- function(data, id, rankFrom, rankTo, 
                              reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
@@ -424,9 +444,24 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
   
 }
 
-#' Create plot with Word Cloud Visualization
+#' Word Cloud Visual
 #' 
-#' Uses base graphics.
+#' Creates graphics with Word Cloud visual for text data.
+#' 
+#' @details
+#' Uses base graphics and worldcloud package to create a word cloud (tag cloud) visual reprsentation of
+#' for text data. Function uses 2 vectors of equal lengths: one contains list of words and the other has 
+#' their frequencies. 
+#' 
+#' Resulting graphics is saved in file in one of available graphical formats (png, bmp, jpeg, tiff,
+#' or pdf). 
+#' 
+#' Word Cloud visuals apply to any concept that satisfies following conditions:
+#'  * each data point (artifact) can be expressed with distinct word or compact text in  distinct and 
+#'    self-explanatory fashion and 
+#'  * it assigns each artifact scalar non-negative metric.
+#' Given these two conditions we can use Word Clouds to visualize top, bottom or all artifacts in single
+#' word cloud visual.
 #' 
 #' @param words the words
 #' @param freq their frequencies
@@ -441,13 +476,19 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @param units the units in which \code{height} and \code{width} are given. Cab be \code{px} (pixels, 
 #'   the default), \code{in} (inches), \code{cm} or \code{mm}.
 #' @param palette color words from least to most frequent
-#' @param textCex title text size
+#' @param titleFactor numeric title character expansion factor; multiplied by \code{\link{par}("cex")} 
+#'   yields the final title character size. NULL and NA are equivalent to a factor of 1.
+#' 
+#' @return nothing
+#' 
+#' @seealso \link{wordcloud}
+#' 
 #' @export createWordcloud
 createWordcloud <- function(words, freq, title="Wordcloud", 
                             scale=c(8,.2), minFreq=10, maxWords=40,
                             filename, format=c('png','bmp','jpeg','tiff','pdf'), 
                             width=480, height=480, units="px",
-                            palette=brewer.pal(8,"Dark2"), textCex=1.) {
+                            palette=brewer.pal(8,"Dark2"), titleFactor=1) {
   
   # Obtain graphical device function
   gdevices = c('png','bmp','jpeg','tiff','pdf')
@@ -462,7 +503,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
   layout(matrix(c(1,2), nrow=2), heights=c(1,7))
   par(mar=rep(0,4))
   plot.new()
-  text(x=.5, y=.5, title, cex=textCex)
+  text(x=.5, y=.5, title, cex=titleFactor)
   wordcloud(words, freq, scale=scale, min.freq=minFreq,
             max.words=maxWords, random.order=FALSE, rot.per=.15, colors=palette, bg='transparent')
   
@@ -473,7 +514,11 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 }
 
 
-#' Create population pyramid type of histogram. Population pyramid consists of 2 parallel histograms
+#' Population Pyramid Visual
+#' 
+#' Create population pyramid type of histogram. 
+#' 
+#' Population pyramid consists of 2 parallel histograms
 #' defined on the same bin set and placed on the same vertical axis with one set of bars on the left and the 
 #' other on the right.
 #' 
@@ -495,6 +540,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #'   vector). "none" is no legend.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' 
 #' @export
 createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divideBy, values = NULL, 
                              fillColours=c('blue','red'), mainColour="black",
@@ -525,17 +571,6 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
 }
 
 
-# setTextLayer <- function(text, data, fill, percent, digits) {
-# 
-#   if (text) {
-#     data$fill.value.text = paste0(prettyNum(data[, fill], big.mark=",", digits=digits), ifelse(percent, "%", ""))
-#     textLayer = geom_text(aes(label=fill.value.text))
-#     list(data=data, textLayer=textLayer)
-#   }else {
-#     list(data=data, textLayer=NULL)
-#   }
-# 
-# }
 setTextLayer <- function(text, data, x, y, value, position="dodge", 
                          percent, digits) {
   if (text) {
@@ -559,13 +594,13 @@ setTextLayerBin <- function(text, data, x, y, value, fill=NULL, position="dodge"
   }
 }
 
-#' Applies standard set of facet parameters to create \code{facet_wrap} or \code{facet_grid}
-#' 
-#' @param p \code{ggplot2} plot object
-#' @param facet vector of columns (1 or 2) to use for facet(s)
-#' @param scales facet scale option
-#' @param ncol number of facet columns (applies when single facet column supplied only)
-#' 
+# Applies standard set of facet parameters to create \code{facet_wrap} or \code{facet_grid}
+# 
+# @param p \code{ggplot2} plot object
+# @param facet vector of columns (1 or 2) to use for facet(s)
+# @param scales facet scale option
+# @param ncol number of facet columns (applies when single facet column supplied only)
+# 
 applyFacet <- function(p, facet=NULL, scales, ncol) {
   if (!missing(facet) & length(facet) > 0) {
     if (length(facet) == 1) {
@@ -579,29 +614,31 @@ applyFacet <- function(p, facet=NULL, scales, ncol) {
 }
 
 
-#' Generate gradient palette maker
-#' 
-#' inspired by 
-#' http://stackoverflow.com/questions/13353213/gradient-of-n-colors-ranging-from-color-1-and-color-2
-#' 
-#' @param colors pair of colors for gradient range (min, max): default is \code{c('black','white')}
-#' @export
-#' @examples
-#' paletteMaker = colorGradientPalette(c("orange","red"))
-#' myPalette = paletteMaker(10)
+# Generate gradient palette maker
+# 
+# inspired by 
+# http://stackoverflow.com/questions/13353213/gradient-of-n-colors-ranging-from-color-1-and-color-2
+# 
+# @param colors pair of colors for gradient range (min, max): default is \code{c('black','white')}
+# @return function that 
+# @seealso \code{\link{colorRampPalette}}
+#
+# @examples
+# paletteMaker = colorGradientPalette(c("orange","red"))
+# myPalette = paletteMaker(10)
 colorGradientPalette <- function(colors=c("black", "white")) {
   colfunc = colorRampPalette(colors)
   return(colfunc)
 }
 
-#' Generate discrete palette maker
-#' 
-#' @param paletteName name of palette from \code{brewer.pal.info} in \code{RColorBrewer} package
-#' 
-#' @export
-#' @examples
-#' paletteMaker = colorDiscretePalette("PuOr")
-#' myPalette = paletteMaker(25)
+# Generate discrete palette maker
+# 
+# @param paletteName name of palette from \code{brewer.pal.info} in \code{RColorBrewer} package
+# 
+# @export
+# @examples
+# paletteMaker = colorDiscretePalette("PuOr")
+# myPalette = paletteMaker(25)
 colorDiscretePalette <- function(paletteName="Set1") {
   n = brewer.pal.info[rownames(brewer.pal.info)==paletteName, 'maxcolors']
   colfunc = colorRampPalette(brewer.pal(n, paletteName))

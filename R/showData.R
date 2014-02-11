@@ -24,7 +24,9 @@
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
-#' @param tableInfo pre-built summary of data to use (parameters \code{channel}, \code{tableName}, \code{where} will not apply)
+#' @param tableInfo pre-built summary of data to use (parameters \code{channel}, 
+#'   \code{tableName}, \code{where} may not apply depending on \code{format}).
+#'   See \code{\link{getTableSummary}}.
 #' @param include a vector of column names to include. Output never contains attributes other than in the list.
 #' @param except a vector of column names to exclude. Output never contains attributes from the list.
 #' @param type what type of data to visualize: numerical (\code{"numeric"}), character (\code{"character"} or 
@@ -280,6 +282,11 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
                                               ON (SELECT * FROM ", tableName, where_clause, ") ",
                                     "         SampleFraction('", sampleFractionStr, "'))"))
     
+    # factor data for facet and colours
+    if (!all(is.null(facetName), is.null(pointColour))) {
+      data[union(facetName, pointColour)] = lapply(data[union(facetName, pointColour)], factor)
+    }
+    
     p = ggplot(data, aes_string(x=include[1], y=include[2])) +
       (if (missing(pointColour)) {
         geom_point()
@@ -342,11 +349,9 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
 }
 
 
-#' Checks if vector or data set contains at least one element or column.
-#' Note that for data frame it will NOT check if it has 1 or more rows.
-#' 
-#' @param data vecotr to test
-#' 
+# Checks if vector or data set contains at least one element or column.
+# Note that for data frame it will NOT check if it has 1 or more rows.
+# 
 checkNonEmpty <- function(data) {
   if (length(data) == 0L || nrow(data) == 0L) stop("Nothing to show: check lists of columns, include/except, type and plot compatibilities.")
 }

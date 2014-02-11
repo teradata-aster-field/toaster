@@ -337,7 +337,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
     p = p + xlim(xlim)
   }
   
-  return (p)
+  return(p)
   
 }
 

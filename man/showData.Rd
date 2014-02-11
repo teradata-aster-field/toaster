@@ -27,7 +27,8 @@
 
   \item{tableInfo}{pre-built summary of data to use
   (parameters \code{channel}, \code{tableName},
-  \code{where} will not apply)}
+  \code{where} may not apply depending on \code{format}).
+  See \code{\link{getTableSummary}}.}
 
   \item{include}{a vector of column names to include.
   Output never contains attributes other than in the list.}

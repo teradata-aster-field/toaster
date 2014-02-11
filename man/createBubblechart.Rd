@@ -6,6 +6,7 @@
     facet = NULL, ncol = 1, facetScales = "fixed",
     xlim = NULL, baseSize = 12, baseFamily = "sans",
     shape = 21, shapeSizeRange = c(1, 10),
+    paletteValues = NULL, palette = "Set1",
     title = paste("Bubble Chart by", fill), xlab = x,
     ylab = y, textSize = 4, textColour = "black",
     textVJust = 1, legendPosition = "right",
@@ -55,6 +56,14 @@
   \item{shape}{bubble shape (default is 21)}
 
   \item{shapeSizeRange}{bubble size range}
+
+  \item{paletteValues}{actual palette colours for use with
+  \code{scale_fill_manual} (if specified then parameter
+  \code{palette} is ignored)}
+
+  \item{palette}{Brewer palette name - see
+  \code{display.brewer.all} in \code{RColorBrewer} package
+  for names}
 
   \item{title}{plot title}
 

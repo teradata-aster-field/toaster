@@ -17,8 +17,9 @@
 
   \item{columnName}{table column name to compute histogram}
 
-  \item{tableInfo}{pre-built summary of data to use (must
-  have with \code{test=TRUE})}
+  \item{tableInfo}{pre-built summary of data to use
+  (require when \code{test=TRUE}). See
+  \code{\link{getTableSummary}}.}
 
   \item{columnFrequency}{logical indicates to build
   histogram of frequencies of column}
@@ -66,6 +67,17 @@
 \description{
   \code{computeHistogram} uses Aster SQL/MR histogram
   function to compute a histogram on given table column.
+}
+\examples{
+\donttest{
+# Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
+h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',
+                          binsize=0.2, startvalue=0, endvalue=10, by='teamid',
+                          where="yearID between 2000 and 2012 and teamid in ('NYA','TEX')")
+createHistogram(h2000s, fill='teamid', facet='teamid',
+                title='TEX vs. NYY 2000-2012', xlab='ERA', ylab='count',
+                legendPosition='none')
+}
 }
 \seealso{
   computeBarchart

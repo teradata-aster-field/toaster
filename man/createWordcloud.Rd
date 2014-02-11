@@ -1,13 +1,13 @@
 \name{createWordcloud}
 \alias{createWordcloud}
-\title{Create plot with Word Cloud Visualization}
+\title{Word Cloud Visual}
 \usage{
   createWordcloud(words, freq, title = "Wordcloud",
     scale = c(8, 0.2), minFreq = 10, maxWords = 40,
     filename,
     format = c("png", "bmp", "jpeg", "tiff", "pdf"),
     width = 480, height = 480, units = "px",
-    palette = brewer.pal(8, "Dark2"), textCex = 1)
+    palette = brewer.pal(8, "Dark2"), titleFactor = 1)
 }
 \arguments{
   \item{words}{the words}
@@ -40,9 +40,36 @@
 
   \item{palette}{color words from least to most frequent}
 
-  \item{textCex}{title text size}
+  \item{titleFactor}{numeric title character expansion
+  factor; multiplied by \code{\link{par}("cex")} yields the
+  final title character size. NULL and NA are equivalent to
+  a factor of 1.}
+}
+\value{
+  nothing
 }
 \description{
-  Uses base graphics.
+  Creates graphics with Word Cloud visual for text data.
+}
+\details{
+  Uses base graphics and worldcloud package to create a
+  word cloud (tag cloud) visual reprsentation of for text
+  data. Function uses 2 vectors of equal lengths: one
+  contains list of words and the other has their
+  frequencies.
+
+  Resulting graphics is saved in file in one of available
+  graphical formats (png, bmp, jpeg, tiff, or pdf).
+
+  Word Cloud visuals apply to any concept that satisfies
+  following conditions: * each data point (artifact) can be
+  expressed with distinct word or compact text in distinct
+  and self-explanatory fashion and * it assigns each
+  artifact scalar non-negative metric. Given these two
+  conditions we can use Word Clouds to visualize top,
+  bottom or all artifacts in single word cloud visual.
+}
+\seealso{
+  \link{wordcloud}
 }
 

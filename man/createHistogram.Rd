@@ -122,9 +122,9 @@
 \examples{
 \donttest{
 # AL teams pitching stats by decade
-bc = computeBarchart(conn, "pitching_enh", "teamid",
-aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
-where="yearid >= 1990 and lgid='AL'", by="decadeid", withMelt=TRUE)
+bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid",
+                     aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
+                     where="yearid >= 1990 and lgid='AL'", by="decadeid", withMelt=TRUE)
 
 createHistogram(bc, "teamid", "value", fill="teamid",
                 facet=c("variable", "decadeid"),
@@ -144,6 +144,14 @@ createHistogram(franchwl, "decadeid", "wl", fill="franchid",
                 trend=TRUE,
                 title="Average W-L difference by decade per team (AL)",
                 ylab="Average W-L")
+
+# Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
+h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',
+                          binsize=0.2, startvalue=0, endvalue=10, by='teamid',
+                          where="yearID between 2000 and 2012 and teamid in ('NYA','TEX')")
+createHistogram(h2000s, fill='teamid', facet='teamid',
+                title='TEX vs. NYY 2000-2012', xlab='ERA', ylab='count',
+                legendPosition='none')
 
 }
 }

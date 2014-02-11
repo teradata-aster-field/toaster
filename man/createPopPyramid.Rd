@@ -1,8 +1,6 @@
 \name{createPopPyramid}
 \alias{createPopPyramid}
-\title{Create population pyramid type of histogram. Population pyramid consists of 2 parallel histograms
-defined on the same bin set and placed on the same vertical axis with one set of bars on the left and the
-other on the right.}
+\title{Population Pyramid Visual}
 \usage{
   createPopPyramid(data, bin = "bin_start",
     count = "bin_count", divideBy, values = NULL,
@@ -60,9 +58,12 @@ other on the right.}
   attributes to add}
 }
 \description{
-  Create population pyramid type of histogram. Population
-  pyramid consists of 2 parallel histograms defined on the
-  same bin set and placed on the same vertical axis with
-  one set of bars on the left and the other on the right.
+  Create population pyramid type of histogram.
+}
+\details{
+  Population pyramid consists of 2 parallel histograms
+  defined on the same bin set and placed on the same
+  vertical axis with one set of bars on the left and the
+  other on the right.
 }
 

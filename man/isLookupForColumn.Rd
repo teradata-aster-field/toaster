@@ -1,6 +1,6 @@
 \name{isLookupForColumn}
 \alias{isLookupForColumn}
-\title{convinience function to test if table has indeed a lookup column in another table.}
+\title{Validation of lookup data in database}
 \usage{
   isLookupForColumn(channel, tableName, columnName,
     lookupTable, lookupColumn = columnName,
@@ -21,8 +21,12 @@
   \item{ignoreCase}{ignore case when comparing data. May
   produce slower results, especially on partitioned data.}
 }
+\value{
+  TRUE if lookup relationship between tables and columns
+  holds, otherwise FALSE
+}
 \description{
-  convinience function to test if table has indeed a lookup
+  Convinience function to test if table has indeed a lookup
   column in another table.
 }
 

@@ -108,3 +108,14 @@ test_that("computeHistogram SQL is correct", {
   )
   
 })
+
+test_that("computeHistogram with barplot SQL is correct", {
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, tableName="pitching", columnName="playerid",
+                                           tableInfo=pitching_info, by="lgid", where="decadeid > 1900",
+                                           test=TRUE),
+                          "SELECT playerid, lgid, COUNT(*) cnt FROM pitching 
+                            WHERE decadeid > 1900
+                            GROUP BY playerid, lgid "
+                          )
+})

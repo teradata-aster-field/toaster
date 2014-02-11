@@ -33,6 +33,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
     table_info = sqlColumns(channel, tableName)
   }
   
+  if (nrow(table_info) == 0) stop(paste("No columns of any kind found in the table '", tableName, "'"))
+  
   table_info = includeExcludeColumns(table_info, include, except)
   
   # check if at least one column found
@@ -67,8 +69,10 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
   # Total rows
   total_rows = sqlQuery(channel,
-                        paste0("SELECT COUNT(*) cnt FROM ", tableName, where_clause)
-  )
+                        paste0("SELECT COUNT(*) cnt FROM ", tableName, where_clause))
+  if (!is.data.frame(total_rows) || nrow(total_rows) != 1)
+    stop(paste("Not a valid sql to count total number of rows in the table '", tableName, "'"))
+  
   total_count = total_rows[[1,1]]
   table_info[, "total_count"] = total_count
   
@@ -77,14 +81,16 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
     
     # Compute SELECT aggregate statistics on each numeric column
     column_stats = sqlQuery(channel,
-                            paste0("SELECT count(distinct\"", column_name,"\") as distinct_count, ",
-                                   "       count(\"", column_name, "\") as not_null_count, ",
+                            paste0("SELECT cast(count(distinct\"", column_name,"\") as bigint) as distinct_count, ",
+                                   "       cast(count(\"", column_name, "\") as bigint) as not_null_count, ",
                                    "       min(\"", column_name,"\") as minimum, ",
                                    "       max(\"", column_name,"\") as maximum, ",
-                                   "       avg(cast(\"", column_name,"\" as bigint)) as average, ",
-                                   "       stddev(cast(\"", column_name,"\" as bigint)) as deviation ",
-                                   "  FROM ", tableName, where_clause)
-    )
+                                   "       avg(\"", column_name,"\"::numeric) as average, ",
+                                   "       stddev(\"", column_name,"\"::numeric) as deviation ",
+                                   "  FROM ", tableName, where_clause))
+    if (!is.data.frame(column_stats) || nrow(column_stats) != 1)
+      stop(paste("Not a valid sql to compute stats on numeric column '", column_name, "'"))
+    
     column_idx = which(table_info$COLUMN_NAME == column_name)
     
     table_info[column_idx, "distinct_count"] = column_stats[[1,"distinct_count"]]
@@ -127,18 +133,21 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
                           getDateTimeColumns(table_info))
   for(column_name in non_numeric_columns) {
     column_stats = sqlQuery(channel,
-                            paste0("SELECT count(distinct\"", column_name, "\") as distinct_count, ",
-                                   "       count(\"", column_name, "\") as not_null_count, ",
+                            paste0("SELECT cast(count(distinct\"", column_name, "\") as bigint) as distinct_count, ",
+                                   "       cast(count(\"", column_name, "\") as bigint) as not_null_count, ",
                                    "       min(\"", column_name, "\") as minimum, ",
                                    "       max(\"", column_name, "\") as maximum ",
                                    "  FROM ", tableName, where_clause)
     )
+    if (!is.data.frame(column_stats) || nrow(column_stats) != 1)
+      stop(paste("Not a valid sql to compute stats on non-numeric column '", column_name, "'"))
+    
     column_idx = which(table_info$COLUMN_NAME == column_name)
     table_info[column_idx, "distinct_count"] = column_stats[[1,"distinct_count"]]
     table_info[column_idx, "not_null_count"] = column_stats[[1,"not_null_count"]]
     table_info[column_idx, "null_count"] = total_count - column_stats[[1,"not_null_count"]]
-    table_info[column_idx, "minimum_str"] = column_stats[[1,"minimum"]]
-    table_info[column_idx, "maximum_str"] = column_stats[[1,"maximum"]]
+    table_info[column_idx, "minimum_str"] = as.character(column_stats[[1,"minimum"]])
+    table_info[column_idx, "maximum_str"] = as.character(column_stats[[1,"maximum"]])
   }
   
   # Compute modes

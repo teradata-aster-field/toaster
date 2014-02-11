@@ -6,7 +6,7 @@
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
 #' @param columnName table column name to compute histogram
-#' @param tableInfo pre-built summary of data to use (must have with \code{test=TRUE})
+#' @param tableInfo pre-built summary of data to use (require when \code{test=TRUE}). See \code{\link{getTableSummary}}.
 #' @param columnFrequency logical indicates to build histogram of frequencies of column
 #' @param binMethod one of several methods to determine number and size of bins: \code{'manual'} indicates to use 
 #'   paramters below, both \code{'Sturges'} or \code{'Scott'} will use corresponding methods of computing number
@@ -27,6 +27,16 @@
 #' @export
 #' @seealso computeBarchart
 #' 
+#' @examples
+#' \donttest{
+#' # Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
+#' h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',
+#'                           binsize=0.2, startvalue=0, endvalue=10, by='teamid',
+#'                           where="yearID between 2000 and 2012 and teamid in ('NYA','TEX')")
+#' createHistogram(h2000s, fill='teamid', facet='teamid', 
+#'                 title='TEX vs. NYY 2000-2012', xlab='ERA', ylab='count',
+#'                 legendPosition='none') 
+#' }
 computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL, 
                              columnFrequency = FALSE, binMethod = 'manual',
                              binsize = NULL, startvalue = NULL, endvalue = NULL, numbins = NULL,
@@ -53,7 +63,8 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   }
   
   if (missing(tableInfo) | !(columnName %in% tableInfo$COLUMN_NAME)) {
-    column_stats = getTableSummary(channel, tableName, include=columnName, where=where, mock=test)
+    column_stats = getTableSummary(channel, tableName, include=columnName, 
+                                   where=where, mock=test)
   }else {
     column_stats = tableInfo[tableInfo$COLUMN_NAME==columnName, ]
   }
@@ -61,7 +72,8 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   # check if histogram is for character column
   # if so use computeBarchart
   if (isCharacterColumn(column_stats, columnName)) {
-    return (computeBarchart(channel, tableName, columnName, "COUNT(*) cnt", where_clause, by, test))
+    return (computeBarchart(channel, tableName, columnName, "COUNT(*) cnt", where=where, 
+                            by=by, test=test))
   }
   
   # set number of bins default if NULL
@@ -145,37 +157,6 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
                          partition by ", byPartition,
                       ")")
   
-#   # No by clause - single histogram
-#   if (is.null(by)) {
-#     sql = paste0("SELECT * 
-#                     FROM hist_reduce(
-#                            ON hist_map(
-#                              ON (SELECT cast(\"", columnName, "\" as numeric) ", columnName, " FROM ", tableName, where_clause,
-#                          "   ) 
-#                              binsize('", binsize, "')
-#                              startvalue('", startvalue, "')
-#                              endvalue('", endvalue, "')
-#                              value_column('", columnName, "')
-#                            ) 
-#                            partition by 1
-#                         )")
-#                          
-#   # By clause - multiple histograms for each value of 'by' attribute
-#   }else {
-#     sql = paste0("SELECT * 
-#                     FROM hist_reduce(
-#                            ON hist_map(
-#                              ON (SELECT \"", by, "\", cast(\"", columnName, "\" as numeric) ", columnName, " FROM ", tableName, where_clause,
-#                             "   ) 
-#                              binsize('", binsize, "')
-#                              startvalue('", startvalue, "')
-#                              endvalue('", endvalue, "')
-#                              value_column('\"", columnName, "\"')
-#                              GROUP_COLUMNS('\"", by, "\"')
-#                            ) 
-#                            partition by \"", by, "\" 
-#                          )")                         
-#   }
   
   if (test) {
     return (sql)

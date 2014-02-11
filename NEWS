@@ -1,0 +1,58 @@
+toaster 0.2
+===========
+
+NEW FEATURES
+
+* `createMap`: new visualization function for combining maps with data 
+  artifacts from Aster database. Can be used to produce maps of 
+  arbitrary scale (with exception of whole world) and type with shapes
+  of size and labels corresponding to data computed in Aster. It uses 
+  ggmap and ggplot2 packages and Google API for geocoding data as 
+  necessary. It implements smart logic to choose map tiles to place
+  geocoded data appropriately, and it also automatically geocodes 
+  data if necessary (Google API restrictions apply).
+
+* Due to geocoding and map API restrictions `createMap` supports 
+  function caching suggesting function `memoise` of memoise package. 
+  (other functions are fine too). Properly following suggested practices 
+  should significantly optimize both peformance and API usage when geocoding
+  or retrieving maps.
+
+* `compute`: for executing arbitrary aggregations on Aster tables.
+
+* `computeBarchart`: for computing data for barchart visualizations. This
+  is different from `computeHistogram` as barchart is defined on factors
+  (categorical data) witch doesn't support defining bins like in histograms.
+
+ENHANCEMENTS
+
+* added parameter `test` to compute- functions (functions that access and 
+  manipulate data in Aster) to produce SQL without executing it. Thus, when 
+  `test=TRUE` function returns string containing SQL that would have run
+  in Aster.
+
+* package depedencies moved from Depends to Imports section of DESCRIPTION file 
+  except for RODBC package. Keeping RODBC in Depends because toaster requires 
+  access to RODBC connection object and to its function `odbcConnect`. Other 
+  packages are not exposed by toaster functions so accessing them would have 
+  been needed only for advanced usage (if any).
+  if you use any function from the packages other than RODBC then those packages 
+  should be loaded with `library` or `require` or use their namespace. 
+
+* facet parameter now supports both one-value and 2-value vector (if parameter 
+  is longer than the rest of values are ignored). Single value defines column
+  name for wrapping facets in 1 or more column lattice. Two values define pair
+  of columns to place facets in 2-dimensional grid for each combination of 
+  values found.
+
+* `createHistogram` supports trend lines with parameter trendLine=TRUE.
+
+BUG FIXES
+
+
+
+
+
+DOCUMENTAION
+
+* added more examples

@@ -39,9 +39,10 @@
 }
 \examples{
 \donttest{
-data = compute(asterConn, "teams_enh",
+data = compute(channel = conn, tableName = "teams_enh",
                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
-               aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", "avg(attendance) attendance")
+               aggregates = c("min(name) name", "min(park) park", "avg(rank) rank",
+                              "avg(attendance) attendance")
                )
 }
 }

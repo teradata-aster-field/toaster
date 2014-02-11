@@ -30,9 +30,19 @@ require(RODBC)
 #' 
 #' @examples
 #' \donttest{
-#' # Compute average team season era, walks, and hits for each decaded starting with 1980
+#' # Compute average team season era, walks, and hits for each decade starting with 1980
 #' computeBarchart(asterConn, "teams_enh", "teamid team", c("avg(era) era", "avg(bb) bb", "avg(h) h"), 
 #'                 where="yearid >=1980", by=c("decadeid"))
+#'                 
+#' # multipe aggregates in the same bar chart (with melt)
+#' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid",
+#'                     aggregates=c("AVG(era) era", "AVG(whip) whip"), withMelt=TRUE,
+#'                     where="yearid >= 2000 and lgid='AL'")
+#'         
+#' # adding facets by decadeid          
+#' bc = computeBarchart(channel=conn, tablelName="pitching_enh", category="teamid", 
+#'                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
+#'                      where="yearid >= 1990 and lgid='AL'", by="decadeid", withMelt=TRUE)
 #' }
 computeBarchart <- function(channel, tableName, category,
                             aggregates = "COUNT(*) cnt", percent = FALSE,

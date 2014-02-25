@@ -1,11 +1,14 @@
 #' Compute table aggregates.
 #' 
-#' Computes aggregates by means of SQL \code{SELECT ... GROUP BY} on Aster table.
+#' Compute aggregates defined with SQL aggregate syntax and aliases utilizing
+#' SQL \code{SELECT...GROUP BY} in Aster. Any SQL expressions that are valid 
+#' aggregates supported, including window function \code{OVER}. 
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
-#' @param by column names and/or expressions to use as aggregates (with SQL \code{GROUP BY ...}). Each can be 
-#'   column name or valid SQL expression with otional alias (e.g. \code{"UPPER(car_make) make"})
+#' @param by character vecotr of column names and/or expressions on which grouping is performed 
+#'   (with SQL \code{GROUP BY ...}). Each can be a column or a valid SQL non-aggregate expression    
+#'   with otional alias separated by space (e.g. \code{"UPPER(car_make) make"}).
 #' @param aggregates SQL aggregates to compute. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE) 
 #' @param stringsAsFactors logical: should character vectors returned as part of results be converted to factors? 
@@ -34,6 +37,10 @@ compute <- function(channel, tableName,
   
   if (missing(by) || length(by) == 0) {
     stop("Must have one or more columns/expressions in 'by' parameter.")
+  }
+  
+  if (is.null(aggregates) || length(aggregates) < 1) {
+    stop("Must have at least one aggregate defined.")
   }
   
   where_clause = makeWhereClause(where)

@@ -1,7 +1,9 @@
-#' Compute table column histogram
+#' Compute histogram of the table column.
 #' 
-#' \code{computeHistogram} uses Aster SQL/MR histogram function to compute a histogram on given 
-#' table column.
+#' Compute histogram of the table column in Aster. Depending on the column 
+#' data type it may use histogram map-reduce function or SQL with \code{GROUP BY}.
+#' The operation is supported for numeric or temporal data types, and defers
+#' to \code{\link{computeBarchart}} for character data types.
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
@@ -25,7 +27,7 @@
 #' @param oldStyle logical indicates if old style histogram paramters are in use (before Aster AF 5.11)
 #' 
 #' @export
-#' @seealso computeBarchart
+#' @seealso \link{computeBarchart} and \link{createHistogram}
 #' 
 #' @examples
 #' \donttest{

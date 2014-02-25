@@ -1,4 +1,10 @@
-#' Compute correlations between all or specified numeric columns in a table
+#' Compute correlation between numeric columns.
+#' 
+#' Compute global correlation between any pair of numeric columns from Aster table.
+#' Result includes all pairwise combinations of numeric columns in the table, with 
+#' optionally limiting columns to those in the parameter \code{include} or/and
+#' excluding columns from the parameter \code{except}. Correlation computation 
+#' can also be performed on subset of the data defined with the parameter \code{where}.
 #'
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name
@@ -8,7 +14,30 @@
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
+#' @return data frame with columns:
+#'   \itemize{
+#'     \item \emph{corr} pair of 1st and 2d columns \code{"column1:column2"}
+#'     \item \emph{value} computed correlation value
+#'     \item \emph{metric1} name of 1st column 
+#'     \item \emph{metric2} name of 2d column
+#'     \item \emph{sign} correlation value sign \code{sign(value)} (-1, 0, or 1)
+#'   }
+#'   Note that while number of correlations function computes is \code{choose(N, 2)}, where \code{N} is 
+#'   number of table columns specified, resulting data frame contains twice as many rows by duplicating
+#'   each correlation value with swaped column names (1st column to 2d and 2d to 1st positions). This 
+#'   makes resulting data frame symmetrical with respect to column order in pairs and is necessary to 
+#'   correctly visualize correlation matrix with \code{\link{createBubblechart}}.
+#' @seealso \code{\link{createBubblechart}} and \code{\link{showData}}.
 #' @export
+#' @examples
+#' \donttest{
+#' cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pitching_enh"), 
+#'                              include = c('w','l','cg','sho','sv','ipouts','h','er','hr','bb',
+#'                                          'so','baopp','era','whip','ktobb','fip'),
+#'                              where = "decadeid = 2000", test=FALSE)
+#' # remove duplicate correlation values (no symmetry)
+#' cormat = cormat[cormat$metric1 < cormat$metric2, ]
+#' }
 computeCorrelations <- function(channel, tableName, tableInfo, include, except=NULL, where=NULL, test=FALSE) {
   
   if (test & missing(tableInfo)) {
@@ -20,6 +49,10 @@ computeCorrelations <- function(channel, tableName, tableInfo, include, except=N
   }
   
   columns = getNumericColumns(tableInfo, names.only=TRUE, include=include, except=except)
+  
+  if (is.null(columns) || length(columns) < 2) {
+    stop("Must provide at least 2 numeric columns.")
+  }
   
   correlations = expand.grid(columns, columns, stringsAsFactors = FALSE)
   correlations = with(correlations, correlations[Var1<Var2,])

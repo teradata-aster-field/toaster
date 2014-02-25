@@ -1,6 +1,21 @@
 require(RODBC)
 
-#' computes data frame for heatmap visualizations
+#' Compute 2-dimensional multi-layered matrix for heat map visualizations.
+#' 
+#' Compute aggregate value(s) across two category classes represented by the 
+#' table columns \code{dimension1} and \code{dimension2}. Resulting data frame
+#' represents 2-dimensional multi-layered matrix where each layer comprises
+#' values from single aggregate. Category columns usually are of character, 
+#' temporal, or discrete types. Values are aggregates computed across 
+#' category columns utilizing SQL \code{GROUP BY <dimension1>, <dimension2>}. 
+#' Aggregate formula may use any SQL expressions allowed with the \code{GROUP BY}
+#' as defined above. Results are usually fed into \code{\link{createHeatmap}} 
+#' for heat map visualizations. If defined, parameter \code{by} expands 
+#' grouping columns to be used with heat maps with faceting.
+#'  
+#' Result represents 2-dimensional matrix with as many data layers as there were 
+#' aggregates computed. Additionally more layers defined with parameter \code{by} 
+#' support facets. 
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
@@ -8,41 +23,46 @@ require(RODBC)
 #'   are x and y scales of heatmap table.
 #' @param dimension2 name of the column for for heatmap y values. This value along with \code{dimension1}
 #'   are x and y scales of heatmap table.
-#' @param aggregateFun vector with aggregate functions to compute and use for for heatmap values. In SQL it translates 
-#'   to \code{GROUP BY dimension1, dimension2} and computes one or more aggregates. 
-#' @param aggregateAlias vector of aliases for aggregate values in SQL. This becomes names of value columns in 
-#'   heatmap data frame. Subsequently, \code{createHeatmap} will use these values to assign color (fill), text,
-#'   and threshold values to heatmap cells. 
-#' @param withMelt logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform result data frame
-#'  aggregate values into a molten data frame
-#' @param id.vars see \code{melt.data.frame}
-#' @param measure.vars see \code{melt.data.frame}
-#' @param variable.name see \code{melt.data.frame}
-#' @param value.name see \code{melt.data.frame}
-#' @param melt.na.rm see \code{melt.data.frame}
+#' @param aggregates vector with SQL aggregates to compute values for heat map. Aggregate may have optional 
+#'   aliases like in \code{"AVG(era) avg_era"}. Subsequently, use in \code{createHeatmap} as color 
+#'   (fill), text, and threshold values for heat map cells. 
+#' @param aggregateFun deprecated. Use \code{aggregates} instead.  
+#' @param aggregateAlias deprecated. Use \code{aggregates} instead.
+#' @param dimAsFactor logical indicates if dimensions and optional facet columns should be converted to factors.
+#'   This is almost always necessary for heat maps.
+#' @param withMelt logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform data frame
+#'  with aggregate values in designated columns into a molten data frame.
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
 #' @param by for optional grouping by one or more values for faceting or alike
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).
 #' @export
-#' @seealso createHeatmap
+#' @seealso \code{\link{createHeatmap}} 
+#' @return Data frame representing 2-dimensional multi-layered matrix to use 
+#'   with \code{\link{createHeatmap}}. Matrix has as many layers as there are 
+#'   aggregates computed. If \code{by} defined, data frame contains multiple 
+#'   matrices for each value(s) from the column(s) in \code{by} (to support facets). 
+#'   When \code{withMelt TRUE} function \code{\link{melt}} applies transforming data frame
+#'   and columns with aggregate values for easy casting: expands number of rows and 
+#'   replaces all aggregate columns with two: \code{variable} and \code{value}.
 #' 
 #' @examples
 #' \donttest{
-#' hm = computeHeatmap(asterConn, "teams_enh", 'franchid', 'decadeid', 'avg(w)', 'w', where="decadeid >= 1950")
+#' hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w) w', 
+#'                     where="decadeid >= 1950")
 #' hm$decadeid = factor(hm$decadeid)
 #' createHeatmap(hm, 'decadeid', 'franchid', 'w')
 #' 
 #' # with diverging color gradient
-#' hm = computeHeatmap(asterConn, "teams_enh", 'franchid', 'decadeid', 'avg(w-l)', 'wl', where="decadeid >= 1950")
+#' hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w-l) wl', 
+#'                     where="decadeid >= 1950")
 #' hm$decadeid = factor(hm$decadeid)
 #' createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
 #' }
 computeHeatmap <- function(channel, tableName, dimension1, dimension2, 
-                           aggregateFun="COUNT(*)", aggregateAlias = "cnt", 
-                           withMelt=FALSE, id.vars, measure.vars,
-                           variable.name = "variable", value.name = "value", melt.na.rm = FALSE,
-                           #TODO: implement withMelt functionality above
+                           aggregates = "COUNT(*) cnt",
+                           aggregateFun = NULL, aggregateAlias = NULL, 
+                           dimAsFactor = TRUE, withMelt = FALSE, 
                            where=NULL, by=NULL, test=FALSE) {
   
   if (missing(tableName)) {
@@ -55,11 +75,24 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
   
   where_clause = makeWhereClause(where)
   
-  #validate aggregate args
-  if (length(aggregateFun) != length(aggregateAlias)) 
-    stop("Lengths of parameters 'aggregateFun' and 'aggregateAlias' must be the same.")
+  # validate aggregate args
+  # check for deprecated parameters first
+  if (!missing(aggregateFun)) {
+    if (length(aggregateFun) != length(aggregateAlias)) 
+      stop("Lengths of parameters 'aggregateFun' and 'aggregateAlias' must be the same.")
+  }else {
+    if (is.null(aggregates) || length(aggregates) < 1) {
+      stop("Must have at least one aggregate defined.")
+    }
+  }
   
-  aggSelectList = paste(aggregateFun, aggregateAlias, sep=" ", collapse=", ")
+  # check for deprecated paramters first
+  if (!missing(aggregateFun)) {
+    aggSelectList = paste(aggregateFun, aggregateAlias, sep=" ", collapse=", ")
+  }else {
+    aggSelectList = paste(aggregates, collapse=", ")
+  }
+  
   
   if (is.null(by)) {
      sql = paste0("SELECT ", dimension1, ", ", dimension2, ", ", aggSelectList,
@@ -79,10 +112,14 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
     heatmap = sqlQuery(channel, sql)
   }
   
+  if (dimAsFactor) {
+    colNames = c(dimension1, dimension2, by)
+    heatmap[, colNames] = lapply(heatmap[, colNames], FUN = function(x) {as.factor(x)})
+  }
+  
   if (withMelt) {
-    ## TODO: implement auto-assign for id.vars and measure.vars based on parameter values
-    heatmap = melt(heatmap, id.vars=id.vars, meausre.vars=measure.vars, variable.name=variable.name, 
-                   value.name=value.name, na.rm=melt.na.rm)
+    id.vars = c(dimension1, dimension2, by)
+    heatmap = melt(heatmap, id.vars=id.vars)
   }
   
   

@@ -283,8 +283,11 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'   in the x axis.        
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' @param shape bubble shape (default is 21)
-#' @param shapeSizeRange bubble size range
+#' @param shape bubble shape
+#' @param scaleSize logical if TRUE then scale the size of shape to be proportional to the value, 
+#'   if FALSE then scale the area.
+#' @param shapeSizeRange bubble size range (applies only when \code{scaleSize = TRUE})
+#' @param shapeMaxSize size of largest shape (applies only when \code{scaleSize = FALSE})
 #' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
 #'  \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
@@ -303,7 +306,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
                               facet = NULL, ncol = 1, facetScales = "fixed",
                               xlim = NULL, baseSize = 12, baseFamily = "sans",
-                              shape = 21, shapeSizeRange = c(1,10),
+                              shape = 21, 
+                              scaleSize = TRUE, shapeSizeRange = c(3,10), shapeMaxSize = 10,
                               paletteValues = NULL, palette = "Set1",
                               title = paste("Bubble Chart by", fill), xlab = x, ylab = y, 
                               textSize = 4, textColour = "black", textVJust = 1,
@@ -311,11 +315,14 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                               defaultTheme=theme_bw(base_size = baseSize),
                               themeExtra=NULL) {
   
-  p = ggplot(data, aes_string(x=x, y=y, size=z, label=label, fill=fill)) +
-    geom_point(colour=textColour, shape=shape, show_guide=F) +
+  p = ggplot(data, aes_string(x=x, y=y, size=z, label=label, fill=fill), guide=F) +
+    geom_point(colour=textColour, shape=shape, show_guide=T) +
     (if (!is.null(label)) 
       geom_text(size=textSize, colour=textColour, vjust=textVJust, show_guide=F)) +
-    scale_size_continuous(range=shapeSizeRange) +
+    (if (scaleSize)
+       scale_size_continuous(range=shapeSizeRange, guide=FALSE)
+     else
+       scale_size_area(max_size=shapeMaxSize, guide=FALSE)) +
     (if(!missing(fill))
       if(!missing(paletteValues))
         scale_fill_manual(values = paletteValues)

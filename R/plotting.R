@@ -88,21 +88,28 @@ createHeatmap <- function(data, x, y, fill,
 #' @param x name of a column containing bin labels or interval values
 #' @param y name of a column containing bin values or counts (bin size)
 #' @param fill name of a column with values to colour bars
-#' @param position histogram position parameter to use for overlapping bars: stack, dodge (defult), fill, identity 
+#' @param position histogram position parameter to use for overlapping bars: 
+#'   stack, dodge (defult), fill, identity 
 #' @param mainColour Perimeter color of histogram bars
-#' @param fillColour Fill color of histogram bars (applies only when \code{fill} is NULL)
-#' @param scaleGradient control \code{ggplot2} scale fill gradient manually, e.g use \code{scale_colour_gradient}
-#'   (if specified then parameter \code{palette} is ignored)
-#' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
-#'  \code{palette} is ignored)
-#' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
-#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
-#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
-#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
-#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}).
-#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
-#'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
-#'        parameter \code{scales} )
+#' @param fillColour Fill color of histogram bars (applies only when 
+#'   \code{fill} is NULL)
+#' @param scaleGradient control \code{ggplot2} scale fill gradient manually, 
+#'   e.g use \code{scale_colour_gradient} (if specified then parameter 
+#'   \code{palette} is ignored)
+#' @param paletteValues actual palette colours for use with \code{scale_fill_manual}
+#'  (if specified then parameter \code{palette} is ignored)
+#' @param palette Brewer palette name - see \code{display.brewer.all} in 
+#'   \code{RColorBrewer} package for names
+#' @param facet name of a column to divide plot into facets for specificed parameter 
+#'   (defualt is NULL - no facets). If facet is single value then facet wrap applied 
+#'   (see \code{\link{facet_wrap}}), otherwise facet grid (see \code{\link{facet_grid}} 
+#'   with 1st 2 values of the vector.
+#' @param ncol number of facet columns (applies when single facet column supplied only 
+#'   - see parameter \code{facet}).
+#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, 
+#'   "free_x" - vary across rows (x axis), "free_y" - vary across columns (Y axis) 
+#'   (default), "free" - both rows and columns (see in \code{facet_wrap} parameter
+#'   \code{scales} )
 #' @param baseSize base font size
 #' @param baseFamily base font family
 #' @param xlim a character vector specifying the data range for the x scale and the default order of their display 
@@ -121,9 +128,9 @@ createHeatmap <- function(data, x, y, fill,
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
-#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical, horizontal (see 
+#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
-#' @param defaultTheme plot theme to use, default is \code{theme_bw}
+#' @param defaultTheme plot theme to use, default is \code{\link{theme_bw}}
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add
 #' 
 #' @export

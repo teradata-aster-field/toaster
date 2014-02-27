@@ -291,6 +291,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param baseSize base font size
 #' @param baseFamily base font family
 #' @param shape bubble shape
+#' @param shapeColour colour of shapes
 #' @param scaleSize logical if TRUE then scale the size of shape to be proportional to the value, 
 #'   if FALSE then scale the area.
 #' @param shapeSizeRange bubble size range (applies only when \code{scaleSize = TRUE})
@@ -301,9 +302,14 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param title plot title
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
-#' @param textSize size of text labels
-#' @param textColour color of text labels
-#' @param textVJust vertical justificaiton of text labels (relative to the center of bubble)
+#' @param labelSize size of labels
+#' @param labelFamily label font name or family name
+#' @param labelFontface label font face (\code{c("plain","bold","italic","bold.italic")})
+#' @param labelColour color of labels
+#' @param labelVJust position of the anchor (0=bottom edge, 1=top edge), can go below 0 or above 1
+#' @param labelHJust position of the label anchor (0=left edge, 1=right edge), can go below 0 or above 1
+#' @param labelAlpha the transparency of the text label
+#' @param labelAngle the angle at which to draw the text label
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}
@@ -313,19 +319,23 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
                               facet = NULL, ncol = 1, facetScales = "fixed",
                               xlim = NULL, baseSize = 12, baseFamily = "sans",
-                              shape = 21, 
-                              scaleSize = TRUE, shapeSizeRange = c(3,10), shapeMaxSize = 10,
+                              shape = 21, shapeColour = "black",
+                              scaleSize = TRUE, shapeSizeRange = c(3,10), shapeMaxSize = 100,
                               paletteValues = NULL, palette = "Set1",
-                              title = paste("Bubble Chart by", fill), xlab = x, ylab = y, 
-                              textSize = 4, textColour = "black", textVJust = 1,
+                              title = paste("Bubble Chart by", fill), xlab = x, ylab = y,
+                              labelSize = 5, labelFamily = "", labelFontface = "plain",
+                              labelColour = "black", labelVJust = 0.5, labelHJust = 0.5,
+                              labelAlpha = 1, labelAngle = 0, 
                               legendPosition="right",
                               defaultTheme=theme_bw(base_size = baseSize),
                               themeExtra=NULL) {
   
   p = ggplot(data, aes_string(x=x, y=y, size=z, label=label, fill=fill), guide=F) +
-    geom_point(colour=textColour, shape=shape, show_guide=T) +
+    geom_point(colour=shapeColour, shape=shape, show_guide=T) +
     (if (!is.null(label)) 
-      geom_text(size=textSize, colour=textColour, vjust=textVJust, show_guide=F)) +
+      geom_text(size=labelSize, colour=labelColour, family=labelFamily, fontface=labelFontface, 
+                vjust=labelVJust, hjust=labelHJust, angle=labelAngle, alpha=labelAlpha, 
+                show_guide=F)) +
     (if (scaleSize)
        scale_size_continuous(range=shapeSizeRange, guide=FALSE)
      else

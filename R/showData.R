@@ -73,7 +73,7 @@
 #' @export
 #' @examples
 #' \donttest{
-#' # get summaries to save time by reusing it
+#' # get summaries to save time
 #' pitchingInfo = getTableSummary(asterConn, 'pitching_enh')
 #' battingInfo = getTableSummary(asterConn, 'batting_enh')
 #' 
@@ -111,16 +111,19 @@
 #' 
 #' # Scatterplots
 #' # Scatterplot on pair of numerical attributes
-#' # with facet_wrap (single-valued facetName)
-#' showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
-#'          sampleSize=10000, facetName='activity_factor_id', 
-#'          where="activity_factor_id in (601, 611)")
+#' # sample by size with 1d facet (see \code{\link{facet_wrap}})
+#' showData(asterConn, 'pitching_enh', format='scatterplot', 
+#'          include=c('so', 'er'), facetName="lgid", pointColour="lgid", 
+#'          sampleSize=10000, regressionLine=TRUE,
+#'          title="SO vs ER by League 1980-2000",
+#'          where='yearid between 1980 and 2000')
 #' 
-#' # Scatterplot on pair of numerical attributes
-#' # with facet_grid (two-valued facetName)
-#' showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
-#'          sampleSize=10000, facetName=c('activity_factor_id','facility_id'), 
-#'          where="activity_factor_id in (601, 611) and facility_id in (1121,1219)")          
+#' # sample by fraction with 2d facet (see \code{\link{facet_grid}})
+#' showData(asterConn, 'pitching_enh', format='scatterplot', 
+#'          include=c('so','er'), facetName=c('lgid','decadeid'), pointColour="lgid",
+#'          sampleFraction=0.1, regressionLine=TRUE,
+#'          title="SO vs ER by League by Decade 1980 - 2012",
+#'          where='yearid between 1980 and 2012')
 #' }
 showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include = NULL, except = NULL, 
                      type = 'numeric', format = 'histgoram', measures = NULL,
@@ -142,8 +145,6 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
   type = match.arg(type, c('numeric','character','temporal'))
   format = match.arg(format, c('overview','histogram','boxplot','scatterplot', 'corr'))
   corrLabel = match.arg(corrLabel, c('none','value','pair'))
-  
-  where_clause = makeWhereClause(where)
   
   # facetName needs to be included if missing
   if (!missing(include) & any(!(facetName %in% include))) {
@@ -258,12 +259,6 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
   }
   else if (format=='scatterplot') {
     # Validations
-    if (missing(sampleFraction) & missing(sampleSize)) {
-      stop("Scatterplot format requires sampleFraction or sampleSize specified.")
-    }
-    if (!missing(sampleFraction)) {
-      stopifnot(sampleFraction > 0, sampleFraction < 1)
-    }
     if (missing(include) | length(include)<2) {
       stop("Scatterplot format requires parameter 'include' define x and y coordiantes.")
     }
@@ -271,16 +266,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
       stop("Scatterplot format is valid for numerical data only.")
     }
     
-    columnList = paste(summary$COLUMN_NAME, collapse=', ')
-    if (missing(sampleFraction)) {
-      sampleFraction = min(1., sampleSize / dataNum$total_count[1])
-    }
-    sampleFractionStr = as.character(sampleFraction)
-    
-    data = sqlQuery(channel, paste0("SELECT ", columnList, 
-                                    "  FROM sample(
-                                              ON (SELECT * FROM ", tableName, where_clause, ") ",
-                                    "         SampleFraction('", sampleFractionStr, "'))"))
+    data = computeSample(channel, tableName, sampleFraction, sampleSize, include=summary$COLUMN_NAME,
+                         where=where, stringsAsFactors=default.stringsAsFactors())
     
     # factor data for facet and colours
     if (!all(is.null(facetName), is.null(pointColour))) {

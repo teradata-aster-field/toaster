@@ -33,7 +33,7 @@ test_that("showData issues warnings", {
 })
 
 
-test_that("showData throws errors", {
+test_that("showData format 'boxplot' throws errors", {
   
   # format='boxplot'
   expect_error(showData(tableInfo=batting_info, type='numeric', format='boxplot', include='nothing'),
@@ -45,25 +45,40 @@ test_that("showData throws errors", {
   
   expect_error(showData(tableInfo=batting_info, type='numeric', format='boxplot', include=c('lgid','playerid')),
                "Nothing to show: check lists of columns")
+})
+
+test_that("showData format 'histogram' throws errors", {
   
   # format='histogram'
   expect_error(showData(tableInfo=batting_info, type='character', format='histogram'),
                "Factor histograms are not supported")
   expect_error(showData(tableInfo=batting_info, type='temporal', format='histogram'),
                "Datetime histograms are not supported")
+})
+  
+  
+test_that("showData format 'scatterplot' throws errors", {
   
   # format='scatterplot'
-  expect_error(showData(tableInfo=batting_info, format='scatterplot'), 
-               "requires sampleFraction or sampleSize specified")
-  expect_error(showData(tableInfo=batting_info, format='scatterplot', sampleSize=1, include=c('lgid','playerid')), 
-               "numerical data only")
+  expect_error(showData(tableInfo=batting_info, format='scatterplot'),
+               "define x and y coordiantes")
   expect_error(showData(tableInfo=batting_info, format='scatterplot', sampleSize=1, include=c('ba')), 
                "define x and y coordiantes")
+  expect_error(showData(tableInfo=batting_info, format='scatterplot', include=c('lgid','playerid')),
+               "Scatterplot format is valid for numerical data only.")
+  expect_error(showData(tableInfo=batting_info, format='scatterplot', include=c('so','ba')), 
+               "Sample fraction or sample size must be specified.")
+  expect_error(showData(tableInfo=batting_info, format='scatterplot', sampleSize=1, include=c('lgid','playerid')), 
+               "numerical data only")
   expect_error(showData(tableInfo=batting_info[batting_info$COLUMN_NAME %in% c('lgid')], format='scatterplot', sampleSize=1, 
                         include=c('lgid','playerid')),
                "Not all specified columns are in the table summary")
+})  
   
+
+test_that("showData format 'corr' throws errors", {
   # format='corr'
   expect_error(showData(tableInfo=batting_info, format='corr', include=c('lgid','playerid')),
                "Nothing to show: check lists of columns")
 })
+  

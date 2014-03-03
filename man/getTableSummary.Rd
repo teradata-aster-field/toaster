@@ -1,6 +1,6 @@
 \name{getTableSummary}
 \alias{getTableSummary}
-\title{Augment Column table with column statistics computed in Aster}
+\title{Compute columnwise statistics on Aster table.}
 \usage{
   getTableSummary(channel, tableName, include = NULL,
     except = NULL, modeValue = FALSE,
@@ -11,7 +11,7 @@
   \item{channel}{object as returned by
   \code{\link{odbcConnect}}.}
 
-  \item{tableName}{table name.}
+  \item{tableName}{name of the table in Aster.}
 
   \item{include}{a vector of column names to include.
   Output never contains attributes other than in the list.}
@@ -20,7 +20,7 @@
   never contains attributes from the list.}
 
   \item{modeValue}{logical indicates if mode values should
-  be computed.}
+  be computed. Default is FALSE.}
 
   \item{percentiles}{list of percentiles (integers between
   0 and 100) to collect (always collects 25th and 75th for
@@ -37,10 +37,64 @@
   statistics for tables \code{pitching} or \code{batting},
   only.}
 }
+\value{
+  data frame returned by \code{\link{sqlColumns}} with
+  additional columns: \describe{ \item{total_count}{total
+  row count - the same for each table column}
+  \item{distinct_count}{distinct values count}
+  \item{not_null_count}{not null count}
+  \item{minimum}{minimum value (numerical data types only)}
+  \item{maximum}{maximum value (numerical data types only)}
+  \item{average}{mean (numerical data types only)}
+  \item{deviation}{standard deviation (numerical data types
+  only)} \item{percentiles}{defaults:
+  0,5,10,25,50,75,90,95,100. Always adds percentiles 25, 50
+  (median), 75} \item{IQR}{interquartile range is the 1st
+  Quartile subtracted from the 3rd Quartile}
+  \item{minimum_str}{minimum string value (character data
+  types only)} \item{maximum_str}{maximum string value
+  (character data types only)} \item{mode}{mode value
+  (optional)} \item{mode_count}{mode count (optional)} }
+}
 \description{
+  For table compute column statistics in Aster and augment
+  data frame structure obtained with
+  \code{\link{sqlColumns}} with columns containing computed
+  statistics.
+}
+\details{
   Computes columns statistics for all or specified table
   columns and adds them to the data frame with basic ODBC
   table metadata obtained with \code{\link{sqlColumns}}.
+  Computed statistics include counts of all, non-null,
+  distinct values; statistical summaries of maximum,
+  minimum, mean, standard deviation, median (50th
+  percentile), mode (optional), interquartile range, and
+  desired percentiles. Each computed statistic adds a
+  column to ODBC metadata data frame.
+}
+\examples{
+\donttest{
+pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+# list all table columns
+pitchingInfo$COLUMN_NAME
+
+# compute statistics on subset of baseball data after 1999
+battingInfo = getTableSummary(channel=conn, 'batting_enh',
+                              where='yearid between 2000 and 2013')
+
+# compute statistics for certain columns including each percentile from 1 to 99
+pitchingInfo = getTableSummary(channel=conn, 'pitching_enh',
+                              include=c('h', 'er', 'hr', 'bb', 'so'),
+                              percentiles=seq(1,99))
+# list data frame column names to see all computed statistics
+names(pitchingInfo)
+
+# compute statitics on all numeric columns except certain columns
+teamInfo = getTableSummary(channel=conn, 'teams_enh',
+                           include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
+                           except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))
+}
 }
 \seealso{
   \link{sqlColumns}

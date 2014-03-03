@@ -182,7 +182,7 @@
 }
 \examples{
 \donttest{
-# get summaries to save time by reusing it
+# get summaries to save time
 pitchingInfo = getTableSummary(asterConn, 'pitching_enh')
 battingInfo = getTableSummary(asterConn, 'batting_enh')
 

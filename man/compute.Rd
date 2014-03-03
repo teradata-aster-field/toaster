@@ -1,11 +1,11 @@
 \name{compute}
 \alias{compute}
 \alias{computeAggregates}
-\title{Compute table aggregates.}
+\title{Compute aggregate values}
 \usage{
-  compute(channel, tableName,
-    aggregates = c("COUNT(*) cnt"), by = vector(),
-    where = NULL, stringsAsFactors = FALSE, test = FALSE)
+  compute(channel, tableName, aggregates = "COUNT(*) cnt",
+    by = vector(), where = NULL, stringsAsFactors = FALSE,
+    test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -13,10 +13,11 @@
 
   \item{tableName}{table name}
 
-  \item{by}{column names and/or expressions to use as
-  aggregates (with SQL \code{GROUP BY ...}). Each can be
-  column name or valid SQL expression with otional alias
-  (e.g. \code{"UPPER(car_make) make"})}
+  \item{by}{character vecotr of column names and/or
+  expressions on which grouping is performed (with SQL
+  \code{GROUP BY ...}). Each can be a column or a valid SQL
+  non-aggregate expression with otional alias separated by
+  space (e.g. \code{"UPPER(car_make) make"}).}
 
   \item{aggregates}{SQL aggregates to compute. Aggregates
   may have optional aliases like in \code{"AVG(era)
@@ -34,16 +35,28 @@
   functions like \link{sqlQuery} and \link{sqlSave}).}
 }
 \description{
-  Computes aggregates by means of SQL \code{SELECT ...
-  GROUP BY} on Aster table.
+  Compute aggregates using SQL \code{SELECT...GROUP BY} in
+  Aster. Aggregates may be any valid SQL expressions
+  (including SQL \code{WINDOW} functions) in context of
+  group columns (parameter \code{by}). Neither SQL
+  \code{ORDER BY} nor \code{LIMIT} clauses are supported
+  (use \code{\link{computeBarchart}} when they are
+  required).
 }
 \examples{
 \donttest{
 data = compute(channel = conn, tableName = "teams_enh",
                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank",
-                              "avg(attendance) attendance")
-               )
+                              "avg(attendance) attendance"))
+
+# compute total strike-outs for each team in decades starting with 1980
+# and also percent (share) of team strikeouts within a decade
+data = compute(channel = conn, "pitching_enh",
+               by = c("teamid", "decadeid"),
+               aggregates = c("sum(so) so",
+                              "sum(so)/(sum(sum(so)) over (partition by decadeid)) percent"),
+               where = "decadeid >= 1980")
 }
 }
 

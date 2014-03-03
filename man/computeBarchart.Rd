@@ -1,10 +1,10 @@
 \name{computeBarchart}
 \alias{computeBarchart}
-\title{Compute Barchart for a category and arbitrary number of aggregates.}
+\title{Compute one or more aggregates grouped by single column}
 \usage{
   computeBarchart(channel, tableName, category,
-    aggregates = "COUNT(*) cnt", percent = FALSE,
-    where = NULL, orderBy = NULL, top = NULL, by = NULL,
+    aggregates = "COUNT(*) cnt", where = NULL,
+    orderBy = NULL, top = NULL, by = NULL,
     withMelt = FALSE, stringsAsFactors = FALSE,
     test = FALSE)
 }
@@ -14,20 +14,18 @@
 
   \item{tableName}{table name}
 
-  \item{category}{column name or expression corresponding
-  to bar chart category. Name may be valid SQL expression
-  and can contain otional alias (e.g.
-  \code{"UPPER(car_make) make"})}
+  \item{category}{column name or expression associated with
+  categories. Name may be valid SQL expression and can
+  contain otional alias (e.g. \code{"UPPER(car_make)
+  make"})}
 
-  \item{aggregates}{SQL aggregates to compute. Aggregates
-  may have optional aliases like in \code{"AVG(era)
-  avg_era"}}
+  \item{aggregates}{SQL aggregates to compute. Each
+  aggregate corresponds to category value.  Aggregates may
+  have optional aliases like in \code{"AVG(era) era"}}
 
   \item{by}{for optional grouping by one or more columns
   for faceting or alike (effectively these elements will be
   part of \code{GROUP BY ...})}
-
-  \item{percent}{logical:}
 
   \item{where}{SQL WHERE clause limiting data from the
   table (use SQL as if in WHERE clause but omit keyword
@@ -35,11 +33,13 @@
 
   \item{orderBy}{list of column names, aliases, references
   or their combinations to use in SQL \code{ORDER BY}
-  clause}
+  clause. Use in combination with \code{top} below to
+  compute only limited number of results in certain order.}
 
   \item{top}{if specified indicates number of bars to
   include in bar plot. In combination with \code{orderBy}
-  it works as computing first \code{top} results.}
+  it works as computing first \code{top} results in certain
+  order.}
 
   \item{withMelt}{logical if TRUE then uses \pkg{reshape2}
   \code{\link{melt}} to transform result data frame
@@ -53,15 +53,27 @@
   only (similar to parameter \code{test} in \link{RODBC}
   functions like \link{sqlQuery} and \link{sqlSave}).}
 }
+\value{
+  Data frame to use for bar chart plots with
+  \code{\link{createHistogram}}.
+}
 \description{
-  Computes data suitable for bar chart plotting with single
-  category corresponding to a column or an expression.
-  Function can compute arbitrary number of aggregates.
+  Compute aggregates across category class represented by
+  the table column. Values are one or more SQL aggregates
+  that are valid expressions with \code{GROUP BY <class
+  column>}. Class column usually is of character or other
+  discrete type. Typical example is computing a bar chart
+  for the column using SQL \code{COUNT(*) ... GROUP BY} -
+  hence the name of the function. Result is a data frame to
+  visualize as bar charts or heatmaps (see creating
+  visualizations with \code{\link{createHistogram}} and
+  \code{\link{createHeatmap}}).
 }
 \examples{
 \donttest{
 # Compute average team season era, walks, and hits for each decade starting with 1980
-computeBarchart(asterConn, "teams_enh", "teamid team", c("avg(era) era", "avg(bb) bb", "avg(h) h"),
+computeBarchart(channel=conn, "teams_enh", "teamid team",
+                aggregates=c("avg(era) era", "avg(bb) bb", "avg(h) h"),
                 where="yearid >=1980", by=c("decadeid"))
 
 # multipe aggregates in the same bar chart (with melt)
@@ -76,6 +88,7 @@ bc = computeBarchart(channel=conn, tablelName="pitching_enh", category="teamid",
 }
 }
 \seealso{
-  computeHistogram
+  \code{\link{computeHistogram}},
+  \code{\link{createHistogram}}
 }
 

@@ -1,15 +1,18 @@
 \name{createBubblechart}
 \alias{createBubblechart}
-\title{Create plot with Bubble Chart visualization}
+\title{Create Bubble Chart plot}
 \usage{
   createBubblechart(data, x, y, z, label = z, fill = NULL,
     facet = NULL, ncol = 1, facetScales = "fixed",
     xlim = NULL, baseSize = 12, baseFamily = "sans",
-    shape = 21, shapeSizeRange = c(1, 10),
+    shape = 21, shapeColour = "black", scaleSize = TRUE,
+    shapeSizeRange = c(3, 10), shapeMaxSize = 100,
     paletteValues = NULL, palette = "Set1",
     title = paste("Bubble Chart by", fill), xlab = x,
-    ylab = y, textSize = 4, textColour = "black",
-    textVJust = 1, legendPosition = "right",
+    ylab = y, labelSize = 5, labelFamily = "",
+    labelFontface = "plain", labelColour = "black",
+    labelVJust = 0.5, labelHJust = 0.5, labelAlpha = 1,
+    labelAngle = 0, legendPosition = "right",
     defaultTheme = theme_bw(base_size = baseSize),
     themeExtra = NULL)
 }
@@ -53,9 +56,19 @@
 
   \item{baseFamily}{base font family}
 
-  \item{shape}{bubble shape (default is 21)}
+  \item{shape}{bubble shape}
 
-  \item{shapeSizeRange}{bubble size range}
+  \item{shapeColour}{colour of shapes}
+
+  \item{scaleSize}{logical if TRUE then scale the size of
+  shape to be proportional to the value, if FALSE then
+  scale the area.}
+
+  \item{shapeSizeRange}{bubble size range (applies only
+  when \code{scaleSize = TRUE})}
+
+  \item{shapeMaxSize}{size of largest shape (applies only
+  when \code{scaleSize = FALSE})}
 
   \item{paletteValues}{actual palette colours for use with
   \code{scale_fill_manual} (if specified then parameter
@@ -73,12 +86,25 @@
   \item{ylab}{a label for the y axis, defaults to a
   description of y.}
 
-  \item{textSize}{size of text labels}
+  \item{labelSize}{size of labels}
 
-  \item{textColour}{color of text labels}
+  \item{labelFamily}{label font name or family name}
 
-  \item{textVJust}{vertical justificaiton of text labels
-  (relative to the center of bubble)}
+  \item{labelFontface}{label font face
+  (\code{c("plain","bold","italic","bold.italic")})}
+
+  \item{labelColour}{color of labels}
+
+  \item{labelVJust}{position of the anchor (0=bottom edge,
+  1=top edge), can go below 0 or above 1}
+
+  \item{labelHJust}{position of the label anchor (0=left
+  edge, 1=right edge), can go below 0 or above 1}
+
+  \item{labelAlpha}{the transparency of the text label}
+
+  \item{labelAngle}{the angle at which to draw the text
+  label}
 
   \item{legendPosition}{the position of legends. ("left",
   "right", "bottom", "top", or two-element numeric vector).
@@ -91,6 +117,6 @@
   attributes to add}
 }
 \description{
-  Create plot with Bubble Chart visualization
+  Create Bubble Chart plot
 }
 

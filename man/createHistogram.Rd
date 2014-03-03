@@ -1,6 +1,6 @@
 \name{createHistogram}
 \alias{createHistogram}
-\title{Create plot with Histogram visualization}
+\title{Create histogram type of plot}
 \usage{
   createHistogram(data, x = "bin_start", y = "bin_count",
     fill = NULL, position = "dodge", facet = NULL,
@@ -107,17 +107,17 @@
   "none" is no legend.}
 
   \item{coordFlip}{logical flipped cartesian coordinates so
-  that horizontal becomes vertical, and vertical,
-  horizontal (see \link{coord_flip}).}
+  that horizontal becomes vertical, and vertical horizontal
+  (see \link{coord_flip}).}
 
   \item{defaultTheme}{plot theme to use, default is
-  \code{theme_bw}}
+  \code{\link{theme_bw}}}
 
   \item{themeExtra}{any additional \code{ggplot2} theme
   attributes to add}
 }
 \description{
-  Create plot with Histogram visualization
+  Create histogram or bar chart plot.
 }
 \examples{
 \donttest{

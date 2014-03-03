@@ -1,6 +1,6 @@
 \name{createMap}
 \alias{createMap}
-\title{Grap a map, display it, and place data artifacts on it.}
+\title{Locate and grab a map, geocode and place data artifacts on it, plot them.}
 \usage{
   createMap(data, maptype = "terrain",
     mapColor = c("color", "bw"),
@@ -157,9 +157,11 @@
   attributes to add}
 }
 \description{
-  createMap is a smart function which queries for a map at
-  a certain location or that fits data artifacts, displays
-  it and places artifacts from data on it.
+  createMap is a smart function that, if necessary,
+  geocodes data, estimates map location, queries for the
+  map, places data artifacts on the map, and plots map and
+  the data as shapes sized and colored based on the metrics
+  specified.
 }
 \examples{
 \donttest{

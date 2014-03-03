@@ -1,12 +1,11 @@
 \name{computeHeatmap}
 \alias{computeHeatmap}
-\title{computes data frame for heatmap visualizations}
+\title{Compute 2-dimensional multi-layered matrix for heat map visualizations.}
 \usage{
   computeHeatmap(channel, tableName, dimension1,
-    dimension2, aggregateFun = "COUNT(*)",
-    aggregateAlias = "cnt", withMelt = FALSE, id.vars,
-    measure.vars, variable.name = "variable",
-    value.name = "value", melt.na.rm = FALSE, where = NULL,
+    dimension2, aggregates = "COUNT(*) cnt",
+    aggregateFun = NULL, aggregateAlias = NULL,
+    dimAsFactor = TRUE, withMelt = FALSE, where = NULL,
     by = NULL, test = FALSE)
 }
 \arguments{
@@ -23,30 +22,25 @@
   values. This value along with \code{dimension1} are x and
   y scales of heatmap table.}
 
-  \item{aggregateFun}{vector with aggregate functions to
-  compute and use for for heatmap values. In SQL it
-  translates to \code{GROUP BY dimension1, dimension2} and
-  computes one or more aggregates.}
+  \item{aggregates}{vector with SQL aggregates to compute
+  values for heat map. Aggregate may have optional aliases
+  like in \code{"AVG(era) avg_era"}. Subsequently, use in
+  \code{createHeatmap} as color (fill), text, and threshold
+  values for heat map cells.}
 
-  \item{aggregateAlias}{vector of aliases for aggregate
-  values in SQL. This becomes names of value columns in
-  heatmap data frame. Subsequently, \code{createHeatmap}
-  will use these values to assign color (fill), text, and
-  threshold values to heatmap cells.}
+  \item{aggregateFun}{deprecated. Use \code{aggregates}
+  instead.}
+
+  \item{aggregateAlias}{deprecated. Use \code{aggregates}
+  instead.}
+
+  \item{dimAsFactor}{logical indicates if dimensions and
+  optional facet columns should be converted to factors.
+  This is almost always necessary for heat maps.}
 
   \item{withMelt}{logical if TRUE then uses \pkg{reshape2}
-  \code{\link{melt}} to transform result data frame
-  aggregate values into a molten data frame}
-
-  \item{id.vars}{see \code{melt.data.frame}}
-
-  \item{measure.vars}{see \code{melt.data.frame}}
-
-  \item{variable.name}{see \code{melt.data.frame}}
-
-  \item{value.name}{see \code{melt.data.frame}}
-
-  \item{melt.na.rm}{see \code{melt.data.frame}}
+  \code{\link{melt}} to transform data frame with aggregate
+  values in designated columns into a molten data frame.}
 
   \item{where}{SQL WHERE clause limiting data from the
   table (use SQL as if in WHERE clause but omit keyword
@@ -59,22 +53,54 @@
   only (similar to parameter \code{test} in \pkg{RODBC}
   functions: \link{sqlQuery} and \link{sqlSave}).}
 }
+\value{
+  Data frame representing 2-dimensional multi-layered
+  matrix to use with \code{\link{createHeatmap}}. Matrix
+  has as many layers as there are aggregates computed. If
+  \code{by} defined, data frame contains multiple matrices
+  for each value(s) from the column(s) in \code{by} (to
+  support facets).  When \code{withMelt TRUE} function
+  \code{\link{melt}} applies transforming data frame and
+  columns with aggregate values for easy casting: expands
+  number of rows and replaces all aggregate columns with
+  two: \code{variable} and \code{value}.
+}
 \description{
-  computes data frame for heatmap visualizations
+  Compute aggregate value(s) across two category classes
+  represented by the table columns \code{dimension1} and
+  \code{dimension2}. Resulting data frame represents
+  2-dimensional multi-layered matrix where each layer
+  comprises values from single aggregate. Category columns
+  usually are of character, temporal, or discrete types.
+  Values are aggregates computed across category columns
+  utilizing SQL \code{GROUP BY <dimension1>, <dimension2>}.
+  Aggregate formula may use any SQL expressions allowed
+  with the \code{GROUP BY} as defined above. Results are
+  usually fed into \code{\link{createHeatmap}} for heat map
+  visualizations. If defined, parameter \code{by} expands
+  grouping columns to be used with heat maps with faceting.
+}
+\details{
+  Result represents 2-dimensional matrix with as many data
+  layers as there were aggregates computed. Additionally
+  more layers defined with parameter \code{by} support
+  facets.
 }
 \examples{
 \donttest{
-hm = computeHeatmap(asterConn, "teams_enh", 'franchid', 'decadeid', 'avg(w)', 'w', where="decadeid >= 1950")
+hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w) w',
+                    where="decadeid >= 1950")
 hm$decadeid = factor(hm$decadeid)
 createHeatmap(hm, 'decadeid', 'franchid', 'w')
 
 # with diverging color gradient
-hm = computeHeatmap(asterConn, "teams_enh", 'franchid', 'decadeid', 'avg(w-l)', 'wl', where="decadeid >= 1950")
+hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w-l) wl',
+                    where="decadeid >= 1950")
 hm$decadeid = factor(hm$decadeid)
 createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
 }
 }
 \seealso{
-  createHeatmap
+  \code{\link{createHeatmap}}
 }
 

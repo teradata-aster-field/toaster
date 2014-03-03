@@ -1,6 +1,6 @@
 \name{computeHistogram}
 \alias{computeHistogram}
-\title{Compute table column histogram}
+\title{Compute histogram distribution of the table column}
 \usage{
   computeHistogram(channel, tableName, columnName,
     tableInfo = NULL, columnFrequency = FALSE,
@@ -65,8 +65,16 @@
   paramters are in use (before Aster AF 5.11)}
 }
 \description{
-  \code{computeHistogram} uses Aster SQL/MR histogram
-  function to compute a histogram on given table column.
+  Compute histogram of the table column in Aster by mapping
+  its value to bins based on parameters specified. When
+  column is of numeric or temporal data type it uses
+  map-reduce histogram function over continuous values.
+  When column is categorical (character data types) it
+  defers to \code{\link{computeBarchart}} that uses SQL
+  aggregate \code{COUNT(*)} with \code{GROUP BY <column>}.
+  Result is a data frame to visualize as bar charts (see
+  creating visualizations with
+  \code{\link{createHistogram}}).
 }
 \examples{
 \donttest{
@@ -80,6 +88,6 @@ createHistogram(h2000s, fill='teamid', facet='teamid',
 }
 }
 \seealso{
-  computeBarchart
+  \link{computeBarchart} and \link{createHistogram}
 }
 

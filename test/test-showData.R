@@ -3,6 +3,7 @@ require(toaster)
 
 dsn = "LocalQueenVMWare"
 dsn = "PublixPresalesCluster"
+dsn = "PresalesPartnersDB"
 uid = "beehive"
 pwd = "beehive"
 close(asterConn)
@@ -13,21 +14,11 @@ pitchingInfo = getTableSummary(asterConn, 'pitching')
 shrinkInfo = getTableSummary(asterConn, 'shrink')
 
 # Boxplots
-showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot')
-# all numerical attributes
-showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format="boxplot")
-# select certain attributes only
-showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format="boxplot", 
-         except=c('item_id','ingredient_item_id', 'facility_id', 'rownum'))
-# flip coordinates
-showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot', coordFlip=TRUE)
 
-showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
-         include=c('bfp','er','era','h','ipouts','r','so'))
+# all numerical attributes
 
 # boxplot with facet (facet_wrap)
-showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
-         include=c('BFP','ER','H','IPouts','R','SO'), facet=TRUE, facetScales='free')
+
 
 # Correlation matrix
 # on all numerical attributes

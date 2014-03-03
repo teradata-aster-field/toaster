@@ -1,4 +1,4 @@
-toAster Desktop Analytics for R works with Teradata Aster Big Data database.
+toaster (to Aster) Desktop Analytics for R works with Teradata Aster Big Data database.
 
 Package brings access to Aster database and its powerful SQL/MR functions to
 R desktop to help visualize and analyze with Aster powerful map-reduce

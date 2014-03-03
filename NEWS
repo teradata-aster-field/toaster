@@ -3,6 +3,9 @@ toaster 0.2
 
 NEW FEATURES
 
+* `computeSample`: randomly sample data from the table specifying
+  fraction or size of desired sample.
+
 * `createMap`: new visualization function for combining maps with data 
   artifacts from Aster database. Can be used to produce maps of 
   arbitrary scale (with exception of whole world) and type with shapes
@@ -46,6 +49,24 @@ ENHANCEMENTS
   values found.
 
 * `createHistogram` supports trend lines with parameter trendLine=TRUE.
+
+* `computeHeatmap` converts dimension and facet columns to factors by default.
+  If undesired set parameter dimAsFactor = FALSE to disable (not recommended
+  with heat maps). 
+
+* `computeHeatmap` now supports withMelt to melt result using function melt
+  from package reshape2. This option simplifies visualizating with facets.
+
+* `createBubblechart` now supports scaling shapes by size (default) or by area.
+  Correspondingly, use shapeSizeRange when scaling by size; and shapeMaxSize
+  when scaling by area.
+
+* `createBubblechart` added parameters to control label positioning and 
+  formatting. All parameters that position and format label text start
+  with prefix "label" now. Old parameters textSize, textColour, and 
+  textVJust renamed to labelSize, labelColour, labelVJust. 
+
+* `createPopPyramid` support for facets.
 
 BUG FIXES
 

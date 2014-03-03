@@ -1,23 +1,28 @@
 Package: toaster
 Type: Package
-Title: Data manipulation and visualization with R and Aster Analytics
-Version: 0.2
+Title: Data analysis and visualization with Aster Database
+Version: 0.2-2
 Author: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>
-Description: Tools to work with Aster Big Data database and Aster Analytics
-    Foundation functions in R. toaster utilizes Aster map-reduce analytical
-    functions with its big data relational store (for out of memory
-    computations) and ggplot-based graphics offering fast, consistent tools for
-    discovery and visualizations.
-    toaster suggests using ASter version 5.x or greater and requires Aster
-    Analytics Foundation 5.11 or greater.
+Description: toaster (a.k.a 'to Aster') is a set of tools to perform
+    in-database analytics with Teradata Aster Discovery Platform.
+    toaster embraces simple approach by dividing tasks into 2 steps:
+    compute in Aster - visualize in R. toaster `compute` functions use
+    distributed, highly scalable, parallel SQL and map-reduce
+    for processing of large data sets inside Aster database. Then
+    `create` functions visualize result with boxplots, scatterplots,
+    histograms, heatmaps, word clouds, maps, or slope graphs. Advanced options
+    such as faceting, coloring, labeling, and others are supported
+    with most plots.
+SystemRequirements: Teradata Aster 5.1 or higher, Teradata Aster Analytical
+    Foundation 5.10 or higher (5.11 or higher is recommended)
 Depends:
-    R (>= 2.14)
+    R (>= 2.14),
+    RODBC (>= 1.3-9)
 Suggests:
     testthat (>= 0.2),
     memoise
 Imports:
-    RODBC (>= 1.3-9),
     plyr (>= 1.8),
     reshape2 (>= 1.2.2),
     ggplot2 (>= 0.9.3.1),
@@ -39,3 +44,4 @@ Collate:
     'showData.R'
     'compute.R'
     'computeBarchart.R'
+    'computeSample.R'

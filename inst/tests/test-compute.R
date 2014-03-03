@@ -1,7 +1,5 @@
 context("compute")
 
-source("test-utils.R")
-
 test_that("compute throws errors", {
   
   expect_error(compute(channel=NULL), 
@@ -10,12 +8,16 @@ test_that("compute throws errors", {
   expect_error(compute(channel=NULL, tableName="fake"),
                "Must have one or more columns.")
   
+  expect_error(compute(channel=NULL, tableName="table_name", by="column1",
+                       aggregates = vector()),
+               "Must have at least one aggregate defined.")
+  
 })
 
 
 test_that("compute SQL is correct", {
   
-  expect_equal_normalized(compute(asterConn, "teams_enh", 
+  expect_equal_normalized(compute(channel=NULL, "teams_enh", 
                                   by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
                                   aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
                                                  "avg(attendance) attendance"),
@@ -26,7 +28,7 @@ test_that("compute SQL is correct", {
                             GROUP BY name || ', ' || park, lgid, teamid, decadeid"                          
                           )
   
-  expect_equal_normalized(compute(asterConn, "teams_enh",
+  expect_equal_normalized(compute(channel=NULL, "teams_enh",
                                   by = c("teamid", "decadeid"),
                                   aggregates = c("min(rank) minrank", "max(rank) maxrank"),
                                   where = "lgid = 'AL'",
@@ -34,6 +36,19 @@ test_that("compute SQL is correct", {
                           "SELECT teamid, decadeid, min(rank) minrank, max(rank) maxrank
                              FROM teams_enh
                             WHERE lgid = 'AL'
+                            GROUP BY teamid, decadeid"
+                          )
+  
+  expect_equal_normalized(compute(channel=NULL, "pitching_enh",
+                                  by = c("teamid", "decadeid"), 
+                                  aggregates = c("sum(so) so", 
+                                                 "sum(so)/(sum(sum(so)) over (partition by decadeid)) percent"),
+                                  where = "decadeid >= 1980",
+                                  test = TRUE),
+                          "SELECT teamid, decadeid, sum(so) so, 
+                                  sum(so)/(sum(sum(so)) over (partition by decadeid)) percent
+                             FROM pitching_enh
+                            WHERE decadeid >= 1980
                             GROUP BY teamid, decadeid"
                           )
 })

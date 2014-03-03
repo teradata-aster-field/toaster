@@ -11,6 +11,10 @@ test_that("computeBarchart throws errors", {
   expect_error(computeBarchart(channel=NULL, tableName="fake", category=c("1", "2")),
                "Bar chart must have exactly one category.")
   
+  expect_error(computeBarchart(channel=NULL, tableName="fake", category="cat", 
+                               aggregates = vector()), 
+               "Must have at least one aggregate defined.")
+  
 })
 
 

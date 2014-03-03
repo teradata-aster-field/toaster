@@ -1,13 +1,15 @@
 require(RODBC)
 
-#' Compute one or more sets of values among category class.
+#' Compute one or more aggregates grouped by single column
 #' 
-#' Compute value(s) across category class represented by the table 
-#' column being compared. Category class usually is of character, temporal, 
-#' or discrete type. Category values are computed as aggregates across 
-#' categories utilising SQL \code{GROUP BY <class>}. Aggregates may include 
-#' any SQL expressions allowed in \code{GROUP BY} with the category 
-#' class column. 
+#' Compute aggregates across category class represented by the table 
+#' column. Values are one or more SQL aggregates that are valid expressions
+#' with \code{GROUP BY <class column>}. Class column usually is of character 
+#' or other discrete type. Typical example is computing a bar chart for the 
+#' column using SQL \code{COUNT(*) ... GROUP BY} - hence the name of the 
+#' function. Result is a data frame to visualize as bar charts or heatmaps
+#' (see creating visualizations with \code{\link{createHistogram}} and
+#' \code{\link{createHeatmap}}).
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
@@ -19,9 +21,9 @@ require(RODBC)
 #'   will be part of \code{GROUP BY ...}) 
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
 #' @param orderBy list of column names, aliases, references or their combinations to use in SQL \code{ORDER BY} 
-#'   clause. Use in combination with \code{top} below.
+#'   clause. Use in combination with \code{top} below to compute only limited number of results in certain order.
 #' @param top if specified indicates number of bars to include in bar plot. In combination with \code{orderBy} 
-#'   it works as computing first \code{top} results.
+#'   it works as computing first \code{top} results in certain order.
 #' @param withMelt logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform result data frame
 #'  aggregate values into a molten data frame
 #' @param stringsAsFactors logical: should columns returned as character and not excluded by as. is and not converted to 

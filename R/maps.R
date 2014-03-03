@@ -1,7 +1,8 @@
-#' Grap a map, display it, and place data artifacts on it.
+#' Locate and grab a map, geocode and place data artifacts on it, plot them.
 #' 
-#' createMap is a smart function which queries for a map at a certain location or that fits data artifacts,
-#' displays it and places artifacts from data on it.
+#' createMap is a smart function that, if necessary, geocodes data, estimates map
+#' location, queries for the map, places data artifacts on the map, and plots map 
+#' and the data as shapes sized and colored based on the metrics specified.
 #' 
 #' @param data data frame with artifacts and their locations and metric(s) to be placed on the map. If location name is
 #'   provided (with \code{locationName}) then it is used to gecode artifacts first. If not location then longitude and 

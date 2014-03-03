@@ -1,9 +1,12 @@
-#' Compute histogram of the table column.
+#' Compute histogram distribution of the table column
 #' 
-#' Compute histogram of the table column in Aster. Depending on the column 
-#' data type it may use histogram map-reduce function or SQL with \code{GROUP BY}.
-#' The operation is supported for numeric or temporal data types, and defers
-#' to \code{\link{computeBarchart}} for character data types.
+#' Compute histogram of the table column in Aster by mapping its value to 
+#' bins based on parameters specified. When column is of numeric or
+#' temporal data type it uses map-reduce histogram function over continuous 
+#' values. When column is categorical (character data types) it defers to 
+#' \code{\link{computeBarchart}} that uses SQL aggregate \code{COUNT(*)} with
+#' \code{GROUP BY <column>}. Result is a data frame to visualize as bar charts 
+#' (see creating visualizations with \code{\link{createHistogram}}).
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name

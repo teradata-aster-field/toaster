@@ -1,8 +1,9 @@
-#' Compute table aggregates.
+#' Compute aggregate values
 #' 
-#' Compute aggregates defined with SQL aggregate syntax and aliases utilizing
-#' SQL \code{SELECT...GROUP BY} in Aster. Any SQL expressions that are valid 
-#' aggregates supported, including window function \code{OVER}. 
+#' Compute aggregates using SQL \code{SELECT...GROUP BY} in Aster. Aggregates may be any 
+#' valid SQL expressions (including SQL \code{WINDOW} functions) in context of group 
+#' columns (parameter \code{by}). Neither SQL \code{ORDER BY} nor \code{LIMIT} clauses
+#' are supported (use \code{\link{computeBarchart}} when they are required).  
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name

@@ -82,7 +82,9 @@ createHeatmap <- function(data, x, y, fill,
   return(p)
 }
 
-#' Create plot with Histogram visualization
+#' Create histogram type of plot
+#' 
+#' Create histogram or bar chart plot.
 #' 
 #' @param data data frame contains computed histogram
 #' @param x name of a column containing bin labels or interval values
@@ -271,7 +273,9 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
   return(p)
 }
 
-#' Create plot with Bubble Chart visualization 
+#' Create Bubble Chart plot
+#' 
+#' 
 #' 
 #' @param data data frame contains data computed for bubblechart
 #' @param x name of a column containing x variable values

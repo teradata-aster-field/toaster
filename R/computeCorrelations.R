@@ -3,8 +3,8 @@
 #' Compute global correlation between any pair of numeric columns from Aster table.
 #' Result includes all pairwise combinations of numeric columns in the table, with 
 #' optionally limiting columns to those in the parameter \code{include} or/and
-#' excluding columns from the parameter \code{except}. Correlation computation 
-#' can also be performed on subset of the data defined with the parameter \code{where}.
+#' excluding columns defined by parameter \code{except}. Computations 
+#' can be performed on subset of the data defined with parameter \code{where}.
 #'
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name

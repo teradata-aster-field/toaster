@@ -231,7 +231,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
     
     if (type=='numeric') {
       for(columnName in dataNum$COLUMN_NAME) {
-        hist = computeHistogram(channel, tableName, columnName, numbins=numBins, useIQR=useIQR, where=where)
+        hist = computeHistogram(channel, tableName, columnName, tableInfo=summary,
+                                numbins=numBins, useIQR=useIQR, where=where)
         if (nrow(hist) == 0) {
           warning(paste("Histogram for column '", columnName, "' is empty - skipping it." ))
         }else {

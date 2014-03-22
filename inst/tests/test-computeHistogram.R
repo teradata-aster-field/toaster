@@ -119,3 +119,9 @@ test_that("computeHistogram with barplot SQL is correct", {
                             GROUP BY playerid, lgid "
                           )
 })
+
+
+#test_that("computeHistogram with column frequency SQL is correct", {
+#  
+#  expect_equal_normalized(computeHistogram(channel=NULL, tableName="pitching", ))
+#})

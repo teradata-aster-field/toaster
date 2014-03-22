@@ -53,16 +53,27 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   # match argument values
   binMethod = match.arg(binMethod, c('manual', 'Sturges', 'Scott'))
   
-  if (missing(tableName) | missing(columnName)) {
+  if (missing(tableName) || missing(columnName) || 
+        is.null(tableName) || is.null(columnName)) {
     stop("Must provide table and column names.")
   }
   
   where_clause = makeWhereClause(where)
   
+  if (!missing(by)) {
+    byClause = paste0(ifelse(oldStyle, "BY(", "GROUP_COLUMNS("), paste0("'", by, "'", collapse=", "), ")")
+    byPartition = paste(by, collapse=", ")
+    bySelect = paste0(byPartition, ", ")
+  }else {
+    byClause = " "
+    byPartition = " 1 "
+    bySelect = " "
+  }
+  
   if (columnFrequency) {
     return (computeHistogramOfFrequencies(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, by, test))
+                                                where_clause, byClause, byPartition, bySelect, test))
   }
   
   if (missing(tableInfo) & test) {
@@ -141,16 +152,6 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
                         BIN_SELECT('", binMethod, "') ")
   }
   
-  if (!missing(by)) {
-    byClause = paste0(ifelse(oldStyle, "BY(", "GROUP_COLUMNS("), paste0("'", by, "'", collapse=", "), ")")
-    byPartition = paste(by, collapse=", ")
-    bySelect = paste0(byPartition, ", ")
-  }else {
-    byClause = " "
-    byPartition = " 1 "
-    bySelect = " "
-  }
-  
   sql = paste0("SELECT * 
                   FROM hist_reduce(
                          ON hist_map(
@@ -173,9 +174,10 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   
 }
 
+
 computeHistogramOfFrequencies <- function(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, by, test) {
+                                                where_clause, byClause, byPartition, bySelect, test) {
   
   if (is.null(by)) {
      sql = paste0("SELECT * 

@@ -1,16 +1,22 @@
-#' Create plot with Heatmap visualization
+#' Create Heat Map type of plot
+#' 
+#' Create heat map visualization of 2D matrix from the data frame \code{data}
+#' pre-computed with \code{\link{computeHeatmap}}. 
 #' 
 #' @param data data frame contains data computed for heatmap
-#' @param x name of a column containing x variable values
-#' @param y name of a column containing y variable values
+#' @param x name of a column containing x variable values (1st or horizontal dimenstion) in 2D matrix
+#' @param y name of a column containing y variable values (2d or vertical dimension) in 2D matrix
 #' @param fill name of a column with values to map to heatmap gradient colors (\code{lowGradient}, 
 #'   \code{highGradient}, and optionally \code{midGradient}).
-#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
-#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
-#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
-#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}).
-#' @param baseSize base font size
-#' @param baseFamily base font family
+#' @param facet vector of 1 or 2 column names to split up data to plot the 
+#'   subsets as facets. If single name then subset plots are placed next to 
+#'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
+#'   When two names then subset plots vary on both horizontal and vertical 
+#'   directions (grid) based on the column values (uses \code{\link{facet_grid}}).
+#' @param ncol number of facet columns (applies when single facet column supplied only 
+#'   - see parameter \code{facet}).
+#' @param baseSize \code{\link{theme}} base font size
+#' @param baseFamily \code{\link{theme}} base font family
 #' @param thresholdValue threshold to use to display data in heatmap (if NULL then do not use threshold)
 #' @param thresholdName name of data attribute from \code{data} to use (by defult use \code{fill})
 #' @param text if TRUE then display values in heatmap table (default: FALSE) 
@@ -28,8 +34,11 @@
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
-#' @param defaultTheme plot theme to use, default is \code{theme_bw}
-#' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
+#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
+#' 
+#' @seealso \code{\link{computeHeatmap}} for computing data for heat map 
 #' 
 #' @export
 createHeatmap <- function(data, x, y, fill,
@@ -42,7 +51,7 @@ createHeatmap <- function(data, x, y, fill,
                           highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"), 
                           title = paste("Heatmap by", fill), xlab = x, ylab = y,
                           legendPosition = "right",
-                          defaultTheme = theme_bw(base_size = baseSize),
+                          defaultTheme = theme_bw(base_size = baseSize, base_family=baseFamily),
                           themeExtra = NULL) {
   
   # Handle threshold if defined
@@ -84,7 +93,9 @@ createHeatmap <- function(data, x, y, fill,
 
 #' Create histogram type of plot
 #' 
-#' Create histogram or bar chart plot.
+#' Create histogram plot from the pre-computed distribution of data. Parameter
+#' \code{data} is a data frame containing intervals (bins) and counts obtained 
+#' using \code{\link{computeHistogram}} or \code{\link{computeBarchart}}).
 #' 
 #' @param data data frame contains computed histogram
 #' @param x name of a column containing bin labels or interval values
@@ -102,18 +113,19 @@ createHeatmap <- function(data, x, y, fill,
 #'  (if specified then parameter \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in 
 #'   \code{RColorBrewer} package for names
-#' @param facet name of a column to divide plot into facets for specificed parameter 
-#'   (defualt is NULL - no facets). If facet is single value then facet wrap applied 
-#'   (see \code{\link{facet_wrap}}), otherwise facet grid (see \code{\link{facet_grid}} 
-#'   with 1st 2 values of the vector.
+#' @param facet vector of 1 or 2 column names to split up data to plot the 
+#'   subsets as facets. If single name then subset plots are placed next to 
+#'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
+#'   When two names then subset plots vary on both horizontal and vertical 
+#'   directions (grid) based on the column values (uses \code{\link{facet_grid}}).
 #' @param ncol number of facet columns (applies when single facet column supplied only 
 #'   - see parameter \code{facet}).
-#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, 
-#'   "free_x" - vary across rows (x axis), "free_y" - vary across columns (Y axis) 
-#'   (default), "free" - both rows and columns (see in \code{facet_wrap} parameter
-#'   \code{scales} )
-#' @param baseSize base font size
-#' @param baseFamily base font family
+#' @param facetScales Are scales shared across all subset plots (facets): 
+#'   "fixed" - all are the same, "free_x" - vary across rows (x axis), 
+#'   "free_y" - vary across columns (Y axis, default), "free" - both rows and 
+#'   columns (see in \code{facet_wrap} parameter \code{scales} )
+#' @param baseSize \code{\link{theme}} base font size
+#' @param baseFamily \code{\link{theme}} base font family
 #' @param xlim a character vector specifying the data range for the x scale and the default order of their display 
 #'   in the x axis.
 #' @param breaks a character vector giving the breaks as they should appear on the x axis.
@@ -132,11 +144,12 @@ createHeatmap <- function(data, x, y, fill,
 #'   vector). "none" is no legend.
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
-#' @param defaultTheme plot theme to use, default is \code{\link{theme_bw}}
-#' @param themeExtra any additional \code{ggplot2} theme attributes to add
-#' 
+#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
+#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
+#' @seealso \code{\link{computeHistogram}} and \code{\link{computeBarchart}} to
+#'   compute data for histogram
 #' @export
-#' 
 #' @examples
 #' \donttest{
 #' # AL teams pitching stats by decade
@@ -174,7 +187,7 @@ createHeatmap <- function(data, x, y, fill,
 #' }
 createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, position="dodge", 
                             facet = NULL, ncol = 1, facetScales = "free_y", 
-                            baseSize = 12, baseFamily = "sans", 
+                            baseSize = 12, baseFamily = "", 
                             xlim = NULL, breaks = NULL, 
                             text = FALSE, percent = FALSE, digits = 0, textVJust = -2,
                             mainColour = "black", fillColour = "grey", 
@@ -184,7 +197,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
                             title = paste("Histgoram by", fill), xlab = x, ylab = y, 
                             legendPosition = "right",
                             coordFlip = FALSE,
-                            defaultTheme=theme_bw(base_size = baseSize),
+                            defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
                             themeExtra = NULL) { 
   
   # Set text layer before ggplot 
@@ -316,9 +329,10 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param labelAngle the angle at which to draw the text label
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
-#' @param defaultTheme plot theme to use, default is \code{theme_bw}
-#' @param themeExtra any additional \code{ggplot2} theme attributes to add
-#' 
+#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
+#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
+#' @seealso \code{\link{compute}} computes data for the bubble chart.
 #' @export
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
                               facet = NULL, ncol = 1, facetScales = "fixed",
@@ -331,7 +345,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                               labelColour = "black", labelVJust = 0.5, labelHJust = 0.5,
                               labelAlpha = 1, labelAngle = 0, 
                               legendPosition="right",
-                              defaultTheme=theme_bw(base_size = baseSize),
+                              defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
                               themeExtra=NULL) {
   
   p = ggplot(data, aes_string(x=x, y=y, size=z, label=label, fill=fill), guide=F) +
@@ -394,8 +408,9 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 #' @param title plot title
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' @param defaultTheme plot theme to use, default is \code{theme_bw}
-#' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}}, \code{\link[ggplot2]{theme_grey}},
+#'   \code{\link[ggplot2]{theme_classic}} (default) or custom.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @export
 createSlopegraph <- function(data, id, rankFrom, rankTo, 
@@ -408,7 +423,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
                              highlights = integer(0),
                              lineSize = 0.15, textSize = 3.75, 
                              panelGridColour = "black", panelGridSize = 0.1,
-                             defaultTheme = theme_bw(base_size = baseSize),
+                             defaultTheme = theme_classic(base_size = baseSize, base_family = baseFamily),
                              themeExtra = NULL
 ) {
   
@@ -472,9 +487,10 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
   
 }
 
-#' Word Cloud Visual
+#' Create Word Cloud Visualization
 #' 
-#' Creates graphics with Word Cloud visual for text data.
+#' Wrapper around \code{\link{wordcloud}} function that optionally saves graphics
+#' to the file of one of supported formats.
 #' 
 #' @details
 #' Uses base graphics and worldcloud package to create a word cloud (tag cloud) visual reprsentation of
@@ -509,7 +525,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' 
 #' @return nothing
 #' 
-#' @seealso \link{wordcloud}
+#' @seealso \code{\link{wordcloud}}
 #' 
 #' @export createWordcloud
 createWordcloud <- function(words, freq, title="Wordcloud", 
@@ -542,9 +558,9 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 }
 
 
-#' Create plot with Population Pyramid visualization
+#' Create Population Pyramid type of histogram plot
 #' 
-#' Create population pyramid type of visual: two back-to-back bar graphs on the same 
+#' Create population pyramid type of histogram plot: two back-to-back bar graphs on the same 
 #' category class (e.g. age) placed on Y-axis and distribution (population) placed 
 #' on the X-axis. Bar graphs correspond to two distinct groups, e.g. sex (male
 #' and female), baseball leagues (AL and NL), or customer types (new customers and 
@@ -559,22 +575,27 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #'   uses 1st 2 values from column \code{divideBy} (sorted with default order).
 #' @param fillColours 2-value vector with colours for left and right histograms.
 #' @param mainColour histogram bar colour. 
-#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
-#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
-#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
-#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}). 
-#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
-#'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
-#'        parameter \code{scales} )
-#' @param baseSize base font size
-#' @param baseFamily base font family
+#' @param facet vector of 1 or 2 column names to split up data to plot the 
+#'   subsets as facets. If single name then subset plots are placed next to 
+#'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
+#'   When two names then subset plots vary on both horizontal and vertical 
+#'   directions (grid) based on the column values (uses \code{\link{facet_grid}}).
+#' @param ncol number of facet columns (applies when single facet column supplied only 
+#'   - see parameter \code{facet}).
+#' @param facetScales Are scales shared across all subset plots (facets): 
+#'   "fixed" - all are the same, "free_x" - vary across rows (x axis), 
+#'   "free_y" - vary across columns (Y axis, default), "free" - both rows and 
+#'   columns (see in \code{facet_wrap} parameter \code{scales} )
+#' @param baseSize \code{\link{theme}} base font size
+#' @param baseFamily \code{\link{theme}} base font family
 #' @param title plot title.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
-#' @param defaultTheme plot theme to use, default is \code{theme_bw}
-#' @param themeExtra any additional \code{ggplot2} theme attributes to add
+#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
+#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @export 
 #' @examples
@@ -616,9 +637,10 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
                              values = NULL, fillColours=c('blue','red'), mainColour="black",
                              facet = NULL, ncol = 1, facetScales = "fixed",
                              baseSize = 12, baseFamily = "sans", 
-                             title=paste("Population Pyramid Histogram"), xlab = bin, ylab = count,
+                             title=paste("Population Pyramid Histogram by", divideBy), 
+                             xlab = bin, ylab = count,
                              legendPosition = "right",
-                             defaultTheme = theme_bw(base_size = baseSize),
+                             defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
                              themeExtra = NULL) {
   if (missing(values)) {
     values = sort(unique(data[, divideBy]))[1:2]

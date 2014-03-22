@@ -32,7 +32,9 @@ require(RODBC)
 #'   This is almost always necessary for heat maps.
 #' @param withMelt logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform data frame
 #'  with aggregate values in designated columns into a molten data frame.
-#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
 #' @param by for optional grouping by one or more values for faceting or alike
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).

@@ -19,7 +19,9 @@ require(RODBC)
 #'   Aggregates may have optional aliases like in \code{"AVG(era) era"}
 #' @param by for optional grouping by one or more columns for faceting or alike (effectively these elements
 #'   will be part of \code{GROUP BY ...}) 
-#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
 #' @param orderBy list of column names, aliases, references or their combinations to use in SQL \code{ORDER BY} 
 #'   clause. Use in combination with \code{top} below to compute only limited number of results in certain order.
 #' @param top if specified indicates number of bars to include in bar plot. In combination with \code{orderBy} 

@@ -23,7 +23,9 @@
 #' @param useIQR logical indicates use of IQR interval to compute cutoff lower and upper bounds for values to be included in 
 #'   histogram: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}
 #' @param datepart field to extract from timestamp/date/time column to build histogram on
-#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
 #' @param by for optional grouping by one or more values for faceting or alike
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).

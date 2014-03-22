@@ -10,8 +10,11 @@
 #' @param by character vecotr of column names and/or expressions on which grouping is performed 
 #'   (with SQL \code{GROUP BY ...}). Each can be a column or a valid SQL non-aggregate expression    
 #'   with otional alias separated by space (e.g. \code{"UPPER(car_make) make"}).
-#' @param aggregates SQL aggregates to compute. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}
-#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE) 
+#' @param aggregates vector of SQL aggregates to compute. Aggregates may have 
+#'   optional aliases like in \code{"AVG(era) avg_era"}
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
 #' @param stringsAsFactors logical: should character vectors returned as part of results be converted to factors? 
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
@@ -35,7 +38,7 @@
 #' @export
 #' 
 compute <- function(channel, tableName, 
-                    aggregates = "COUNT(*) cnt", 
+                    aggregates = c("COUNT(*) cnt"), 
                     by = vector(), where = NULL, 
                     stringsAsFactors = FALSE, test = FALSE) {
   

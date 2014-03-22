@@ -1,7 +1,7 @@
 
 #' Filter numeric columns.
 #'
-#' Selects numeric columns (names or rows) from table info data frame.
+#' Select numeric columns (names or rows) from table info data frame.
 #' 
 #' @param tableInfo data frame obtained by calling \code{\link{getTableSummary}}.
 #' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
@@ -10,7 +10,12 @@
 #' 
 #' @seealso \code{\link{getTableSummary}}
 #' @export
-#' 
+#' @examples
+#' \donttest{
+#' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+#' getNumericColumns(pitchingInfo)
+#' num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
+#' }
 getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   numeric_types = c('integer',
                     'numeric',
@@ -38,7 +43,12 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 #' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
 #' @seealso \code{\link{getTableSummary}}
 #' @export
-#' 
+#' @examples
+#' \donttest{
+#' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+#' getCharacterColumns(pitchingInfo)
+#' char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
+#' }
 getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   char_types = c('varchar',
                  'char',
@@ -58,7 +68,12 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 #' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
 #' @seealso \code{\link{getTableSummary}}
 #' @export
-#' 
+#' @examples
+#' \donttest{
+#' masterInfo = getTableSummary(channel=conn, 'master')
+#' getDateTimeColumns(masterInfo)
+#' date_cols_df = getDateTimeColumns(masterInfo, names.only=FALSE)
+#' }
 getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   datetime_types = c('date', 
                      'timestamp without time zone', 

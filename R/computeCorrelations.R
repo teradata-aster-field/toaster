@@ -1,17 +1,19 @@
-#' Compute correlation between numeric columns.
+#' Compute correlation between pair of columns.
 #' 
 #' Compute global correlation between any pair of numeric columns from Aster table.
 #' Result includes all pairwise combinations of numeric columns in the table, with 
 #' optionally limiting columns to those in the parameter \code{include} or/and
 #' excluding columns defined by parameter \code{except}. Computations 
-#' can be performed on subset of the data defined with parameter \code{where}.
+#' can be performed on the table subset conditioned with \code{where}.
 #'
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name
 #' @param tableInfo pre-built summary of data to use (must have with \code{test=TRUE})
 #' @param include a vector of column names to include. Output never contains attributes other than in the list.
 #' @param except a vector of column names to exclude. Output never contains attributes from the list.
-#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @return data frame with columns:

@@ -45,3 +45,4 @@ Collate:
     'compute.R'
     'computeBarchart.R'
     'computeSample.R'
+    'computePercentiles.R'

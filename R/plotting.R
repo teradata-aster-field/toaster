@@ -309,6 +309,13 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param ylab a label for the y axis, defaults to a description of y. 
 #' @param baseSize \code{\link{theme}} base font size
 #' @param baseFamily \code{\link{theme}} base font family
+#' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
+#'   vector). "none" is no legend.
+#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
+#'   \link{coord_flip}).
+#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
+#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @export
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
@@ -324,7 +331,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' createBoxplot(ipopLg, x="lgid")
 #' 
 #' # boxplots by the league with facet yearid of pitching ipouts in 2010s
-#' ipopLgYear = computePercentiles(conn, "pitching", "ipouts', by=c("lgid", "yearid"),
+#' ipopLgYear = computePercentiles(conn, "pitching", "ipouts", by=c("lgid", "yearid"),
 #'                                 where = "yearid >= 2010")
 #' createBoxplot(ipopLgYear, x="lgid", facet="yearid")
 #'  

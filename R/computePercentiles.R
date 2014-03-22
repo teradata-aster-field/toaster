@@ -2,7 +2,21 @@
 #' 
 #' Compute percentiles including boxplot quartiles.
 #'   
-#'
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
+#' @param tableName Aster table name
+#' @param columnName name of the column to compute percentiles on
+#' @param percentiles integer vector with percentiles to compute. Values \code{0, 25, 50, 75, 100}
+#'    will always be added if omitted.
+#' @param by for optional grouping by one or more values for faceting or alike. 
+#'   If used with \code{\link{createBoxplot}} then use first name for x-axis and 
+#'   the rest for wrap or grid faceting.
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
+#' @param stringsAsFactors logical: should columns returned as character and not excluded by as. is and not converted to 
+#'   anything else be converted to factors?
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @export
 #' @examples
 #' \donttest{

@@ -1,6 +1,6 @@
 \name{computeCorrelations}
 \alias{computeCorrelations}
-\title{Compute correlation between numeric columns.}
+\title{Compute correlation between pair of columns.}
 \usage{
   computeCorrelations(channel, tableName, tableInfo,
     include, except = NULL, where = NULL, test = FALSE)
@@ -20,9 +20,10 @@
   \item{except}{a vector of column names to exclude. Output
   never contains attributes from the list.}
 
-  \item{where}{SQL WHERE clause limiting data from the
-  table (use SQL as if in WHERE clause but omit keyword
-  WHERE)}
+  \item{where}{specifies criteria to satisfy by the table
+  rows before applying computation. The creteria are
+  expressed in the form of SQL predicates (inside
+  \code{WHERE} clause).}
 
   \item{test}{logical: if TRUE show what would be done,
   only (similar to parameter \code{test} in \link{RODBC}
@@ -52,7 +53,7 @@
   optionally limiting columns to those in the parameter
   \code{include} or/and excluding columns defined by
   parameter \code{except}. Computations can be performed on
-  subset of the data defined with parameter \code{where}.
+  the table subset conditioned with \code{where}.
 }
 \examples{
 \donttest{

@@ -1,6 +1,6 @@
 \name{createBubblechart}
 \alias{createBubblechart}
-\title{Create Bubble Chart plot}
+\title{Create Bubble Chart type of plot}
 \usage{
   createBubblechart(data, x, y, z, label = z, fill = NULL,
     facet = NULL, ncol = 1, facetScales = "fixed",
@@ -13,7 +13,7 @@
     labelFontface = "plain", labelColour = "black",
     labelVJust = 0.5, labelHJust = 0.5, labelAlpha = 1,
     labelAngle = 0, legendPosition = "right",
-    defaultTheme = theme_bw(base_size = baseSize),
+    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
     themeExtra = NULL)
 }
 \arguments{
@@ -31,30 +31,32 @@
   \item{fill}{name of a column with values to use for
   bubble colours}
 
-  \item{facet}{name of a column to divide plot into facets
-  for specificed parameter (defualt is NULL - no facets).
-  If facet is single value then facet wrap applied (see
-  \code{\link{facet_wrap}}), otherwise facet grid (see
-  \code{\link{facet_grid}} with 1st 2 values of the
-  vector.}
+  \item{facet}{vector of 1 or 2 column names to split up
+  data to plot the subsets as facets. If single name then
+  subset plots are placed next to each other, wrapping with
+  \code{ncol} number of columns (uses
+  \code{\link{facet_wrap}}).  When two names then subset
+  plots vary on both horizontal and vertical directions
+  (grid) based on the column values (uses
+  \code{\link{facet_grid}}).}
 
   \item{ncol}{number of facet columns (applies when single
   facet column supplied only - see parameter
   \code{facet}).}
 
-  \item{facetScales}{Are scales shared across all facets:
-  "fixed" - all are the same, "free_x" - vary across rows
-  (x axis), "free_y" - vary across columns (Y axis)
-  (default), "free" - both rows and columns (see in
+  \item{facetScales}{Are scales shared across all subset
+  plots (facets): "fixed" - all are the same, "free_x" -
+  vary across rows (x axis), "free_y" - vary across columns
+  (Y axis, default), "free" - both rows and columns (see in
   \code{facet_wrap} parameter \code{scales} )}
+
+  \item{baseSize}{\code{\link{theme}} base font size}
+
+  \item{baseFamily}{\code{\link{theme}} base font family}
 
   \item{xlim}{a vector specifying the data range for the x
   scale and the default order of their display in the x
   axis.}
-
-  \item{baseSize}{base font size}
-
-  \item{baseFamily}{base font family}
 
   \item{shape}{bubble shape}
 
@@ -78,7 +80,7 @@
   \code{display.brewer.all} in \code{RColorBrewer} package
   for names}
 
-  \item{title}{plot title}
+  \item{title}{plot title.}
 
   \item{xlab}{a label for the x axis, defaults to a
   description of x.}
@@ -110,13 +112,23 @@
   "right", "bottom", "top", or two-element numeric vector).
   "none" is no legend.}
 
-  \item{defaultTheme}{plot theme to use, default is
-  \code{theme_bw}}
+  \item{defaultTheme}{plot theme to use:
+  \code{\link[ggplot2]{theme_bw}} (default),
+  \code{\link[ggplot2]{theme_grey}},
+  \code{\link[ggplot2]{theme_classic}} or custom.}
 
-  \item{themeExtra}{any additional \code{ggplot2} theme
-  attributes to add}
+  \item{themeExtra}{any additional
+  \code{\link[ggplot2]{theme}} settings that override
+  default theme.}
 }
 \description{
-  Create Bubble Chart plot
+  Create a bubble chart that utilizes three dimensions of
+  data. It is a variation of the scatter plot with data
+  points replaced with shapes ("bubbles"): x and y are
+  bubble location and z is its size. It can optionally
+  assign data points labels and fill shapes with colors.
+}
+\seealso{
+  \code{\link{compute}} computes data for the bubble chart.
 }
 

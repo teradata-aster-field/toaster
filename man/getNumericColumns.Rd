@@ -19,8 +19,15 @@
   never contains names from this list.}
 }
 \description{
-  Selects numeric columns (names or rows) from table info
+  Select numeric columns (names or rows) from table info
   data frame.
+}
+\examples{
+\donttest{
+pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+getNumericColumns(pitchingInfo)
+num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
+}
 }
 \seealso{
   \code{\link{getTableSummary}}

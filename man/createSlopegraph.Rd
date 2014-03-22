@@ -12,7 +12,7 @@
     highlights = integer(0), lineSize = 0.15,
     textSize = 3.75, panelGridColour = "black",
     panelGridSize = 0.1,
-    defaultTheme = theme_bw(base_size = baseSize),
+    defaultTheme = theme_classic(base_size = baseSize, base_family = baseFamily),
     themeExtra = NULL)
 }
 \arguments{
@@ -67,11 +67,15 @@
 
   \item{baseFamily}{base font family}
 
-  \item{defaultTheme}{plot theme to use, default is
-  \code{theme_bw}}
+  \item{defaultTheme}{plot theme to use:
+  \code{\link[ggplot2]{theme_bw}},
+  \code{\link[ggplot2]{theme_grey}},
+  \code{\link[ggplot2]{theme_classic}} (default) or
+  custom.}
 
-  \item{themeExtra}{any additional \code{ggplot2} theme
-  attributes to add}
+  \item{themeExtra}{any additional
+  \code{\link[ggplot2]{theme}} settings that override
+  default theme.}
 }
 \description{
   Create plot with Slope Graph visualization

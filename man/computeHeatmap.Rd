@@ -42,9 +42,10 @@
   \code{\link{melt}} to transform data frame with aggregate
   values in designated columns into a molten data frame.}
 
-  \item{where}{SQL WHERE clause limiting data from the
-  table (use SQL as if in WHERE clause but omit keyword
-  WHERE)}
+  \item{where}{specifies criteria to satisfy by the table
+  rows before applying computation. The creteria are
+  expressed in the form of SQL predicates (inside
+  \code{WHERE} clause).}
 
   \item{by}{for optional grouping by one or more values for
   faceting or alike}

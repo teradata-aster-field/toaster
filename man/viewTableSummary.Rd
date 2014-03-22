@@ -28,6 +28,12 @@
   When both parameters \code{basic} and \code{percentiles}
   are FALSE view displays \emph{all} statistics.
 }
+\examples{
+\donttest{
+pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+viewTableSummary(pitchingInfo, percentiles=TRUE)
+}
+}
 \seealso{
   \code{\link{getTableSummary}}
 }

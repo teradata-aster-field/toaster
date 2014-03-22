@@ -22,6 +22,13 @@
   Selects date and time columns (names or rows) from table
   info data frame.
 }
+\examples{
+\donttest{
+masterInfo = getTableSummary(channel=conn, 'master')
+getDateTimeColumns(masterInfo)
+date_cols_df = getDateTimeColumns(masterInfo, names.only=FALSE)
+}
+}
 \seealso{
   \code{\link{getTableSummary}}
 }

@@ -22,6 +22,13 @@
   Selects character columns (names or rows) from table info
   data frame.
 }
+\examples{
+\donttest{
+pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+getCharacterColumns(pitchingInfo)
+char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
+}
+}
 \seealso{
   \code{\link{getTableSummary}}
 }

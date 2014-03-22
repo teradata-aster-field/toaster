@@ -1,6 +1,6 @@
 \name{createMap}
 \alias{createMap}
-\title{Locate and grab a map, geocode and place data artifacts on it, plot them.}
+\title{Locate map, geocode data, then plot both.}
 \usage{
   createMap(data, maptype = "terrain",
     mapColor = c("color", "bw"),
@@ -44,9 +44,9 @@
   pair (in that order), or left/bottom/right/top bounding
   box: 'center' uses 2 value vector for the center of the
   map, while 'box' uses 4 value vector as
-  left/bottom/right/top.  If missing then function will use
-  parameter \code{locator} and \code{data} to determine map
-  location.}
+  left/bottom/right/top.  If missing then function will
+  derive map location using parameter \code{locator} and
+  the \code{data}.}
 
   \item{locator}{in absence of \code{location} specifies
   how to use data to determine map location: when 'center'
@@ -157,11 +157,64 @@
   attributes to add}
 }
 \description{
-  createMap is a smart function that, if necessary,
-  geocodes data, estimates map location, queries for the
-  map, places data artifacts on the map, and plots map and
-  the data as shapes sized and colored based on the metrics
-  specified.
+  createMap is a smart function that places data artifact
+  on the map. If necessary it geocodes the data, locates
+  map that fits all data artifacts, and plots the map with
+  the data shapes sized and colored using metrics.
+}
+\details{
+  Geocoding: If parameter \code{locationName} is missing
+  then no geocoding is possible. In that case parameters
+  \code{lonName} and \code{latName} must contain names of
+  columns with longitude and latitude information assigned
+  to each data artifact (data point). If parameter
+  \code{locationName} is defined then geocoding attempts to
+  use values from the column with this name. Function
+  \code{geocodeFun} specifies geocoding function (with
+  default \code{\link{geocode}} from \link{ggmap} package).
+  To speed up processing and avoid hitting global limit on
+  Google Map API use memoised version of this function:
+  \code{memoise(geocode)} (see
+  \code{\link[memoise]{memoise}}).
+
+  Map Locating: Function operates in 2 modes: explicit map
+  location mode and implicit mode. In explicit mode value
+  \code{location} locates the map using one of two
+  supported formats. If it is a 2-value vector then it
+  contains a center of the map. If it is 4-value vector
+  then it contains bounding box coordinates:
+  left/bottom/right/top. In implicit mode, when
+  \code{location} is missing, fuction uses parameters
+  \code{locator} and \code{data} to locate the map. If
+  \code{locator} is equal to \code{'center'} then it
+  centers map by averaging longitude and latitude values of
+  all data artifacts. If \code{locator} is equal to
+  \code{'box'} then it determines min/max values of
+  longitutude and latitude of all data artifacts and
+  locates the map by corresponding bounding box. Note that
+  both modes support require explicit parameter \code{zoom}
+  if applicable.
+
+  Map Types: variety of map avaiable are from several
+  public sources: google, OpenStreetMap, Stamen, and
+  CloudMade maps. The options and terms for each are
+  different. For example, not all sources support both
+  color and black-and-white options, or map types terrain,
+  satellite, roadmap or hybrid. Note that in most cases by
+  using Google source you are agreeing to the Google Maps
+  API Terms of Service at
+  https://developers.google.com/maps/terms.
+
+  Shapes: data artifacts are shapes placed over the map.
+  Their size is scaled using values in \code{metricName}
+  column and their location is determined either by
+  geocoding values from \code{locationName} column or with
+  longitude and latitude values stored in \code{lonName}
+  and \code{latName} columns.
+
+  Labels: If \code{labelName} is specified then column with
+  such name contains text labels to place on the map (using
+  the same locations as for the shapes).
 }
 \examples{
 \donttest{

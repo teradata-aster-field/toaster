@@ -220,16 +220,19 @@ showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='overvi
 
 # Scatterplots
 # Scatterplot on pair of numerical attributes
-# with facet_wrap (single-valued facetName)
-showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
-         sampleSize=10000, facetName='activity_factor_id',
-         where="activity_factor_id in (601, 611)")
+# sample by size with 1d facet (see \\code{\\link{facet_wrap}})
+showData(asterConn, 'pitching_enh', format='scatterplot',
+         include=c('so', 'er'), facetName="lgid", pointColour="lgid",
+         sampleSize=10000, regressionLine=TRUE,
+         title="SO vs ER by League 1980-2000",
+         where='yearid between 1980 and 2000')
 
-# Scatterplot on pair of numerical attributes
-# with facet_grid (two-valued facetName)
-showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='scatterplot', include=c('extended_cost', 'quantity'),
-         sampleSize=10000, facetName=c('activity_factor_id','facility_id'),
-         where="activity_factor_id in (601, 611) and facility_id in (1121,1219)")
+# sample by fraction with 2d facet (see \\code{\\link{facet_grid}})
+showData(asterConn, 'pitching_enh', format='scatterplot',
+         include=c('so','er'), facetName=c('lgid','decadeid'), pointColour="lgid",
+         sampleFraction=0.1, regressionLine=TRUE,
+         title="SO vs ER by League by Decade 1980 - 2012",
+         where='yearid between 1980 and 2012')
 }
 }
 

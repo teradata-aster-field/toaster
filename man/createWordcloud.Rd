@@ -1,6 +1,6 @@
 \name{createWordcloud}
 \alias{createWordcloud}
-\title{Word Cloud Visual}
+\title{Create Word Cloud Visualization}
 \usage{
   createWordcloud(words, freq, title = "Wordcloud",
     scale = c(8, 0.2), minFreq = 10, maxWords = 40,
@@ -49,7 +49,9 @@
   nothing
 }
 \description{
-  Creates graphics with Word Cloud visual for text data.
+  Wrapper around \code{\link{wordcloud}} function that
+  optionally saves graphics to the file of one of supported
+  formats.
 }
 \details{
   Uses base graphics and worldcloud package to create a
@@ -70,6 +72,6 @@
   bottom or all artifacts in single word cloud visual.
 }
 \seealso{
-  \link{wordcloud}
+  \code{\link{wordcloud}}
 }
 

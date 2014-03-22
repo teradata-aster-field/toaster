@@ -1,6 +1,6 @@
 \name{createHeatmap}
 \alias{createHeatmap}
-\title{Create plot with Heatmap visualization}
+\title{Create Heat Map type of plot}
 \usage{
   createHeatmap(data, x, y, fill, facet = NULL, ncol = 1,
     baseSize = 12, baseFamily = "sans",
@@ -13,35 +13,39 @@
     highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"),
     title = paste("Heatmap by", fill), xlab = x, ylab = y,
     legendPosition = "right",
-    defaultTheme = theme_bw(base_size = baseSize),
+    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
     themeExtra = NULL)
 }
 \arguments{
   \item{data}{data frame contains data computed for
   heatmap}
 
-  \item{x}{name of a column containing x variable values}
+  \item{x}{name of a column containing x variable values
+  (1st or horizontal dimenstion) in 2D matrix}
 
-  \item{y}{name of a column containing y variable values}
+  \item{y}{name of a column containing y variable values
+  (2d or vertical dimension) in 2D matrix}
 
   \item{fill}{name of a column with values to map to
   heatmap gradient colors (\code{lowGradient},
   \code{highGradient}, and optionally \code{midGradient}).}
 
-  \item{facet}{name of a column to divide plot into facets
-  for specificed parameter (defualt is NULL - no facets).
-  If facet is single value then facet wrap applied (see
-  \code{\link{facet_wrap}}), otherwise facet grid (see
-  \code{\link{facet_grid}} with 1st 2 values of the
-  vector.}
+  \item{facet}{vector of 1 or 2 column names to split up
+  data to plot the subsets as facets. If single name then
+  subset plots are placed next to each other, wrapping with
+  \code{ncol} number of columns (uses
+  \code{\link{facet_wrap}}).  When two names then subset
+  plots vary on both horizontal and vertical directions
+  (grid) based on the column values (uses
+  \code{\link{facet_grid}}).}
 
   \item{ncol}{number of facet columns (applies when single
   facet column supplied only - see parameter
   \code{facet}).}
 
-  \item{baseSize}{base font size}
+  \item{baseSize}{\code{\link{theme}} base font size}
 
-  \item{baseFamily}{base font family}
+  \item{baseFamily}{\code{\link{theme}} base font family}
 
   \item{thresholdValue}{threshold to use to display data in
   heatmap (if NULL then do not use threshold)}
@@ -83,13 +87,22 @@
   "right", "bottom", "top", or two-element numeric vector).
   "none" is no legend.}
 
-  \item{defaultTheme}{plot theme to use, default is
-  \code{theme_bw}}
+  \item{defaultTheme}{plot theme to use:
+  \code{\link[ggplot2]{theme_bw}} (default),
+  \code{\link[ggplot2]{theme_grey}},
+  \code{\link[ggplot2]{theme_classic}} or custom.}
 
-  \item{themeExtra}{any additional \code{ggplot2} theme
-  attributes to add}
+  \item{themeExtra}{any additional
+  \code{\link[ggplot2]{theme}} settings that override
+  default theme.}
 }
 \description{
-  Create plot with Heatmap visualization
+  Create heat map visualization of 2D matrix from the data
+  frame \code{data} pre-computed with
+  \code{\link{computeHeatmap}}.
+}
+\seealso{
+  \code{\link{computeHeatmap}} for computing data for heat
+  map
 }
 

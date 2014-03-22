@@ -286,9 +286,108 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
   return(p)
 }
 
-#' Create Bubble Chart plot
+
+#' Create box plot
 #' 
+#' Create box plot visualization using quartiles calculated with \code{\link{computePercentiles}}.
 #' 
+#' @param data quartiles precomputed with \code{\link{computePercentiles}}
+#' @param x variable name of primary variance by x-axis
+#' @param facet vector of 1 or 2 column names to split up data to plot the 
+#'   subsets as facets. If single name then subset plots are placed next to 
+#'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
+#'   When two names then subset plots vary on both horizontal and vertical 
+#'   directions (grid) based on the column values (uses \code{\link{facet_grid}}).
+#' @param ncol number of facet columns (applies when single facet column supplied only 
+#'   - see parameter \code{facet}).
+#' @param facetScales Are scales shared across all subset plots (facets): 
+#'   "fixed" - all are the same, "free_x" - vary across rows (x axis), 
+#'   "free_y" - vary across columns (Y axis, default), "free" - both rows and 
+#'   columns (see in \code{facet_wrap} parameter \code{scales} )
+#' @param title plot title.
+#' @param xlab a label for the x axis, defaults to a description of x.
+#' @param ylab a label for the y axis, defaults to a description of y. 
+#' @param baseSize \code{\link{theme}} base font size
+#' @param baseFamily \code{\link{theme}} base font family
+#' 
+#' @export
+#' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
+#' @examples
+#' \donttest{
+#' # boxplot of pitching ipouts for AL in 2000s
+#' ipop = computePercentiles(conn, "pitching", "ipouts",
+#'                           where = "lgid = 'AL' and yearid >= 2000")
+#' createBoxplot(ipop)
+#'                           
+#' # boxplots by the league of pitching ipouts
+#' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
+#' createBoxplot(ipopLg, x="lgid")
+#' 
+#' # boxplots by the league with facet yearid of pitching ipouts in 2010s
+#' ipopLgYear = computePercentiles(conn, "pitching", "ipouts', by=c("lgid", "yearid"),
+#'                                 where = "yearid >= 2010")
+#' createBoxplot(ipopLgYear, x="lgid", facet="yearid")
+#'  
+#' }
+createBoxplot <- function(data, x=NULL, 
+                          facet = NULL, ncol = 1, facetScales = "fixed",
+                          title = paste("Bubble Chart by", fill), xlab = x, ylab = NULL,
+                          legendPosition="right", coordFlip = FALSE,
+                          baseSize = 12, baseFamily = "sans",
+                          defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
+                          themeExtra=NULL) {
+  
+  if (is.null(x)) {
+    data = cbind(x='x', data)
+    x = 'x'
+  }
+  
+  if (is.null(facet)) {
+    formu = as.formula(paste(x, '~', 'percentile'))
+  }else {
+    formu = as.formula(paste(x, '+', paste(facet, collapse='+'), '~', 'percentile'))
+  }
+  ndata = dcast(data, formu)
+  
+  
+  p = ggplot(ndata, aes_string(x=x)) +
+    geom_boxplot(aes(ymin=`0`, lower=`25`, middle=`50`, upper=`75`, ymax=`100`), 
+                 stat = "identity") +
+    defaultTheme +
+    labs(title=title, x=xlab, y=ylab) +
+    buildThemeFromParameters(legendPosition, title, xlab, ylab, baseFamily, baseSize) +
+    themeExtra 
+  
+  # apply facets
+  p = applyFacet(p, facet, facetScales, ncol)
+  
+  # flip coordinates
+  if (coordFlip)
+    p = p + coord_flip()
+  
+  return(p)
+  
+}
+
+buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFamily, baseSize) {
+  
+  them = theme(legend.position = legendPosition,
+               plot.title = ifelse(is.null(title), element_blank(), 
+                                   element_text(family = baseFamily, face = "bold", size = baseSize * 1.4, vjust = 1)),
+               axis.text.x = ifelse(is.null(xlab), element_blank(), 
+                                    element_text(size = baseSize * 0.8, angle = 330, hjust = 0)),
+               axis.text.y = ifelse(is.null(ylab), element_blank(),
+                                    element_text(size = baseSize * 0.8)))
+  
+  return(them)
+}
+
+#' Create Bubble Chart type of plot
+#' 
+#' Create a bubble chart that utilizes three dimensions of data. It is a variation
+#' of the scatter plot with data points replaced with shapes ("bubbles"): x and y 
+#' are bubble location and z is its size. It can optionally assign data points
+#' labels and fill shapes with colors.
 #' 
 #' @param data data frame contains data computed for bubblechart
 #' @param x name of a column containing x variable values
@@ -296,17 +395,21 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param z name of a column containing bubble size value
 #' @param label name of a column containing bubble label
 #' @param fill name of a column with values to use for bubble colours
-#' @param facet name of a column to divide plot into facets for specificed parameter (defualt is NULL - no facets). 
-#'   If facet is single value then facet wrap applied (see \code{\link{facet_wrap}}), otherwise facet grid (see 
-#'   \code{\link{facet_grid}} with 1st 2 values of the vector.
-#' @param ncol number of facet columns (applies when single facet column supplied only - see parameter \code{facet}). 
-#' @param facetScales Are scales shared across all facets: "fixed" - all are the same, "free_x" - vary across rows (x axis),
-#'        "free_y" - vary across columns (Y axis) (default), "free" - both rows and columns (see in \code{facet_wrap} 
-#'        parameter \code{scales} )
+#' @param facet vector of 1 or 2 column names to split up data to plot the 
+#'   subsets as facets. If single name then subset plots are placed next to 
+#'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
+#'   When two names then subset plots vary on both horizontal and vertical 
+#'   directions (grid) based on the column values (uses \code{\link{facet_grid}}).
+#' @param ncol number of facet columns (applies when single facet column supplied only 
+#'   - see parameter \code{facet}).
+#' @param facetScales Are scales shared across all subset plots (facets): 
+#'   "fixed" - all are the same, "free_x" - vary across rows (x axis), 
+#'   "free_y" - vary across columns (Y axis, default), "free" - both rows and 
+#'   columns (see in \code{facet_wrap} parameter \code{scales} )
+#' @param baseSize \code{\link{theme}} base font size
+#' @param baseFamily \code{\link{theme}} base font family
 #' @param xlim a vector specifying the data range for the x scale and the default order of their display 
 #'   in the x axis.        
-#' @param baseSize base font size
-#' @param baseFamily base font family
 #' @param shape bubble shape
 #' @param shapeColour colour of shapes
 #' @param scaleSize logical if TRUE then scale the size of shape to be proportional to the value, 
@@ -316,7 +419,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
 #'  \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
-#' @param title plot title
+#' @param title plot title.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param labelSize size of labels

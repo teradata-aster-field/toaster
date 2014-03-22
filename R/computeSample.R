@@ -18,7 +18,10 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
-#' @param stringsAsFactors logical: should character vectors returned as part of results be converted to factors? 
+#' @param as.is which (if any) columns returned as character should be converted to another type? 
+#'   Allowed values are as for \code{\link{read.table}}. See also \code{\link{sqlQuery}}.
+#' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
+#'   and not converted to anything else be converted to factors? 
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' 
@@ -35,7 +38,7 @@
 #' }
 computeSample <- function(channel, tableName, sampleFraction, sampleSize, 
                           include = NULL, except = NULL, 
-                          where = NULL, stringsAsFactors = FALSE, 
+                          where = NULL, as.is = FALSE, stringsAsFactors = FALSE, 
                           test = FALSE) {
   
   if (missing(tableName)) {
@@ -85,7 +88,7 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize,
   if(test) {
     return(sql)
   }else {
-    return(sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors))
+    return(sqlQuery(channel, sql, as.is=as.is, stringsAsFactors=stringsAsFactors))
   }
   
 }

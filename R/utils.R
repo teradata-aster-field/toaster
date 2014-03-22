@@ -315,3 +315,26 @@ viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, 
   
   return(1.0)
 }
+
+# TODO: make part of utility convinience set of functions
+grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
+  
+  if (missing(user)) {
+    stop("User name to grant execute permission is missing.")
+  }
+  
+  sql = paste0("select * from nc_system.nc_all_sqlmr_funcs where funcname like '", name, "' and funcowner = '",
+               owner, "'")
+  
+  func_list = sqlQuery(conn, sql)
+  
+  if (!('funcname' %in% names(func_list)) || length(func_list$funcname) == 0) {
+    stop("No functions to grant execute permission to.")
+  }
+  
+  for(func_name in func_list$funcname){
+    sql = paste0("grant execute on function ", func_name, " to ", user)
+    # print(sql)
+    result = sqlQuery(conn, sql)
+  }
+}

@@ -213,66 +213,6 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
 }
 
-#' Validation of lookup data in database
-#' 
-#' Convinience function to test if table has indeed a lookup column in another table.
-#' 
-#' @param channel object as returned by \code{\link{odbcConnect}}.
-#' @param tableName data table name.
-#' @param columnName column name in data table.
-#' @param lookupTable lookup table name.
-#' @param lookupColumn column name in lookup table.
-#' @param ignoreCase ignore case when comparing data. May produce slower results, especially on 
-#'   partitioned data.
-#'   
-#' @return TRUE if lookup relationship between tables and columns holds, otherwise FALSE
-#'
-#' @export
-isLookupForColumn  <- function(channel, tableName, columnName, lookupTable, lookupColumn=columnName,
-                               ignoreCase=FALSE) {
-  
-  # ignore case or not
-  if (ignoreCase) {
-    columnName = paste0("lower(", columnName, ")")
-    lookupColumn = paste0("lower(", lookupColumn, ")")
-  }
-  
-  # check total number of distinct values in the data set
-  result = sqlQuery(channel, 
-                    paste0("SELECT COUNT(DISTINCT ", columnName, ") cnt  
-                           FROM ", tableName)
-                    )
-  totalValues = result$cnt[[1]]
-  
-  # check number of distinct values in lookup table 
-  result = sqlQuery(channel,
-                    paste0("SELECT COUNT(DISTINCT ", columnName, ") cnt 
-                              FROM ", tableName, 
-                           " WHERE ", columnName, " IN (SELECT ", lookupColumn, " FROM ", lookupTable, ")")
-  )
-  resolvedValues = result$cnt[[1]]
-  
-  result = sqlQuery(channel, 
-                    paste0("SELECT COUNT(DISTINCT ", lookupColumn, ") cnt_dist, 
-                                   COUNT(", lookupColumn, ") cnt 
-                              FROM ", lookupTable)
-  )
-  lookupValues = result$cnt_dist[[1]]
-  lookupTotalValues = result$cnt[[1]]
-  
-  # Report results
-  print(paste0("Total values in ", tableName, ".", columnName, ": ", totalValues))
-  print(paste0("Total values found in ", lookupTable, ".", lookupColumn, ": ", resolvedValues))
-  print(paste0("Lookup table support is ", sprintf("%.2f",(resolvedValues/totalValues)*100.), "%"))
-  if (lookupTotalValues > lookupValues) {
-    print(paste0("WARNING: ", lookupTable, ".", lookupColumn, " contains ", 
-                 lookupTotalValues - lookupValues, " duplicate values"))
-  }
-  
-  return()
-  
-}
-
 #' Invoke a Data Viewer
 #' 
 #' view computed column statistics in a spreadsheet-style viewer in R.
@@ -287,13 +227,18 @@ isLookupForColumn  <- function(channel, tableName, columnName, lookupTable, look
 #' 
 #' @seealso \code{\link{getTableSummary}}
 #' @export
+#' @examples 
+#' \donttest{
+#' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
+#' viewTableSummary(pitchingInfo, percentiles=TRUE)
+#' }
 viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, percentiles=FALSE) {
   
   if (missing(tableInfo)) return()
   
   tableInfo = includeExcludeColumns(tableInfo, include, except)
   
-  col_indices = c("COLUMN_NAME")
+  col_indices = c("COLUMN_NAME", "TYPE_NAME")
   
   if(basic) {
     col_indices = c(col_indices, "minimum", "maximum", "average", "deviation")

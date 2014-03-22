@@ -28,8 +28,8 @@ require(RODBC)
 #'   it works as computing first \code{top} results in certain order.
 #' @param withMelt logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform result data frame
 #'  aggregate values into a molten data frame
-#' @param stringsAsFactors logical: should columns returned as character and not excluded by as. is and not converted to 
-#'   anything else be converted to factors?
+#' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
+#'   and not converted to anything else be converted to factors?
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @return Data frame to use for bar chart plots with \code{\link{createHistogram}}.

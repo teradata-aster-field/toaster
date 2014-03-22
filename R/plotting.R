@@ -290,6 +290,26 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' Create box plot
 #' 
 #' Create box plot visualization using quartiles calculated with \code{\link{computePercentiles}}.
+#' The simplest case without x value displays single boxplot from the
+#' single set of percentiles. To plot multiple box plots and multiple or single 
+#' box plots with facets use parameters \code{x} and/or \code{facet}.
+#' 
+#' Multiple box plots: \code{x} is a name of variable where each value 
+#' corresponds to a set of percentiles. The boxplots will be placed along 
+#' the  x-axis. Simply use \code{\link{computePercentiles}} with parameter
+#' \code{by="name to be passed in x variable"}. 
+#' 
+#' Facets: \code{facet} vector contains one or two names of vairables where
+#' each combination of values corresponds to a set of percentiles. The
+#' boxplot(s) will be placed inside separate sections of the plot (facets).
+#' Both single boxplot (without variable \code{x} and with one) are 
+#' supported.
+#' 
+#' Usually, with multiple percentile sets varying along single value 
+#' use parameter \code{x} and add facets on top. The exception is
+#' when scale of percentile values differs between each
+#' boxplot. Then omit parameter \code{x} and use
+#' \code{facet} with \code{facetScales='free_y'}.
 #' 
 #' @param data quartiles precomputed with \code{\link{computePercentiles}}
 #' @param x variable name of primary variance by x-axis

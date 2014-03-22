@@ -1,6 +1,13 @@
 #' Compute percentiles
 #' 
-#' Compute percentiles including boxplot quartiles.
+#' Compute percentiles including boxplot quartiles across valurs of column 
+#' \code{columnName}. Multiple sets of percentiles achieved with the
+#' parameter \code{by}. Vector \code{by} may contain arbitrary number 
+#' of column names: the percentiles are computed for each combination
+#' of values from these columns. Remember that when using computed
+#' quartiles with function \code{\link{createBoxplot}} it can utilize
+#' up to 3 columns by displaying them along the x-axis and inside
+#' facets.
 #'   
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
@@ -13,8 +20,8 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
-#' @param stringsAsFactors logical: should columns returned as character and not excluded by as. is and not converted to 
-#'   anything else be converted to factors?
+#' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
+#'   and not converted to anything else be converted to factors?
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @export

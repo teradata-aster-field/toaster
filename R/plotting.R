@@ -312,7 +312,10 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' \code{facet} with \code{facetScales='free_y'}.
 #' 
 #' @param data quartiles precomputed with \code{\link{computePercentiles}}
-#' @param x variable name of primary variance by x-axis
+#' @param x column name of primary variance. Multiple boxplots are placed
+#'   along the x-axis. Each value of \code{x} must have corresponding
+#'   percentiles calculated.
+#' @param fill name of a column with values to colour box plots
 #' @param facet vector of 1 or 2 column names to split up data to plot the 
 #'   subsets as facets. If single name then subset plots are placed next to 
 #'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
@@ -324,6 +327,9 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'   "fixed" - all are the same, "free_x" - vary across rows (x axis), 
 #'   "free_y" - vary across columns (Y axis, default), "free" - both rows and 
 #'   columns (see in \code{facet_wrap} parameter \code{scales} )
+#' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
+#'  \code{palette} is ignored)
+#' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
 #' @param title plot title.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y. 
@@ -342,8 +348,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @examples
 #' \donttest{
 #' # boxplot of pitching ipouts for AL in 2000s
-#' ipop = computePercentiles(conn, "pitching", "ipouts",
-#'                           where = "lgid = 'AL' and yearid >= 2000")
+#' ipop = computePercentiles(conn, "pitching", "ipouts")
 #' createBoxplot(ipop)
 #'                           
 #' # boxplots by the league of pitching ipouts
@@ -353,12 +358,20 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' # boxplots by the league with facet yearid of pitching ipouts in 2010s
 #' ipopLgYear = computePercentiles(conn, "pitching", "ipouts", by=c("lgid", "yearid"),
 #'                                 where = "yearid >= 2010")
-#' createBoxplot(ipopLgYear, x="lgid", facet="yearid")
+#' createBoxplot(ipopLgYear, x="lgid", facet="yearid", ncol=3)
+#' 
+#' # boxplot with facets only
+#' bapLgDec = computePercentiles(conn, "pitching_enh", "ba", by=c("lgid", "decadeid"),
+#'                               where = "lgid in ('AL','NL')")
+#' createBoxplot(bapLgDec, facet=c("lgid", "decadeid"))
+#' 
 #'  
 #' }
-createBoxplot <- function(data, x=NULL, 
+createBoxplot <- function(data, x=NULL, fill=NULL,
                           facet = NULL, ncol = 1, facetScales = "fixed",
-                          title = paste("Bubble Chart by", fill), xlab = x, ylab = NULL,
+                          paletteValues = NULL, palette = "Set1",
+                          title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))), 
+                          xlab = x, ylab = NULL,
                           legendPosition="right", coordFlip = FALSE,
                           baseSize = 12, baseFamily = "sans",
                           defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
@@ -376,10 +389,16 @@ createBoxplot <- function(data, x=NULL,
   }
   ndata = dcast(data, formu)
   
-  
   p = ggplot(ndata, aes_string(x=x)) +
-    geom_boxplot(aes(ymin=`0`, lower=`25`, middle=`50`, upper=`75`, ymax=`100`), 
+    geom_boxplot(aes_string(ymin='`0`', lower='`25`', middle='`50`', upper='`75`', ymax='`100`',
+                            fill=fill), 
                  stat = "identity") +
+    (if(!is.null(fill))
+      if(!missing(paletteValues))
+        scale_fill_manual(values = paletteValues)
+     else if(!missing(palette))
+       scale_fill_manual(values = (colorDiscretePalette(palette))(length(unique(data[,fill]))))
+    ) +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
     buildThemeFromParameters(legendPosition, title, xlab, ylab, baseFamily, baseSize) +
@@ -398,13 +417,25 @@ createBoxplot <- function(data, x=NULL,
 
 buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFamily, baseSize) {
   
+  if (is.null(title))
+    plotTitle = element_blank()
+  else
+    plotTitle = element_text(family = baseFamily, face = "bold", size = baseSize * 1.4, vjust = 1)
+  
+  if (is.null(xlab)) 
+    axisTextX = element_blank()
+  else
+    axisTextX = element_text(size = baseSize * 0.8, angle = 330, hjust = 0)
+  
+  if (is.null(ylab))
+    axisTextY = element_blank()
+  else
+    axisTextY = element_text(size = baseSize * 0.8)
+  
   them = theme(legend.position = legendPosition,
-               plot.title = ifelse(is.null(title), element_blank(), 
-                                   element_text(family = baseFamily, face = "bold", size = baseSize * 1.4, vjust = 1)),
-               axis.text.x = ifelse(is.null(xlab), element_blank(), 
-                                    element_text(size = baseSize * 0.8, angle = 330, hjust = 0)),
-               axis.text.y = ifelse(is.null(ylab), element_blank(),
-                                    element_text(size = baseSize * 0.8)))
+               plot.title = plotTitle,
+               axis.text.x = axisTextX,
+               axis.text.y = axisTextY)
   
   return(them)
 }

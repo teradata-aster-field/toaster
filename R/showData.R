@@ -1,4 +1,4 @@
-#' Plots higher level visulizations of basic statistics and relationships for the whole or part of the table data.
+#' Plot table level statistics and visulizations.
 #' 
 #' \code{showData} is the basic plotting function in the \code{toaster} package, designed to produce set of 
 #' standard visualizations (see parameter \code{format}) in a single call. Depending on the \code{format} it 
@@ -134,7 +134,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
                      facetName = NULL, regressionLine = FALSE,
                      corrLabel = 'none', digits = 2, 
                      shape = 21, shapeSizeRange = c(1,10),
-                     facet = FALSE, ncol = 4, scales = ifelse(facet & format=='boxplot',"free", "fixed"),
+                     facet = FALSE, ncol = 4, 
+                     scales = ifelse(facet & format %in% c('boxplot','overview'),"free", "fixed"),
                      coordFlip = FALSE, paletteName = "Set1", 
                      baseSize = 12, baseFamily = "sans",
                      legendPosition = "none",
@@ -304,17 +305,21 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
   }
   else if (format=='overview') {
     if (type=='character' & missing(measures)) {
-      measures = c('distinct_count', 'not_null_count')
+      measures = c('distinct_count', 'not_null_count', 'null_count')
+      data = dataChar
     }
     else if (type=='numeric' & missing(measures)) {
-      measures = c('maximum','minimum','average','deviation','0%','10%','25%','50%','75%','90%','100%','IQR')
+      measures = c('distinct_count','not_null_count','null_count',
+                   'maximum','minimum','average','deviation',
+                   '0%','10%','25%','50%','75%','90%','100%','IQR')
+      data = dataNum
     }
     
-    overview = melt(summary, id.vars='COLUMN_NAME', measure.vars=measures)
+    overview = melt(data, id.vars='COLUMN_NAME', measure.vars=measures)
     
     p = ggplot(overview, aes_string(x='COLUMN_NAME')) +
       geom_histogram(aes_string(y='value', fill='COLUMN_NAME'), stat="identity", position="dodge") +
-      scale_fill_manual(values = getPalette(nrow(summary))) +
+      scale_fill_manual(values = getPalette(nrow(data))) +
       facet_wrap(~variable, ncol=1, scales=scales) +
       labs(title=title, x='Columns')
     
@@ -343,3 +348,5 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include
 checkNonEmpty <- function(data) {
   if (length(data) == 0L || nrow(data) == 0L) stop("Nothing to show: check lists of columns, include/except, type and plot compatibilities.")
 }
+
+

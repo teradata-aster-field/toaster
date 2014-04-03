@@ -1,4 +1,59 @@
 
+#' List all Aster numeric data types
+#' 
+getNumericTypes <- function () {
+  return( c('integer',
+            'numeric',
+            'bigint',
+            'smallint',
+            'real',
+            'double precision',
+            'serial',
+            'bigserial',
+            'float',
+            'decimal')
+  )
+}
+
+#' List all Aster character data types
+#'
+getCharacterTypes <- function() {
+  return(c('varchar',
+           'char',
+           'character')
+  )
+}
+
+#' List all Aster temporal data types
+#' 
+getTemporalTypes <- function() {
+  return(c('date', 
+           'timestamp without time zone', 
+           'timestamp with time zone',
+           'time without time zone',
+           'time with time zone')
+  )
+}
+
+getTypes <- function(types) {
+  
+  result = character(0)
+  
+  if ('numeric' %in% types) {
+    result = union(result, getNumericTypes())
+  }
+  
+  if ('character' %in% types) {
+    result = union(result, getCharacterTypes())
+  }
+  
+  if ('temporal' %in% types) {
+    result = union(result, getTemporalTypes())
+  }
+  
+  return(result)
+}
+
 #' Filter numeric columns.
 #'
 #' Select numeric columns (names or rows) from table info data frame.
@@ -17,16 +72,8 @@
 #' num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
 #' }
 getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
-  numeric_types = c('integer',
-                    'numeric',
-                    'bigint',
-                    'smallint',
-                    'real',
-                    'double precision',
-                    'serial',
-                    'bigserial',
-                    'float',
-                    'decimal')
+  
+  numeric_types = getNumericTypes()
   
   return(getColumns(tableInfo, numeric_types, names.only, include, except))
 }
@@ -50,9 +97,8 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 #' char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
 #' }
 getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
-  char_types = c('varchar',
-                 'char',
-                 'character')
+  
+  char_types = getCharacterTypes()
   
   return(getColumns(tableInfo, char_types, names.only, include, except))
 }
@@ -75,11 +121,7 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 #' date_cols_df = getDateTimeColumns(masterInfo, names.only=FALSE)
 #' }
 getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
-  datetime_types = c('date', 
-                     'timestamp without time zone', 
-                     'timestamp with time zone',
-                     'time without time zone',
-                     'time with time zone')
+  datetime_types = getTemporalTypes()
   
   return(getColumns(tableInfo, datetime_types, names.only, include, except))
 }

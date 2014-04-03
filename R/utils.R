@@ -220,6 +220,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
 #' When both parameters \code{basic} and \code{percentiles} are FALSE view displays \emph{all} statistics.
 #' 
 #' @param tableInfo data frame with columns statistics to display.
+#' @param types vector with types of columns to include: numerical (\code{"numeric"}), character (\code{"character"} or 
+#'   date/time (\code{"temporal"})
 #' @param include a vector of column names to include. Output never contains attributes other than in the list.
 #' @param except a vector of column names to exclude. Output never contains attributes from the list.
 #' @param basic logical: if TRUE display minimum, maximum, average, deviation and mode (if present)
@@ -231,9 +233,13 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
 #' \donttest{
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' viewTableSummary(pitchingInfo, percentiles=TRUE)
+#' 
+#' viewTableSummary(pitchingInfo, types=c("numeric", "temporal"))
 #' }
-viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, percentiles=FALSE) {
-  
+viewTableSummary <- function(tableInfo, types=NULL,
+                             include=NULL, except=NULL, basic=FALSE, 
+                             percentiles=FALSE) {
+    
   if (missing(tableInfo)) return()
   
   tableInfo = includeExcludeColumns(tableInfo, include, except)
@@ -241,10 +247,15 @@ viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, 
   col_indices = c("COLUMN_NAME", "TYPE_NAME")
   
   if(basic) {
-    col_indices = c(col_indices, "minimum", "maximum", "average", "deviation")
-    if("mode" %in% names(tableInfo)) {
-      col_indices = c(col_indices, "mode")
-    } 
+    col_indices = c(col_indices, "total_count", "distinct_count", "not_null_count", "null_count")  
+  }else {
+    col_indices = c(col_indices, "total_count", "distinct_count", "not_null_count", "null_count",
+                    "minimum", "maximum", "average", "deviation",
+                    "minimum_str", "maximum_str")
+  }
+  
+  if("mode" %in% names(tableInfo)) {
+    col_indices = c(col_indices, "mode")
   }
   
   if(percentiles) {
@@ -252,11 +263,13 @@ viewTableSummary <- function(tableInfo, include=NULL, except=NULL, basic=FALSE, 
     col_indices = c(col_indices, ns[grep("^[0-9]*%$",ns)])
   }
   
-  if (length(col_indices) == 1) {
-    col_indices = c(4,19:ncol(tableInfo))
-  }
+  if (!is.null(types) && length(types) > 0) {
+    typeNames = getTypes(types)
+    row_indices = tableInfo$TYPE_NAME %in% typeNames
+  }else 
+    row_indices = !is.na(tableInfo$TYPE_NAME)
     
-  View(tableInfo[, col_indices])
+  View(tableInfo[row_indices, col_indices])
   
   return(1.0)
 }

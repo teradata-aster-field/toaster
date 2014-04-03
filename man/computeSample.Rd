@@ -4,7 +4,8 @@
 \usage{
   computeSample(channel, tableName, sampleFraction,
     sampleSize, include = NULL, except = NULL,
-    where = NULL, stringsAsFactors = FALSE, test = FALSE)
+    where = NULL, as.is = FALSE, stringsAsFactors = FALSE,
+    test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -30,8 +31,14 @@
   expressed in the form of SQL predicates (inside
   \code{WHERE} clause).}
 
-  \item{stringsAsFactors}{logical: should character vectors
-  returned as part of results be converted to factors?}
+  \item{as.is}{which (if any) columns returned as character
+  should be converted to another type?  Allowed values are
+  as for \code{\link{read.table}}. See also
+  \code{\link{sqlQuery}}.}
+
+  \item{stringsAsFactors}{logical: should columns returned
+  as character and not excluded by \code{as.is} and not
+  converted to anything else be converted to factors?}
 
   \item{test}{logical: if TRUE show what would be done,
   only (similar to parameter \code{test} in \link{RODBC}

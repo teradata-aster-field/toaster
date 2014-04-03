@@ -2,10 +2,11 @@
 \alias{createBoxplot}
 \title{Create box plot}
 \usage{
-  createBoxplot(data, x = NULL, facet = NULL, ncol = 1,
-    facetScales = "fixed",
-    title = paste("Bubble Chart by", fill), xlab = x,
-    ylab = NULL, legendPosition = "right",
+  createBoxplot(data, x = NULL, fill = NULL, facet = NULL,
+    ncol = 1, facetScales = "fixed", paletteValues = NULL,
+    palette = "Set1",
+    title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))),
+    xlab = x, ylab = NULL, legendPosition = "right",
     coordFlip = FALSE, baseSize = 12, baseFamily = "sans",
     defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
     themeExtra = NULL)
@@ -14,7 +15,12 @@
   \item{data}{quartiles precomputed with
   \code{\link{computePercentiles}}}
 
-  \item{x}{variable name of primary variance by x-axis}
+  \item{x}{column name of primary variance. Multiple
+  boxplots are placed along the x-axis. Each value of
+  \code{x} must have corresponding percentiles calculated.}
+
+  \item{fill}{name of a column with values to colour box
+  plots}
 
   \item{facet}{vector of 1 or 2 column names to split up
   data to plot the subsets as facets. If single name then
@@ -34,6 +40,14 @@
   vary across rows (x axis), "free_y" - vary across columns
   (Y axis, default), "free" - both rows and columns (see in
   \code{facet_wrap} parameter \code{scales} )}
+
+  \item{paletteValues}{actual palette colours for use with
+  \code{scale_fill_manual} (if specified then parameter
+  \code{palette} is ignored)}
+
+  \item{palette}{Brewer palette name - see
+  \code{display.brewer.all} in \code{RColorBrewer} package
+  for names}
 
   \item{title}{plot title.}
 
@@ -66,13 +80,37 @@
 }
 \description{
   Create box plot visualization using quartiles calculated
-  with \code{\link{computePercentiles}}.
+  with \code{\link{computePercentiles}}. The simplest case
+  without x value displays single boxplot from the single
+  set of percentiles. To plot multiple box plots and
+  multiple or single box plots with facets use parameters
+  \code{x} and/or \code{facet}.
+}
+\details{
+  Multiple box plots: \code{x} is a name of variable where
+  each value corresponds to a set of percentiles. The
+  boxplots will be placed along the x-axis. Simply use
+  \code{\link{computePercentiles}} with parameter
+  \code{by="name to be passed in x variable"}.
+
+  Facets: \code{facet} vector contains one or two names of
+  vairables where each combination of values corresponds to
+  a set of percentiles. The boxplot(s) will be placed
+  inside separate sections of the plot (facets). Both
+  single boxplot (without variable \code{x} and with one)
+  are supported.
+
+  Usually, with multiple percentile sets varying along
+  single value use parameter \code{x} and add facets on
+  top. The exception is when scale of percentile values
+  differs between each boxplot. Then omit parameter
+  \code{x} and use \code{facet} with
+  \code{facetScales='free_y'}.
 }
 \examples{
 \donttest{
 # boxplot of pitching ipouts for AL in 2000s
-ipop = computePercentiles(conn, "pitching", "ipouts",
-                          where = "lgid = 'AL' and yearid >= 2000")
+ipop = computePercentiles(conn, "pitching", "ipouts")
 createBoxplot(ipop)
 
 # boxplots by the league of pitching ipouts
@@ -82,7 +120,13 @@ createBoxplot(ipopLg, x="lgid")
 # boxplots by the league with facet yearid of pitching ipouts in 2010s
 ipopLgYear = computePercentiles(conn, "pitching", "ipouts", by=c("lgid", "yearid"),
                                 where = "yearid >= 2010")
-createBoxplot(ipopLgYear, x="lgid", facet="yearid")
+createBoxplot(ipopLgYear, x="lgid", facet="yearid", ncol=3)
+
+# boxplot with facets only
+bapLgDec = computePercentiles(conn, "pitching_enh", "ba", by=c("lgid", "decadeid"),
+                              where = "lgid in ('AL','NL')")
+createBoxplot(bapLgDec, facet=c("lgid", "decadeid"))
+
 
 }
 }

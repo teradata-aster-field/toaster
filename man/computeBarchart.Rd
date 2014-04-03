@@ -47,8 +47,8 @@
   aggregate values into a molten data frame}
 
   \item{stringsAsFactors}{logical: should columns returned
-  as character and not excluded by as. is and not converted
-  to anything else be converted to factors?}
+  as character and not excluded by \code{as.is} and not
+  converted to anything else be converted to factors?}
 
   \item{test}{logical: if TRUE show what would be done,
   only (similar to parameter \code{test} in \link{RODBC}

@@ -1,6 +1,6 @@
 Package: toaster
 Type: Package
-Title: Data analysis and visualization with Aster Database
+Title: analytics and visualization with Aster Database
 Version: 0.2-2
 Author: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>
@@ -14,6 +14,7 @@ Description: toaster (a.k.a 'to Aster') is a set of tools to perform
     histograms, heatmaps, word clouds, maps, or slope graphs. Advanced options
     such as faceting, coloring, labeling, and others are supported
     with most plots.
+URL: https://grigory@bitbucket.org/grigory/toaster.git
 SystemRequirements: Teradata Aster 5.1 or higher, Teradata Aster Analytical
     Foundation 5.10 or higher (5.11 or higher is recommended)
 Depends:

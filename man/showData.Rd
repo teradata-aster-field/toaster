@@ -13,7 +13,7 @@
     facetName = NULL, regressionLine = FALSE,
     corrLabel = "none", digits = 2, shape = 21,
     shapeSizeRange = c(1, 10), facet = FALSE, ncol = 4,
-    scales = ifelse(facet & format == "boxplot", "free", "fixed"),
+    scales = ifelse(facet & format \%in\% c("boxplot", "overview"), "free", "fixed"),
     coordFlip = FALSE, paletteName = "Set1", baseSize = 12,
     baseFamily = "sans", legendPosition = "none",
     defaultTheme = theme_bw(base_size = baseSize),

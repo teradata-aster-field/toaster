@@ -1,4 +1,4 @@
-#' Plot table level statistics and visulizations.
+#' Plot table level statistics, histograms, correlations and scatterplots.
 #' 
 #' \code{showData} is the basic plotting function in the \code{toaster} package, designed to produce set of 
 #' standard visualizations (see parameter \code{format}) in a single call. Depending on the \code{format} it 

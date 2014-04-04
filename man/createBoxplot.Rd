@@ -2,8 +2,9 @@
 \alias{createBoxplot}
 \title{Create box plot}
 \usage{
-  createBoxplot(data, x = NULL, fill = NULL, facet = NULL,
-    ncol = 1, facetScales = "fixed", paletteValues = NULL,
+  createBoxplot(data, x = NULL, fill = NULL,
+    useIQR = FALSE, facet = NULL, ncol = 1,
+    facetScales = "fixed", paletteValues = NULL,
     palette = "Set1",
     title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))),
     xlab = x, ylab = NULL, legendPosition = "right",
@@ -21,6 +22,11 @@
 
   \item{fill}{name of a column with values to colour box
   plots}
+
+  \item{useIQR}{logical indicates use of IQR interval to
+  compute cutoff lower and upper bounds: \code{[Q1 - 1.5 *
+  IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}, if FALSE then use
+  maximum and minimum bounds (all values).}
 
   \item{facet}{vector of 1 or 2 column names to split up
   data to plot the subsets as facets. If single name then

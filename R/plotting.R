@@ -316,6 +316,9 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'   along the x-axis. Each value of \code{x} must have corresponding
 #'   percentiles calculated.
 #' @param fill name of a column with values to colour box plots
+#' @param useIQR logical indicates use of IQR interval to compute cutoff lower 
+#'   and upper bounds: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}, 
+#'   if FALSE then use maximum and minimum bounds (all values).    
 #' @param facet vector of 1 or 2 column names to split up data to plot the 
 #'   subsets as facets. If single name then subset plots are placed next to 
 #'   each other, wrapping with \code{ncol} number of columns (uses \code{\link{facet_wrap}}). 
@@ -367,8 +370,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' 
 #'  
 #' }
-createBoxplot <- function(data, x=NULL, fill=NULL,
-                          facet = NULL, ncol = 1, facetScales = "fixed",
+createBoxplot <- function(data, x=NULL, fill=NULL, useIQR = FALSE,
+                          facet = NULL, ncol = 1, facetScales = "fixed",                          
                           paletteValues = NULL, palette = "Set1",
                           title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))), 
                           xlab = x, ylab = NULL,
@@ -389,14 +392,24 @@ createBoxplot <- function(data, x=NULL, fill=NULL,
   }
   ndata = dcast(data, formu)
   
+  # calculate IQR-based bounds
+  if (useIQR) {
+    ndata$IQR = apply(ndata[, c('25', '75')], 1, FUN=function(x) (x['75'] - x['25']))
+    ndata$lower_bound = apply(ndata[, c('0', '25', 'IQR')], 1, FUN=function(x) max(x['0'], x['25']-1.5*x['IQR']))
+    ndata$upper_bound = apply(ndata[, c('100', '75', 'IQR')], 1, FUN=function(x) min(x['100'], x['75']+1.5*x['IQR']))
+  }else {
+    ndata$lower_bound = ndata$`0`
+    ndata$upper_bound = ndata$`100`
+  }
+  
   p = ggplot(ndata, aes_string(x=x)) +
-    geom_boxplot(aes_string(ymin='`0`', lower='`25`', middle='`50`', upper='`75`', ymax='`100`',
+    geom_boxplot(aes_string(ymin='lower_bound', lower='`25`', middle='`50`', upper='`75`', ymax='upper_bound',
                             fill=fill), 
                  stat = "identity") +
     (if(!is.null(fill))
       if(!missing(paletteValues))
         scale_fill_manual(values = paletteValues)
-     else if(!missing(palette))
+     else # if(!missing(palette))
        scale_fill_manual(values = (colorDiscretePalette(palette))(length(unique(data[,fill]))))
     ) +
     defaultTheme +

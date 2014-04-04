@@ -423,19 +423,22 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
     plotTitle = element_text(family = baseFamily, face = "bold", size = baseSize * 1.4, vjust = 1)
   
   if (is.null(xlab)) 
-    axisTextX = element_blank()
+    axisTitleX = element_blank()
   else
-    axisTextX = element_text(size = baseSize * 0.8, angle = 330, hjust = 0)
+    axisTitleX = element_text(size = baseSize * 0.8, vjust = NULL)
   
   if (is.null(ylab))
-    axisTextY = element_blank()
+    axisTitleY = element_blank()
   else
-    axisTextY = element_text(size = baseSize * 0.8)
+    axisTitleY = element_text(size = baseSize * 0.8, vjust = NULL)
   
   them = theme(legend.position = legendPosition,
                plot.title = plotTitle,
-               axis.text.x = axisTextX,
-               axis.text.y = axisTextY)
+               axis.title.x = axisTitleX,
+               axis.title.y = axisTitleY,
+               axis.text.x = element_text(size = baseSize * 0.8, 
+                                          angle = 330, hjust = 0, colour = "grey50"),
+               axis.text.y = element_text(size = baseSize * 0.8))
   
   return(them)
 }

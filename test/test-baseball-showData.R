@@ -23,7 +23,9 @@ showData(asterConn, 'pitching_enh', pitchingInfo, type='numeric', format='overvi
          scales="free_y",
          where='yearid between 2000 and 2013')
 
-showData(asterConn, 'pitching_enh', pitchingInfo, type='numeric', format='overview',
+summary = getTableSummary(asterConn, 'pitching_enh', include=c('baopp', 'era', 'whip', 'ktobb', 'fip'),
+                          where='yearid between 2000 and 2013')
+showData(asterConn, 'pitching_enh', summary, type='numeric', format='overview',
          include=c('era','fip','whip','ktobb'), 
          measures = c('average','deviation','IQR','0%','10%','25%','50%','75%'),
          scales="fixed",
@@ -55,7 +57,7 @@ showData(asterConn, tableName='pitching_enh', tableInfo=pitchingInfo, format='bo
          facet=TRUE, scale="free_x")
 
 # histogram
-showData(asterConn, 'pitching_enh', pitchingInfo,
+showData(asterConn, 'pitching_enh', summary,
          include=c('baopp', 'era', 'whip', 'ktobb', 'fip'), 
          # include=c('w', 'l', 'g', 'ipouts', 'h', 'er', 'hr', 'bb', 'so', 'bfp', 'r'),
          format='histogram', numBins=50, facet=TRUE,
@@ -71,12 +73,19 @@ showData(asterConn, 'batting_enh', battingInfo,
 showData(asterConn, tableName='pitching_enh', tableInfo=pitchingInfo, 
          include=c('w', 'l', 'g', 'ipouts', 'h', 'er', 'hr', 'bb', 'so', 'bfp', 'r'),
                 #   'baopp', 'era', 'whip', 'ktobb', 'fip'),
-         format='corr', corrLabel='value', digits=2, shapeSizeRange=c(5,25))
+         format='corr', corrLabel='value', digits=2, shapeSizeRange=c(5,25), 
+         defaultTheme=theme_classic(base_size=12), legendPosition="none")
 
 showData(asterConn, tableName='batting_enh', tableInfo=battingInfo,
          include=c('ab', 'r', 'h', 'x2b', 'x3b', 'hr', 'rbi', 'sb', 'cs', 'bb', 'so', 'ibb', 'hbp', 'sh', 'sf', 'gidp',
                    'tb', 'tob', 'xbh', 'ba', 'slg', 'ta'),
-         format='corr', corrLabel='value', digits=2, shapeSizeRange=c(5,25))
+         format='corr', corrLabel='value', digits=2, shapeSizeRange=c(5,25),
+         defaultTheme=theme_classic(base_size=12), legendPosition="none")
+
+showData(asterConn, tableName='teams_enh', tableInfo=teamsInfo,
+         except=c('yearid','decadeid','ghome','g'),
+         format='corr', corrLabel='value', digits=2, shapeSizeRange=c(5,25),
+         defaultTheme=theme_classic(base_size=12), legendPosition="none")
 
 # scatterplots
 showData(asterConn, 'pitching_enh', format='scatterplot', 

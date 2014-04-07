@@ -1,7 +1,7 @@
 require(toaster)
 require(memoise)
 
-dsn = "PartnersPresalesCluster"
+dsn = "PresalesPartnersDB"
 uid = "beehive"
 pwd = "beehive"
 close(asterConn)
@@ -24,9 +24,9 @@ data = compute(asterConn, "pitching",
 
 geocodeMem = memoise(geocode)
 
-createUS48Map(data=data[data$decadeid>=2000,], source = "stamen", maptype = "watercolor", zoom=4, 
+createMap(data=data[data$decadeid>=2000,], source = "stamen", maptype = "watercolor", zoom=4, 
               facet=c("lgid", "decadeid"),
-              locationName='teamname', locationNameBak='park', metricName='attendance', labelName='name',
+              locationName='teamname', metricName='attendance', labelName='name',
               shapeColour="blue", scaleRange = c(2,12), textColour="black",
               title='Team Attendance by Decade and Leage',
               geocodeFun=geocodeMem)

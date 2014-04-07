@@ -1,3 +1,5 @@
+require(toaster)
+
 dsn = "PresalesPartnersDB"
 uid = "beehive"
 pwd = "beehive"

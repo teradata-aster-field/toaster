@@ -2,7 +2,6 @@ detach("package:toaster", unload=T)
 require(toaster)
 
 dsn = "LocalQueenVMWare"
-dsn = "PublixPresalesCluster"
 dsn = "PresalesPartnersDB"
 uid = "beehive"
 pwd = "beehive"
@@ -10,7 +9,7 @@ close(asterConn)
 asterConn = odbcConnect(dsn, uid, pwd)
 
 # pre-process data to re-use
-pitchingInfo = getTableSummary(asterConn, 'pitching')
+pitchingInfo = getTableSummary(asterConn, 'pitching_enh')
 shrinkInfo = getTableSummary(asterConn, 'shrink')
 
 # Boxplots
@@ -22,7 +21,12 @@ shrinkInfo = getTableSummary(asterConn, 'shrink')
 
 # Correlation matrix
 # on all numerical attributes
-showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='corr')
+showData(asterConn, tableName='pitching_enh', tableInfo=pitchingInfo, format='corr')
+
+showData(asterConn, tableName='pitching_enh', tableInfo=pitchingInfo, format='scatterplot', 
+         include=c('bb', 'so'), regressionLine=TRUE,
+         sampleSize=10000, facetName='lgid',
+         where='yearid >= 2000')
 
 # correlation matrix on selected attributes
 # with labeling by attribute pair name and
@@ -31,15 +35,13 @@ showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('ERA
          format='corr', corrLabel='pair', shapeSizeRange=c(5,25))
 
 # Histogram on all numeric attributes
-showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('HR'), format='histogram')
+showData(asterConn, tableName='pitching_enh', tableInfo=pitchingInfo, include=c('hr'), format='histogram')
+showData(asterConn, tableName='pitching_enh', tableInfo=pitchingInfo, include=c('era', 'fip', 'so','bb','hr'), format='histogram')
 
 # Overview is a histogram of statistical measures across attributes
 showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='overview', type='numeric')
 showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='overview', type='numeric',
          include=c('extended_cost', 'quantity'))
-
-showData(asterConn, tableName='shrink', tableInfo=shrinkInfo, format='boxplot', type='numeric',
-         include='activity_factor_id')
 
 
 # Simple histogram on an attrbute

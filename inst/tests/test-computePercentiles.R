@@ -2,6 +2,9 @@ context("computePercentiles")
 
 test_that("computePercentiles throws errros", {
   
+  expect_error(computePercentiles(), 
+               "Must provide connection.")
+  
   expect_error(computePercentiles(channel=NULL),
                "Must provide table and column names.")
   
@@ -23,7 +26,7 @@ test_that("computePercentiles SQL is correct", {
     "SELECT * FROM approxPercentileReduce(
        ON (
          SELECT * FROM approxPercentileMap(
-           ON  ( SELECT * FROM pitching  )                       
+           ON  ( SELECT * FROM pitching )                       
            TARGET_COLUMN( 'ipouts' )
            ERROR( 1 )                       
        ) )
@@ -37,7 +40,7 @@ test_that("computePercentiles SQL is correct", {
     "SELECT * FROM approxPercentileReduce(
        ON (
          SELECT * FROM approxPercentileMap(
-           ON  ( SELECT * FROM pitching  )                       
+           ON  ( SELECT * FROM pitching )                       
            TARGET_COLUMN( 'ipouts' )
            ERROR( 1 )  
            GROUP_COLUMNS( 'lgid' )
@@ -54,11 +57,26 @@ test_that("computePercentiles SQL is correct", {
     "SELECT * FROM approxPercentileReduce(
       ON (
         SELECT * FROM approxPercentileMap(
-          ON  ( SELECT * FROM pitching  )                       
+          ON  ( SELECT * FROM pitching )                       
           TARGET_COLUMN( 'ipouts' )
           ERROR( 1 )                       
         ) )
       PARTITION BY  1                   
       PERCENTILE( 0,1,2,3,4,25,50,75,100 )
+    )")
+  
+  expect_equal_normalized(
+    computePercentiles(channel=NULL, tableName="pitching", columnName="ipouts",
+                       percentiles = c(10,90), where="lgid = 'NL'",
+                       test=TRUE),
+    "SELECT * FROM approxPercentileReduce(
+      ON (
+        SELECT * FROM approxPercentileMap(
+          ON  ( SELECT * FROM pitching WHERE lgid = 'NL' )                       
+          TARGET_COLUMN( 'ipouts' )
+          ERROR( 1 )                       
+        ) )
+      PARTITION BY  1                   
+      PERCENTILE( 0,10,25,50,75,90,100 )
     )")
 })

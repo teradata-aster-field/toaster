@@ -41,6 +41,10 @@ computePercentiles <- function(channel, tableName, columnName,
                                by = NULL, where = NULL, 
                                stringsAsFactors = FALSE, test = FALSE) {
   
+  if (missing(channel)) {
+    stop("Must provide connection.")
+  }
+  
   
   if (missing(tableName) || missing(columnName) || 
         is.null(tableName) || is.null(columnName)) {

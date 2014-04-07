@@ -4,7 +4,7 @@ toaster 0.2
 NEW FEATURES
 
 * `computeSample`: randomly sample data from the table specifying
-  fraction or size of desired sample.
+  fraction or size of desired data set.
 
 * `createMap`: new visualization function for combining maps with data 
   artifacts from Aster database. Can be used to produce maps of 
@@ -26,6 +26,16 @@ NEW FEATURES
 * `computeBarchart`: for computing data for barchart visualizations. This
   is different from `computeHistogram` as barchart is defined on factors
   (categorical data) witch doesn't support defining bins like in histograms.
+
+* `computePercentiles`: for computing multiple percentiles across one or 
+  many subsets of a table in one go. Results are suitable for function
+  `createBoxplot` (see next).
+
+* `createBoxplot`: visualizes boxplots for single column across one or
+  multiple subsets.
+
+* `computeLm`: compute linear model coefficients similar to lm function but
+  all performed inside Aster.
 
 ENHANCEMENTS
 
@@ -68,9 +78,10 @@ ENHANCEMENTS
 
 * `createPopPyramid` support for facets.
 
+* added utility method to list Aster data types: `getNumericTypes`, 
+  `getCharacterTypes`, `getTemporalTypes`.
+
 BUG FIXES
-
-
 
 
 

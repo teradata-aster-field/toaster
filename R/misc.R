@@ -1,5 +1,9 @@
-
-#' List all Aster numeric data types
+#' List Aster numeric data types
+#' 
+#' @return character vector with names of Aster numeric data types
+#' @export
+#' @examples
+#' getNumericTypes()
 #' 
 getNumericTypes <- function () {
   return( c('integer',
@@ -15,8 +19,14 @@ getNumericTypes <- function () {
   )
 }
 
-#' List all Aster character data types
+#' List Aster character data types
 #'
+#' @return character vector with names of Aster character data types
+#' @export
+#' @examples 
+#' getCharacterTypes()
+#' 
+#' 
 getCharacterTypes <- function() {
   return(c('varchar',
            'char',
@@ -24,7 +34,12 @@ getCharacterTypes <- function() {
   )
 }
 
-#' List all Aster temporal data types
+#' List Aster temporal data types
+#' 
+#' @return character vector with names of Aster temporal data types
+#' @export
+#' @examples
+#' getTemporalTypes()
 #' 
 getTemporalTypes <- function() {
   return(c('date', 

@@ -1,4 +1,4 @@
-#' Compute aggregate values
+#' Compute aggregate values.
 #' 
 #' Compute aggregates using SQL \code{SELECT...GROUP BY} in Aster. Aggregates may be any 
 #' valid SQL expressions (including SQL \code{WINDOW} functions) in context of group 
@@ -18,17 +18,16 @@
 #' @param stringsAsFactors logical: should character vectors returned as part of results be converted to factors? 
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
-#' @aliases computeAggregates  
 #' @examples
 #' \donttest{
-#' data = compute(channel = conn, tableName = "teams_enh",
+#' data = computeAggregates(channel = conn, tableName = "teams_enh",
 #'                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
 #'                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
 #'                               "avg(attendance) attendance"))
 #'                
 #' # compute total strike-outs for each team in decades starting with 1980
 #' # and also percent (share) of team strikeouts within a decade
-#' data = compute(channel = conn, "pitching_enh",
+#' data = computeAggregates(channel = conn, "pitching_enh",
 #'                by = c("teamid", "decadeid"), 
 #'                aggregates = c("sum(so) so", 
 #'                               "sum(so)/(sum(sum(so)) over (partition by decadeid)) percent"),
@@ -37,10 +36,10 @@
 #'   
 #' @export
 #' 
-compute <- function(channel, tableName, 
-                    aggregates = c("COUNT(*) cnt"), 
-                    by = vector(), where = NULL, 
-                    stringsAsFactors = FALSE, test = FALSE) {
+computeAggregates <- function(channel, tableName, 
+                              aggregates = c("COUNT(*) cnt"), 
+                              by = vector(), where = NULL, 
+                              stringsAsFactors = FALSE, test = FALSE) {
   
   if (missing(tableName)) {
     stop("Must have table name.")

@@ -17,7 +17,7 @@ data = sqlQuery(asterConn,
             group  by 1, 2, 3, 4", 
                 stringsAsFactors=FALSE)
 
-data = compute(asterConn, "pitching",
+data = computeAggregates(asterConn, "pitching",
                columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", "avg(attendance) attendance")
                )

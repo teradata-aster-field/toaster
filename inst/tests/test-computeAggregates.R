@@ -1,23 +1,23 @@
-context("compute")
+context("computeAggregates")
 
-test_that("compute throws errors", {
+test_that("computeAggregates throws errors", {
   
-  expect_error(compute(channel=NULL), 
+  expect_error(computeAggregates(channel=NULL), 
                "Must have table name.")
   
-  expect_error(compute(channel=NULL, tableName="fake"),
+  expect_error(computeAggregates(channel=NULL, tableName="fake"),
                "Must have one or more columns.")
   
-  expect_error(compute(channel=NULL, tableName="table_name", by="column1",
+  expect_error(computeAggregates(channel=NULL, tableName="table_name", by="column1",
                        aggregates = vector()),
                "Must have at least one aggregate defined.")
   
 })
 
 
-test_that("compute SQL is correct", {
+test_that("computeAggregates SQL is correct", {
   
-  expect_equal_normalized(compute(channel=NULL, "teams_enh", 
+  expect_equal_normalized(computeAggregates(channel=NULL, "teams_enh", 
                                   by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
                                   aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
                                                  "avg(attendance) attendance"),
@@ -28,7 +28,7 @@ test_that("compute SQL is correct", {
                             GROUP BY name || ', ' || park, lgid, teamid, decadeid"                          
                           )
   
-  expect_equal_normalized(compute(channel=NULL, "teams_enh",
+  expect_equal_normalized(computeAggregates(channel=NULL, "teams_enh",
                                   by = c("teamid", "decadeid"),
                                   aggregates = c("min(rank) minrank", "max(rank) maxrank"),
                                   where = "lgid = 'AL'",
@@ -39,7 +39,7 @@ test_that("compute SQL is correct", {
                             GROUP BY teamid, decadeid"
                           )
   
-  expect_equal_normalized(compute(channel=NULL, "pitching_enh",
+  expect_equal_normalized(computeAggregates(channel=NULL, "pitching_enh",
                                   by = c("teamid", "decadeid"), 
                                   aggregates = c("sum(so) so", 
                                                  "sum(so)/(sum(sum(so)) over (partition by decadeid)) percent"),

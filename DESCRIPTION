@@ -43,7 +43,7 @@ Collate:
     'plotting.R'
     'maps.R'
     'showData.R'
-    'compute.R'
+    'computeAggregates.R'
     'computeBarchart.R'
     'computeSample.R'
     'computePercentiles.R'

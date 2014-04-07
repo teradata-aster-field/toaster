@@ -1,4 +1,4 @@
-export(compute)
+export(computeAggregates)
 export(computeBarchart)
 export(computeCorrelations)
 export(computeHeatmap)

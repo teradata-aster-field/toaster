@@ -1,4 +1,4 @@
-#' Randomly sample data from the table
+#' Randomly sample data from the table.
 #' 
 #' Draws a sample of rows from the table randomly. The function offers two 
 #' sampling schemes:

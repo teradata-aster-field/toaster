@@ -1,6 +1,6 @@
 \name{viewTableSummary}
 \alias{viewTableSummary}
-\title{Invoke a Data Viewer}
+\title{Invoke a Data Viewer on table statistics.}
 \usage{
   viewTableSummary(tableInfo, types = NULL, include = NULL,
     except = NULL, basic = FALSE, percentiles = FALSE)

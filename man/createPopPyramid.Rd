@@ -1,6 +1,6 @@
 \name{createPopPyramid}
 \alias{createPopPyramid}
-\title{Create Population Pyramid type of histogram plot}
+\title{Create Population Pyramid type of histogram plot.}
 \usage{
   createPopPyramid(data, bin = "bin_start",
     count = "bin_count", divideBy, values = NULL,

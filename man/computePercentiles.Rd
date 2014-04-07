@@ -1,6 +1,6 @@
 \name{computePercentiles}
 \alias{computePercentiles}
-\title{Compute percentiles}
+\title{Compute percentiles of column values.}
 \usage{
   computePercentiles(channel, tableName, columnName,
     percentiles = c(0, 5, 10, 25, 50, 75, 90, 95, 100),
@@ -40,7 +40,7 @@
 }
 \description{
   Compute percentiles including boxplot quartiles across
-  valurs of column \code{columnName}. Multiple sets of
+  values of column \code{columnName}. Multiple sets of
   percentiles achieved with the parameter \code{by}. Vector
   \code{by} may contain arbitrary number of column names:
   the percentiles are computed for each combination of

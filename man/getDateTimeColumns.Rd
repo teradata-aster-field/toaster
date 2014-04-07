@@ -1,6 +1,6 @@
 \name{getDateTimeColumns}
 \alias{getDateTimeColumns}
-\title{Filter Date and Time Table Columns}
+\title{Filter Date and Time Table Columns.}
 \usage{
   getDateTimeColumns(tableInfo, names.only = TRUE,
     include = NULL, except = NULL)

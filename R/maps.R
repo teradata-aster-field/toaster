@@ -108,7 +108,7 @@
 #' 
 #' @examples
 #' \donttest{
-#' data = compute(asterConn, "pitching",
+#' data = computeAggregates(asterConn, "pitching",
 #'                columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
 #'                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", "avg(attendance) attendance")
 #'                )

@@ -1,6 +1,6 @@
 \name{createBoxplot}
 \alias{createBoxplot}
-\title{Create box plot}
+\title{Create box plot.}
 \usage{
   createBoxplot(data, x = NULL, fill = x, useIQR = FALSE,
     facet = NULL, ncol = 1, facetScales = "fixed",

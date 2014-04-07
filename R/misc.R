@@ -1,4 +1,4 @@
-#' List Aster numeric data types
+#' List Aster numeric data types.
 #' 
 #' @return character vector with names of Aster numeric data types
 #' @export
@@ -19,7 +19,7 @@ getNumericTypes <- function () {
   )
 }
 
-#' List Aster character data types
+#' List Aster character data types.
 #'
 #' @return character vector with names of Aster character data types
 #' @export
@@ -34,7 +34,7 @@ getCharacterTypes <- function() {
   )
 }
 
-#' List Aster temporal data types
+#' List Aster temporal data types.
 #' 
 #' @return character vector with names of Aster temporal data types
 #' @export
@@ -119,7 +119,7 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 }
 
 
-#' Filter Date and Time Table Columns
+#' Filter Date and Time Table Columns.
 #' 
 #' Selects date and time columns (names or rows) from table info data frame.
 #' 
@@ -142,7 +142,7 @@ getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except
 }
 
 
-#' Filter columns by pattern
+#' Filter columns by pattern.
 #' 
 #' Selects columns with names matching regular expression pattern.
 #' 

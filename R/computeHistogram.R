@@ -1,4 +1,4 @@
-#' Compute histogram distribution of the table column
+#' Compute histogram distribution of the column.
 #' 
 #' Compute histogram of the table column in Aster by mapping its value to 
 #' bins based on parameters specified. When column is of numeric or

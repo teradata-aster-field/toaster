@@ -1,6 +1,6 @@
 \name{computeHistogram}
 \alias{computeHistogram}
-\title{Compute histogram distribution of the table column}
+\title{Compute histogram distribution of the column.}
 \usage{
   computeHistogram(channel, tableName, columnName,
     tableInfo = NULL, columnFrequency = FALSE,

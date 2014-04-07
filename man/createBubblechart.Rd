@@ -1,6 +1,6 @@
 \name{createBubblechart}
 \alias{createBubblechart}
-\title{Create Bubble Chart type of plot}
+\title{Create Bubble Chart type of plot.}
 \usage{
   createBubblechart(data, x, y, z, label = z, fill = NULL,
     facet = NULL, ncol = 1, facetScales = "fixed",
@@ -129,6 +129,7 @@
   assign data points labels and fill shapes with colors.
 }
 \seealso{
-  \code{\link{compute}} computes data for the bubble chart.
+  \code{\link{computeAggregates}} computes data for the
+  bubble chart.
 }
 

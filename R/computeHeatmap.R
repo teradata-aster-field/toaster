@@ -1,5 +1,3 @@
-require(RODBC)
-
 #' Compute 2-dimensional multi-layered matrix for heat map visualizations.
 #' 
 #' Compute aggregate value(s) across two category classes represented by the 

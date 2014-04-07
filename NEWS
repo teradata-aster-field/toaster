@@ -81,6 +81,9 @@ ENHANCEMENTS
 * added utility method to list Aster data types: `getNumericTypes`, 
   `getCharacterTypes`, `getTemporalTypes`.
 
+* `computeAggregates` is not an alias anymore and it replaced function
+  `compute` which is no more.
+
 BUG FIXES
 
 

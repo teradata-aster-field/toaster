@@ -1,6 +1,6 @@
 \name{createSlopegraph}
 \alias{createSlopegraph}
-\title{Create plot with Slope Graph visualization}
+\title{Create plot with Slope Graph visualization.}
 \usage{
   createSlopegraph(data, id, rankFrom, rankTo,
     reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
@@ -78,6 +78,6 @@
   default theme.}
 }
 \description{
-  Create plot with Slope Graph visualization
+  Create plot with Slope Graph visualization.
 }
 

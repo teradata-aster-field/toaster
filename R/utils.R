@@ -213,7 +213,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
 }
 
-#' Invoke a Data Viewer
+#' Invoke a Data Viewer on table statistics.
 #' 
 #' view computed column statistics in a spreadsheet-style viewer in R.
 #' 

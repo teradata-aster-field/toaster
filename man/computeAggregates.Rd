@@ -1,9 +1,8 @@
-\name{compute}
-\alias{compute}
+\name{computeAggregates}
 \alias{computeAggregates}
-\title{Compute aggregate values}
+\title{Compute aggregate values.}
 \usage{
-  compute(channel, tableName,
+  computeAggregates(channel, tableName,
     aggregates = c("COUNT(*) cnt"), by = vector(),
     where = NULL, stringsAsFactors = FALSE, test = FALSE)
 }
@@ -46,14 +45,14 @@
 }
 \examples{
 \donttest{
-data = compute(channel = conn, tableName = "teams_enh",
+data = computeAggregates(channel = conn, tableName = "teams_enh",
                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank",
                               "avg(attendance) attendance"))
 
 # compute total strike-outs for each team in decades starting with 1980
 # and also percent (share) of team strikeouts within a decade
-data = compute(channel = conn, "pitching_enh",
+data = computeAggregates(channel = conn, "pitching_enh",
                by = c("teamid", "decadeid"),
                aggregates = c("sum(so) so",
                               "sum(so)/(sum(sum(so)) over (partition by decadeid)) percent"),

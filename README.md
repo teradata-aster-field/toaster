@@ -21,5 +21,6 @@ You can install:
 If you encounter a clear bug, please file a minimal reproducible example on [bitbucket](https://bitbucket.org/grigory/toaster/issues).
 
 Attribution:
-Icon: Toaster by Luiza Peixe from The Noun Project
+
+* Icon: Toaster by Luiza Peixe from The Noun Project
 

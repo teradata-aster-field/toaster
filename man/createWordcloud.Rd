@@ -1,6 +1,6 @@
 \name{createWordcloud}
 \alias{createWordcloud}
-\title{Create Word Cloud Visualization}
+\title{Create Word Cloud Visualization.}
 \usage{
   createWordcloud(words, freq, title = "Wordcloud",
     scale = c(8, 0.2), minFreq = 10, maxWords = 40,

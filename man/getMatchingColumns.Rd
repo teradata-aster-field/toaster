@@ -1,6 +1,6 @@
 \name{getMatchingColumns}
 \alias{getMatchingColumns}
-\title{Filter columns by pattern}
+\title{Filter columns by pattern.}
 \usage{
   getMatchingColumns(pattern, channel, tableName,
     tableInfo, names.only = TRUE, ignore.case = TRUE,

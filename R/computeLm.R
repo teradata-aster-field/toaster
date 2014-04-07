@@ -1,7 +1,7 @@
-#' Compute Linear Regression model coefficients
+#' Fit Linear Model and return its coefficients.
 #' 
 #' Outputs coefficients of the linear model fitted to Aster table according
-#' to the formula expression with column names. The zeroth coefficient corresponds 
+#' to the formula expression containing column names. The zeroth coefficient corresponds 
 #' to the slope intercept. R formula expression with column names for response and 
 #' predictor variables is exactly as in \code{\link{lm}} function (though less 
 #' features supported).
@@ -17,7 +17,7 @@
 #' @param tableName Aster table name
 #' @param expr an object of class "formula" (or one that can be coerced to that class): 
 #'   a symbolic description of the model to be fitted. The details of model 
-#'   specification are given under ‘Details’.
+#'   specification are given under `Details`.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).

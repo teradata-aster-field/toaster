@@ -1,6 +1,6 @@
 \name{showData}
 \alias{showData}
-\title{Plot table level statistics, histograms, correlations and scatterplots.}
+\title{Plot table level statistics, histograms, correlations and scatterplots in one go.}
 \usage{
   showData(channel = NULL, tableName = NULL,
     tableInfo = NULL, include = NULL, except = NULL,

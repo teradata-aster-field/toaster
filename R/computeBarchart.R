@@ -1,6 +1,4 @@
-require(RODBC)
-
-#' Compute one or more aggregates grouped by single column
+#' Compute one or more aggregates across single class.
 #' 
 #' Compute aggregates across category class represented by the table 
 #' column. Values are one or more SQL aggregates that are valid expressions

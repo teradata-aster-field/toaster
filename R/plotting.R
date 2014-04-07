@@ -1,4 +1,4 @@
-#' Create Heat Map type of plot
+#' Create Heat Map type of plot.
 #' 
 #' Create heat map visualization of 2D matrix from the data frame \code{data}
 #' pre-computed with \code{\link{computeHeatmap}}. 
@@ -91,7 +91,7 @@ createHeatmap <- function(data, x, y, fill,
   return(p)
 }
 
-#' Create histogram type of plot
+#' Create histogram type of plot.
 #' 
 #' Create histogram plot from the pre-computed distribution of data. Parameter
 #' \code{data} is a data frame containing intervals (bins) and counts obtained 
@@ -287,7 +287,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 }
 
 
-#' Create box plot
+#' Create box plot.
 #' 
 #' Create box plot visualization using quartiles calculated with \code{\link{computePercentiles}}.
 #' The simplest case without x value displays single boxplot from the
@@ -458,7 +458,7 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
   return(them)
 }
 
-#' Create Bubble Chart type of plot
+#' Create Bubble Chart type of plot.
 #' 
 #' Create a bubble chart that utilizes three dimensions of data. It is a variation
 #' of the scatter plot with data points replaced with shapes ("bubbles"): x and y 
@@ -511,7 +511,7 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' @seealso \code{\link{compute}} computes data for the bubble chart.
+#' @seealso \code{\link{computeAggregates}} computes data for the bubble chart.
 #' @export
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
                               facet = NULL, ncol = 1, facetScales = "fixed",
@@ -562,7 +562,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
   
 }
 
-#' Create plot with Slope Graph visualization
+#' Create plot with Slope Graph visualization.
 #' 
 #' @param data data frame contains data computed for slopegraph
 #' @param id name of column identifying each graph element having from (before) and to (after) pair of values
@@ -666,7 +666,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
   
 }
 
-#' Create Word Cloud Visualization
+#' Create Word Cloud Visualization.
 #' 
 #' Wrapper around \code{\link{wordcloud}} function that optionally saves graphics
 #' to the file of one of supported formats.
@@ -737,7 +737,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 }
 
 
-#' Create Population Pyramid type of histogram plot
+#' Create Population Pyramid type of histogram plot.
 #' 
 #' Create population pyramid type of histogram plot: two back-to-back bar graphs on the same 
 #' category class (e.g. age) placed on Y-axis and distribution (population) placed 
@@ -919,13 +919,13 @@ colorDiscretePalette <- function(paletteName="Set1") {
   return(colfunc)
 }
 
-#' Creates empty theme 
+#' Creates empty theme.
 #' 
 #' Good to use with slopegraphs.
 #' 
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' 
+#' @seealso \code{\link{createHistogram}} and other visualization functions that start with create.
 #' @export
 theme_empty <- function (baseSize = 12, baseFamily = "") 
 {

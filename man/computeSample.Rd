@@ -1,6 +1,6 @@
 \name{computeSample}
 \alias{computeSample}
-\title{Randomly sample data from the table}
+\title{Randomly sample data from the table.}
 \usage{
   computeSample(channel, tableName, sampleFraction,
     sampleSize, include = NULL, except = NULL,

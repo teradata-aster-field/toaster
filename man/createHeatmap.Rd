@@ -1,6 +1,6 @@
 \name{createHeatmap}
 \alias{createHeatmap}
-\title{Create Heat Map type of plot}
+\title{Create Heat Map type of plot.}
 \usage{
   createHeatmap(data, x, y, fill, facet = NULL, ncol = 1,
     baseSize = 12, baseFamily = "sans",

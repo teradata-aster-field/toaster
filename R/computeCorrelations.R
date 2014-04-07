@@ -1,10 +1,10 @@
-#' Compute correlation between pair of columns.
+#' Compute correlation between pairs of columns.
 #' 
-#' Compute global correlation between any pair of numeric columns from Aster table.
+#' Compute global correlation between all pairs of numeric columns in table.
 #' Result includes all pairwise combinations of numeric columns in the table, with 
 #' optionally limiting columns to those in the parameter \code{include} or/and
-#' excluding columns defined by parameter \code{except}. Computations 
-#' can be performed on the table subset conditioned with \code{where}.
+#' excluding columns defined by parameter \code{except}. Limit computation 
+#' on the table subset defined with \code{where}.
 #'
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name

@@ -1,6 +1,6 @@
 \name{createHistogram}
 \alias{createHistogram}
-\title{Create histogram type of plot}
+\title{Create histogram type of plot.}
 \usage{
   createHistogram(data, x = "bin_start", y = "bin_count",
     fill = NULL, position = "dodge", facet = NULL,

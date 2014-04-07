@@ -1,6 +1,6 @@
 \name{computeBarchart}
 \alias{computeBarchart}
-\title{Compute one or more aggregates grouped by single column}
+\title{Compute one or more aggregates across single class.}
 \usage{
   computeBarchart(channel, tableName, category,
     aggregates = "COUNT(*) cnt", where = NULL,

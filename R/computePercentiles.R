@@ -1,6 +1,6 @@
-#' Compute percentiles
+#' Compute percentiles of column values.
 #' 
-#' Compute percentiles including boxplot quartiles across valurs of column 
+#' Compute percentiles including boxplot quartiles across values of column 
 #' \code{columnName}. Multiple sets of percentiles achieved with the
 #' parameter \code{by}. Vector \code{by} may contain arbitrary number 
 #' of column names: the percentiles are computed for each combination

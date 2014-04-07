@@ -1,7 +1,7 @@
 Package: toaster
 Type: Package
 Title: analytics and visualization with Aster Database
-Version: 0.2-2
+Version: 0.2-4
 Author: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Description: toaster (a.k.a 'to Aster') is a set of tools to perform

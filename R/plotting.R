@@ -370,7 +370,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' 
 #'  
 #' }
-createBoxplot <- function(data, x=NULL, fill=NULL, useIQR = FALSE,
+createBoxplot <- function(data, x=NULL, fill=x, useIQR = FALSE,
                           facet = NULL, ncol = 1, facetScales = "fixed",                          
                           paletteValues = NULL, palette = "Set1",
                           title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))), 
@@ -383,6 +383,8 @@ createBoxplot <- function(data, x=NULL, fill=NULL, useIQR = FALSE,
   if (is.null(x)) {
     data = cbind(x='x', data)
     x = 'x'
+    if (missing(fill)) 
+      fill = x
   }
   
   if (is.null(facet)) {

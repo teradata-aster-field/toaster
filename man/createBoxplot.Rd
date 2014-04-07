@@ -2,10 +2,9 @@
 \alias{createBoxplot}
 \title{Create box plot}
 \usage{
-  createBoxplot(data, x = NULL, fill = NULL,
-    useIQR = FALSE, facet = NULL, ncol = 1,
-    facetScales = "fixed", paletteValues = NULL,
-    palette = "Set1",
+  createBoxplot(data, x = NULL, fill = x, useIQR = FALSE,
+    facet = NULL, ncol = 1, facetScales = "fixed",
+    paletteValues = NULL, palette = "Set1",
     title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))),
     xlab = x, ylab = NULL, legendPosition = "right",
     coordFlip = FALSE, baseSize = 12, baseFamily = "sans",

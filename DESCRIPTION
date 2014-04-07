@@ -47,3 +47,4 @@ Collate:
     'computeBarchart.R'
     'computeSample.R'
     'computePercentiles.R'
+    'computeLm.R'

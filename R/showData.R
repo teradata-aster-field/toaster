@@ -45,87 +45,99 @@
 #'   When set to TRUE and format is 'boxplot' scales defalut changes from 'fixed' to 'free'. Has no effect 
 #'   when format is 'corr'.
 #' @param numBins number of bins to use in histogram(s)
-#' @param useIQR logical indicates use of IQR interval to compute cutoff lower and upper bounds for values to be included in 
-#'   boxplot or histogram: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}, if FALSE then maximum and minimum are bounds (all values)
+#' @param useIQR logical indicates use of IQR interval to compute cutoff lower and upper 
+#'   bounds for values to be included in boxplot or histogram: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}, 
+#'   if FALSE then maximum and minimum are bounds (all values)
 #' @param extraPoints vector contains names of extra points to add to boxplot lines. 
 #' @param extraPointShape extra point shape (see 'Shape examples' in \link{aes_linetype_size_shape}).
 #' @param sampleFraction sample fraction to use in the sampling of data for \code{'scatterplot'}
-#' @param sampleSize if \code{sampleFraction} is not specified then size of sample must be specified for \code{'scatterplot'} 
-#' @param pointColour name of column with values to colour points in \code{'scatterplot'}  
-#' @param facetName name(s) of the column(s) to use for faceting when \code{format} is \code{'scatterplot'}. When single name 
-#'   then facet wrap kind of faceting is used. When two names then facet grid kind of faceting is used. It overrides \code{facet}
-#'   value in case of \code{'scatterplot'}. Must be part of column list (e.g. \code{include}) 
-#' @param regressionLine logical if TRUE then adds regression line to scatterplot
-#' @param ncol Number of columns in facet wrap
-#' @param scales Are scales shared across all facets: \code{"fixed"} - all are the same, \code{"free_x"} - vary across 
-#'   rows (x axis), \code{"free_y"} - vary across columns (Y axis) (default), \code{"free"} - both rows and columns 
-#'   (see in \code{facet_wrap} parameter \code{scales}. Also see parameter \code{facet} for details on default values. )
-#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical, horizontal (see 
-#'   \link{coord_flip}).
-#' @param paletteName palette name to use (run \code{display.brewer.all} to see available palettes)
-#' @param baseSize base font size
-#' @param baseFamily base font family
-#' @param legendPosition legend position
-#' @param defaultTheme plot theme to use, default is \code{theme_bw}
-#' @param themeExtra any additional \code{ggplot2} theme attributes to add
-#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE)
-#' @return A ggplot visual object
+#' @param sampleSize if \code{sampleFraction} is not specified then size of sample must be specified 
+#'   for \code{'scatterplot'}. 
+#' @param pointColour name of column with values to colour points in \code{'scatterplot'}. 
+#' @param facetName name(s) of the column(s) to use for faceting when \code{format} is \code{'scatterplot'}. 
+#'   When single name then facet wrap kind of faceting is used. When two names then facet grid kind of 
+#'   faceting is used. It overrides \code{facet} value in case of \code{'scatterplot'}. Must be part of 
+#'   column list (e.g. \code{include}).
+#' @param regressionLine logical if TRUE then adds regression line to scatterplot.
+#' @param ncol Number of columns in facet wrap.
+#' @param scales Are scales shared across all facets: \code{"fixed"} - all are the same, 
+#'   \code{"free_x"} - vary across rows (x axis), \code{"free_y"} - vary across columns (Y axis) (default),
+#'   \code{"free"} - both rows and columns (see in \code{facet_wrap} parameter \code{scales}. 
+#'   Also see parameter \code{facet} for details on default values.)
+#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, 
+#'   and vertical, horizontal (see \link{coord_flip}).
+#' @param paletteName palette name to use (run \code{display.brewer.all} to see available palettes).
+#' @param baseSize base font size.
+#' @param baseFamily base font family.
+#' @param legendPosition legend position.
+#' @param defaultTheme plot theme to use, default is \code{theme_bw}.
+#' @param themeExtra any additional \code{ggplot2} theme attributes to add.
+#' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but 
+#'   omit keyword WHERE).
+#' @return A ggplot visual object.
 #' @export
 #' @examples
 #' \donttest{
 #' # get summaries to save time
-#' pitchingInfo = getTableSummary(asterConn, 'pitching_enh')
-#' battingInfo = getTableSummary(asterConn, 'batting_enh')
+#' pitchingInfo = getTableSummary(conn, 'pitching_enh')
+#' battingInfo = getTableSummary(conn, 'batting_enh')
 #' 
 #' # Boxplots
 #' # all numerical attributes
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot')
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot')
 #' # select certain attributes only
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
-#'          include=c('wp','whip', 'w', 'sv', 'sho', 'l', 'ktobb', 'ibb', 'hbp', 'fip', 'era', 'cg', 'bk', 'baopp'))
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
+#'          include=c('wp','whip', 'w', 'sv', 'sho', 'l', 'ktobb', 'ibb', 'hbp', 'fip', 
+#'                    'era', 'cg', 'bk', 'baopp'))
 #' # exclude certain attributes
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
 #'          except=c('item_id','ingredient_item_id', 'facility_id', 'rownum'))
 #' # flip coordinates
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot', coordFlip=TRUE)
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot', 
+#'          coordFlip=TRUE)
 #' 
 #' # boxplot with facet (facet_wrap)
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
 #'          include=c('BFP','ER','H','IPouts','R','SO'), facet=TRUE, scales='free')
 #' 
 #' # Correlation matrix
 #' # on all numerical attributes
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='corr')
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, 
+#'          format='corr')
 #' 
 #' # correlation matrix on selected attributes
 #' # with labeling by attribute pair name and
 #' # controlling size of correlation bubbles
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('ERA','H','HR','GS','G','SV'), 
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, 
+#'          include=c('ERA','H','HR','GS','G','SV'), 
 #'          format='corr', corrLabel='pair', shapeSizeRange=c(5,25))
 #'
 #' # Histogram on all numeric attributes
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, include=c('HR'), format='histogram')
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, include=c('HR'), 
+#'          format='histogram')
 #' 
 #' # Overview is a histogram of statistical measures across attributes
-#' showData(asterConn, tableName='pitching', tableInfo=pitchingInfo, format='overview', type='numeric')
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, 
+#'          format='overview', type='numeric')
 #' 
 #' # Scatterplots
 #' # Scatterplot on pair of numerical attributes
 #' # sample by size with 1d facet (see \code{\link{facet_wrap}})
-#' showData(asterConn, 'pitching_enh', format='scatterplot', 
+#' showData(conn, 'pitching_enh', format='scatterplot', 
 #'          include=c('so', 'er'), facetName="lgid", pointColour="lgid", 
 #'          sampleSize=10000, regressionLine=TRUE,
 #'          title="SO vs ER by League 1980-2000",
 #'          where='yearid between 1980 and 2000')
 #' 
 #' # sample by fraction with 2d facet (see \code{\link{facet_grid}})
-#' showData(asterConn, 'pitching_enh', format='scatterplot', 
+#' showData(conn, 'pitching_enh', format='scatterplot', 
 #'          include=c('so','er'), facetName=c('lgid','decadeid'), pointColour="lgid",
 #'          sampleFraction=0.1, regressionLine=TRUE,
 #'          title="SO vs ER by League by Decade 1980 - 2012",
 #'          where='yearid between 1980 and 2012')
 #' }
-showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, include = NULL, except = NULL, 
+showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL, 
+                     include = NULL, except = NULL, 
                      type = 'numeric', format = 'histgoram', measures = NULL,
                      title = paste("Table", toupper(tableName), format, "of", type, "columns"),
                      numBins = 30, 

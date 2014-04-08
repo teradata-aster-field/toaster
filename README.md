@@ -1,16 +1,22 @@
 # toaster
 
-toaster (to Aster) is set of tools for computing and analyzing data with [Teradata Aster](http://www.asterdata.com/) Big Data database. It brings power of Aster database with its distributed SQL and map-reduce functions to R on desktop. It also makes easier to visualize and explore results with convinient set of visualization functions based on ggplot2 plotting system.
+toaster (to Aster) is set of tools for computing and analyzing data with [Teradata Aster](http://www.asterdata.com/) Big Data database. It brings power of Aster database with its distributed SQL and map-reduce functions to R on desktop and let analyze results with convinient set of visualizations based on ggplot2.
+
+toaster acheives most tasks in 2 distinct steps:
+
+* Compute in Aster using rich set of analyical functions and SQL transparently running in distributed and parallel environement.
+
+* Deliver and visualize results in R for further exploration and analysis.
  
-toaster offers way to utilize Aster's SQL and rich set of analyical functions transparently running in distributed and
-parallel environement. toaster performs all data heavy computations in Aster with results, statistics, and models available in R. 
-Summary statistics, aggregates, histograms, linear regression models, etc. are among results. Most of them are avaiable for visualization and further analysis with convinent plotting functions. toaster's goal is to achieve all tasks in 2 distinct steps:
-
-* Compute in Aster and deliver results to R.
-
-* Quickly visualize results for further exploration and analysis.
+Thus toaster performs all data heavy computations in Aster with results available in R. Summary statistics, aggregates, histograms, heatmaps, linear regression models are among results available from Aster. Most of the results have toaster visualization functions for further analysis.
 
 You can install:
+
+* the latest released version from CRAN with
+
+    ```R
+    install.packages("toaster")
+    ````
 
 * the latest development version from bitbucket with
 

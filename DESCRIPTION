@@ -7,10 +7,10 @@ Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Description: toaster (a.k.a 'to Aster') is a set of tools to perform
     in-database analytics with Teradata Aster Discovery Platform.
     toaster embraces simple approach by dividing tasks into 2 steps:
-    compute in Aster - visualize in R. toaster `compute` functions use
-    distributed, highly scalable, parallel SQL and map-reduce
-    for processing of large data sets inside Aster database. Then
-    `create` functions visualize result with boxplots, scatterplots,
+    compute in Aster - visualize and analyze in R. toaster `compute` functions
+    use distributed, highly scalable, parallel SQL and map-reduce
+    for processing of large data sets in Aster database. Then
+    `create` functions visualize results with boxplots, scatterplots,
     histograms, heatmaps, word clouds, maps, or slope graphs. Advanced options
     such as faceting, coloring, labeling, and others are supported
     with most plots.

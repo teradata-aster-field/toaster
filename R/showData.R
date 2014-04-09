@@ -163,7 +163,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
                      baseSize = 12, baseFamily = "sans",
                      legendPosition = "none",
                      defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL, 
-                     where = NULL) {
+                     where = NULL, test = FALSE) {
   
   # match argument values
   type = match.arg(type, c('numeric','character','temporal'))
@@ -180,6 +180,13 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     if (!(pointColour %in% include)) {
       include = unique(append(include, pointColour))
     }
+  }
+  
+  if (missing(tableName) && format %in% c('histogram','scatterplot','corr'))
+    stop("Must provide table name when format one of ('histogram','scatterplot','corr')")
+  
+  if (missing(tableInfo) && test) {
+    stop("Must provide tableInfo when test==TRUE.")
   }
       
   if (missing(tableInfo)) {
@@ -209,6 +216,9 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
       warning("Automatically regressing to numerical types for format 'boxplot'")
     }
     
+    # exclude columns with all NULLs
+    dataNum = dataNum[dataNum$not_null_count > 0, ]
+    
     checkNonEmpty(dataNum)
     
     # compute boxplot bounds based on IQR flag
@@ -237,7 +247,13 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     
     checkNonEmpty(dataNum)
     
-    corrmat = computeCorrelations(channel, tableName, tableInfo=tableInfo, include=include, except=except, where=where)
+    corrmat = computeCorrelations(channel, tableName, tableInfo=tableInfo, 
+                                  include=include, except=except, 
+                                  where=where, test=test)
+    if (test) {
+      return (corrmat)
+    } 
+    
     corrmat = cbind(corrmat, valuePretty=prettyNum(corrmat[, 'value'], digits=digits) , none='')
     corrmat$value = abs(corrmat$value)
     corrLabelName = list('none', 'valuePretty', 'corr')[match(corrLabel, c('none','value','pair'))]
@@ -256,7 +272,11 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     if (type=='numeric') {
       for(columnName in dataNum$COLUMN_NAME) {
         hist = computeHistogram(channel, tableName, columnName, tableInfo=summary,
-                                numbins=numBins, useIQR=useIQR, where=where)
+                                numbins=numBins, useIQR=useIQR, where=where, test=test)
+        if (test) {
+          return (hist)
+        }
+        
         if (nrow(hist) == 0) {
           warning(paste("Histogram for column '", columnName, "' is empty - skipping it." ))
         }else {
@@ -292,7 +312,11 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     }
     
     data = computeSample(channel, tableName, sampleFraction, sampleSize, include=summary$COLUMN_NAME,
-                         where=where, stringsAsFactors=default.stringsAsFactors())
+                         where=where, stringsAsFactors=default.stringsAsFactors(),
+                         test=test)
+    if (test) {
+      return (data)
+    }
     
     # factor data for facet and colours
     if (!all(is.null(facetName), is.null(pointColour))) {

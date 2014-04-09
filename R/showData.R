@@ -318,14 +318,17 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   else if (format=='overview') {
     if (type=='character' & missing(measures)) {
       measures = c('distinct_count', 'not_null_count', 'null_count')
-      data = dataChar
     }
     else if (type=='numeric' & missing(measures)) {
       measures = c('distinct_count','not_null_count','null_count',
                    'maximum','minimum','average','deviation',
                    '0%','10%','25%','50%','75%','90%','100%','IQR')
-      data = dataNum
     }
+    
+    if (type=='character') 
+      data = dataChar
+    else if (type=='numeric')
+      data = dataNum
     
     overview = melt(data, id.vars='COLUMN_NAME', measure.vars=measures)
     

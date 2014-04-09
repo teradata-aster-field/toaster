@@ -1,5 +1,14 @@
-require(toaster)
+# Demo compute linear regression model
+#
+# To install baseball demo dataset in Aster
+# download baseball.zip from
+# https://bitbucket.org/grigory/toaster/downloads/baseball.zip
+# and run
+# sh load_baseball_data.sh -d mydbname -U beehive 
 
+library(toaster)
+
+# update ODBC data source name
 dsn = "PresalesPartnersDB"
 uid = "beehive"
 pwd = "beehive"

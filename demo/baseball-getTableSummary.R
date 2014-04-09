@@ -1,5 +1,14 @@
-require(toaster)
+# Demo table summary
+#
+# To install baseball demo dataset in Aster
+# download baseball.zip from
+# https://bitbucket.org/grigory/toaster/downloads/baseball.zip
+# and run
+# sh load_baseball_data.sh -d mydbname -U beehive 
 
+library(toaster)
+
+# update ODBC data source name
 dsn = "PresalesPartnersDB"
 uid = "beehive"
 pwd = "beehive"
@@ -20,7 +29,7 @@ pitchingInfo = getTableSummary(channel=conn, 'pitching_enh',
                              percentiles=seq(1,99))
 names(pitchingInfo)
                               
-# compute statistics except certain columns
+# compute statistics except for certain columns
 pitchingInfo = getTableSummary(channel=conn, 'pitching_enh',
                              except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))                            
 

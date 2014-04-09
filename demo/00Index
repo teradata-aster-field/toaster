@@ -1,0 +1,14 @@
+baseball-createBubblechart      Demo create bubble chart
+baseball-computeAggregates      Demo compute aggregates
+baseball-computeBarchart        Demo compute bar chart
+baseball-computeCorrelations    Demo compute correlations and create correlation matrix
+baseball-computeHistogram       Demo compute and create histogram
+baseball-computeLm              Demo compute linear regression model
+baseball-computePercentiles     Demo compute percentile and create box plot
+baseball-computeSample          Demo compute sample
+baseball-createHeatmap          Demo compute and create heatmap
+baseball-createPopPyramid       Demo create population pyramid
+baseball-getTableSummary        Demo table summary
+baseball-maps                   Demo create map
+baseball-showData               Demo showData type of analysis
+baseball-createBubblechart      Demo create bubble chart

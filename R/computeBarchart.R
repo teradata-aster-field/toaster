@@ -61,7 +61,7 @@ computeBarchart <- function(channel, tableName, category,
     stop("Must have table name.")
   }
   
-  if (missing(category) | length(category) != 1) {
+  if (missing(category) || length(category) != 1) {
     stop("Bar chart must have exactly one category.")
   }
   

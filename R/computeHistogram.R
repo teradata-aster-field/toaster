@@ -76,7 +76,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
                                                 where_clause, byClause, byPartition, bySelect, test))
   }
   
-  if (missing(tableInfo) & test) {
+  if (missing(tableInfo) && test) {
     stop("Must provide tableInfo when test==TRUE.")
   }
   

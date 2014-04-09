@@ -48,7 +48,7 @@
 #' 
 #' @param data data frame with artifacts and their locations and metric(s) to be placed 
 #'   on the map. If location name is provided (with \code{locationName}) then it is used to 
-#'   gecode artifacts first. If not location then longitude and latitude must be provided. 
+#'   gecode artifacts first. If not location then longitude and latitude must be provided.
 #'   It is caller's responsibility adjust locations with value of \code{zoom} parameter to
 #'   fit artifacts on the map.
 #' @param maptype map theme as defined in \code{\link{get_map}}. options available are 'terrain', 

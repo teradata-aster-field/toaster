@@ -25,7 +25,7 @@
   and metric(s) to be placed on the map. If location name
   is provided (with \code{locationName}) then it is used to
   gecode artifacts first. If not location then longitude
-  and latitude must be provided. It is caller's
+  and latitude must be provided.  It is caller's
   responsibility adjust locations with value of \code{zoom}
   parameter to fit artifacts on the map.}
 
@@ -44,7 +44,7 @@
   pair (in that order), or left/bottom/right/top bounding
   box: 'center' uses 2 value vector for the center of the
   map, while 'box' uses 4 value vector as
-  left/bottom/right/top.  If missing then function will
+  left/bottom/right/top. If missing then function will
   derive map location using parameter \code{locator} and
   the \code{data}.}
 
@@ -55,7 +55,7 @@
   when 'box' it will use min/max of longitude and latitude
   values to determine bounding box: left/bottom/right/top.
   If parameter \code{locationName} is specified then
-  function will geocode values from this column first.  If
+  function will geocode values from this column first. If
   paramter \code{locationName} is missing then it assumes
   that data is already geocoded and stored in the columns
   with the names \code{lonName} and \code{latName}.}
@@ -92,7 +92,7 @@
   \item{scaleRange}{a numeric vector of lenght 2 that
   specifies the minimum and maximum size of the plotting
   symbol after transformation (see parameter \code{range}
-  of \code{\link{scale_size}})}
+  of \code{\link{scale_size}}).}
 
   \item{labelName}{name of the column to use for the
   artifact label text when displaying data.}
@@ -124,7 +124,7 @@
   "fixed" - all are the same, "free_x" - vary across rows
   (x axis), "free_y" - vary across columns (Y axis)
   (default), "free" - both rows and columns (see in
-  \code{facet_wrap} parameter \code{scales} )}
+  \code{facet_wrap} parameter \code{scales}).}
 
   \item{geocodeFun}{geocode function. Default is
   \code{\link{geocode}} but due to Google API restrictions
@@ -134,27 +134,27 @@
   \item{getmapFun}{get map function. Defayult is
   \code{\link{get_map}} but due to map APIs restrictions
   use memoised version, e.g. \code{memose(get_map)},
-  instead (see package \pkg{memoise})}
+  instead (see package \pkg{memoise}).}
 
-  \item{urlonly}{return url only}
+  \item{urlonly}{return url only.}
 
-  \item{api_key}{an api key for cloudmade maps}
+  \item{api_key}{an api key for cloudmade maps.}
 
-  \item{baseSize}{base font size}
+  \item{baseSize}{base font size.}
 
-  \item{baseFamily}{base font family}
+  \item{baseFamily}{base font family.}
 
-  \item{title}{plot title}
+  \item{title}{plot title.}
 
   \item{legendPosition}{the position of legends. ("left",
-  "right", "bottom", "top", or two-element numeric vector).
-  "none" is no legend.}
+  "right", "bottom", "top", or two-element numeric vector.
+  "none" is no legend.)}
 
   \item{defaultTheme}{plot theme to use, default is
-  \code{theme_bw}}
+  \code{theme_bw}.}
 
   \item{themeExtra}{any additional \code{ggplot2} theme
-  attributes to add}
+  attributes to add.}
 }
 \description{
   createMap is a smart function that places data artifact
@@ -220,17 +220,19 @@
 \donttest{
 data = computeAggregates(asterConn, "pitching",
                columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
-               aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", "avg(attendance) attendance")
+               aggregates = c("min(name) name", "min(park) park", "avg(rank) rank",
+                              "avg(attendance) attendance")
                )
 
 geocodeMem = memoise(geocode)
 
-createMap(data=data[data$decadeid>=2000,], source = "stamen", maptype = "watercolor", zoom=4,
-              facet=c("lgid", "decadeid"),
-              locationName='teamname', locationNameBak='park', metricName='attendance', labelName='name',
-              shapeColour="blue", scaleRange = c(2,12), textColour="black",
-              title='Game Attendance by Decade and League (yearly, 2000-2012)',
-              geocodeFun=geocodeMem)
+createMap(data=data[data$decadeid>=2000,],
+          source = "stamen", maptype = "watercolor", zoom=4,
+          facet=c("lgid", "decadeid"),
+          locationName='teamname', locationNameBak='park', metricName='attendance',
+          labelName='name', shapeColour="blue", scaleRange = c(2,12), textColour="black",
+          title='Game Attendance by Decade and League (yearly, 2000-2012)',
+          geocodeFun=geocodeMem)
 }
 }
 

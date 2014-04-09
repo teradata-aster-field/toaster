@@ -18,15 +18,18 @@ You can install:
     install.packages("toaster")
     ````
 
+
 * the latest development version from bitbucket with
 
     ```R
     devtools::install_bitbucket("toaster", "grigory")
     ````
 
+
 If you encounter a clear bug, please file a minimal reproducible example on [bitbucket](https://bitbucket.org/grigory/toaster/issues).
 
 Attribution:
 
-* Icon: Toaster by Luiza Peixe from The Noun Project
+* Icon: [Toaster Icon by Greg Barnes](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes/Toaster-icon.html), [Vintage Kitchen](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes.html)
+* Icon: [Toaster by Luiza Peixe from The Noun Project](http://thenounproject.com/term/toaster/10764/)
 

@@ -74,6 +74,10 @@
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add.
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but 
 #'   omit keyword WHERE).
+#' @param test logical: when applicable if TRUE show what would be done, only 
+#'   (similar to parameter \code{test} in \link{RODBC} functions like \link{sqlQuery}
+#'   and \link{sqlSave}). Doesn't apply when no sql expected to run, e.g. format
+#'   is \code{'boxplot'}.
 #' @return A ggplot visual object.
 #' @export
 #' @examples
@@ -84,41 +88,48 @@
 #' 
 #' # Boxplots
 #' # all numerical attributes
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot')
+#' showData(conn, tableInfo=pitchingInfo, format='boxplot', 
+#'          title='Boxplots of numeric columns')
 #' # select certain attributes only
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
+#' showData(conn, tableInfo=pitchingInfo, format='boxplot', 
 #'          include=c('wp','whip', 'w', 'sv', 'sho', 'l', 'ktobb', 'ibb', 'hbp', 'fip', 
-#'                    'era', 'cg', 'bk', 'baopp'))
+#'                    'era', 'cg', 'bk', 'baopp'), 
+#'          useIQR=TRUE, title='Boxplots of Pitching Stats')
 #' # exclude certain attributes
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format="boxplot", 
-#'          except=c('item_id','ingredient_item_id', 'facility_id', 'rownum'))
+#' showData(conn, tableInfo=pitchingInfo, format='boxplot', 
+#'          except=c('item_id','ingredient_item_id','facility_id','rownum','decadeid','yearid',
+#'                   'bfp','ipouts'),
+#'          useIQR=TRUE, title='Boxplots of Pitching Stats')
 #' # flip coordinates
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot', 
-#'          coordFlip=TRUE)
+#' showData(conn, tableInfo=pitchingInfo, format='boxplot', 
+#'          except=c('item_id','ingredient_item_id','facility_id','rownum','decadeid','yearid',
+#'                   'bfp','ipouts'),
+#'          useIQR=TRUE, coordFlip=TRUE, title='Boxplots of Pitching Stats')
 #' 
 #' # boxplot with facet (facet_wrap)
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, format='boxplot',
-#'          include=c('BFP','ER','H','IPouts','R','SO'), facet=TRUE, scales='free')
+#' showData(conn, tableInfo=pitchingInfo, format='boxplot',
+#'          include=c('bfp','er','h','ipouts','r','so'), facet=TRUE, scales='free',
+#'          useIQR=TRUE, title='Boxplots Pitching Stats: bfp, er, h, ipouts, r, so')
 #' 
 #' # Correlation matrix
 #' # on all numerical attributes
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, 
+#' showData(conn, tableName='pitching_enh', tableInfo=pitchingInfo, 
 #'          format='corr')
 #' 
 #' # correlation matrix on selected attributes
 #' # with labeling by attribute pair name and
 #' # controlling size of correlation bubbles
 #' showData(conn, tableName='pitching', tableInfo=pitchingInfo, 
-#'          include=c('ERA','H','HR','GS','G','SV'), 
+#'          include=c('era','h','hr','gs','g','sv'), 
 #'          format='corr', corrLabel='pair', shapeSizeRange=c(5,25))
 #'
 #' # Histogram on all numeric attributes
-#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, include=c('HR'), 
+#' showData(conn, tableName='pitching', tableInfo=pitchingInfo, include=c('hr'), 
 #'          format='histogram')
 #' 
 #' # Overview is a histogram of statistical measures across attributes
 #' showData(conn, tableName='pitching', tableInfo=pitchingInfo, 
-#'          format='overview', type='numeric')
+#'          format='overview', type='numeric', scales="free_y")
 #' 
 #' # Scatterplots
 #' # Scatterplot on pair of numerical attributes

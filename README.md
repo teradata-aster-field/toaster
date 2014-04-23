@@ -25,6 +25,7 @@ You can install:
     devtools::install_bitbucket("toaster", "grigory")
     ````
 
+You can install evaluation version of Aster analytic platform to run on your PC [here](http://community.teradata.com/community/teradata-big-data-analytics-community/downloads)
 
 If you encounter a clear bug, please file a minimal reproducible example on [bitbucket](https://bitbucket.org/grigory/toaster/issues).
 

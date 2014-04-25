@@ -25,12 +25,12 @@ You can install:
     devtools::install_bitbucket("toaster", "grigory")
     ````
 
-You can install evaluation version of Aster analytic platform to run on your PC [here](http://community.teradata.com/community/teradata-big-data-analytics-community/downloads)
+* evaluation version of Aster analytic platform - Aster Express - to run on your PC [here](http://community.teradata.com/community/teradata-big-data-analytics-community/downloads) and get started with this [Tutorial Series](http://www.asterdata.com/download_aster_express/tutorial.php).
+
 
 If you encounter a clear bug, please file a minimal reproducible example on [bitbucket](https://bitbucket.org/grigory/toaster/issues).
 
 Attribution:
 
 * Icon: [Toaster Icon by Greg Barnes](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes/Toaster-icon.html), [Vintage Kitchen](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes.html)
-* Icon: [Toaster by Luiza Peixe from The Noun Project](http://thenounproject.com/term/toaster/10764/)
 

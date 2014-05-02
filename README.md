@@ -1,6 +1,6 @@
 # toaster
 
-toaster (to Aster) is set of tools for computing and analyzing data with [Teradata Aster](http://www.asterdata.com/) Big Data database. It brings power of Aster's distributed SQL and map-reduce (SQL-MR) functions to R on desktop and compliments it with convinient set of visualization features.
+toaster (to Aster) is set of tools for computing and analyzing data with [Teradata Aster](http://www.asterdata.com/) Big Data database. It brings power of Aster's distributed SQL and map-reduce (SQL-MR) to R on desktop and compliments analysis of results with convinient set of plotting functions.
 
 toaster acheives most tasks in 2 distinct steps:
 

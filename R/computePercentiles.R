@@ -11,7 +11,8 @@
 #'   
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
-#' @param columnName name of the column to compute percentiles on
+#' @param columnName deprecated. Use \code{columnNames} instead. 
+#' @param columnNames names of the columns to compute percentiles on
 #' @param percentiles integer vector with percentiles to compute. Values \code{0, 25, 50, 75, 100}
 #'    will always be added if omitted.
 #' @param by for optional grouping by one or more values for faceting or alike. 
@@ -36,19 +37,26 @@
 #' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
 #' 
 #' }
-computePercentiles <- function(channel, tableName, columnName,
+computePercentiles <- function(channel, tableName, columnName = NULL, columnNames = columnName,
                                percentiles = c(0,5,10,25,50,75,90,95,100),
                                by = NULL, where = NULL, 
                                stringsAsFactors = FALSE, test = FALSE) {
   
-  if (missing(channel)) {
-    stop("Must provide connection.")
+  if (!is.null(columnName)) {
+    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columnNames for columns to compute percentiles on.")
   }
   
+  if (missing(channel)) {
+    stop("Must provide connection.")
+  } 
   
-  if (missing(tableName) || missing(columnName) || 
-        is.null(tableName) || is.null(columnName)) {
-    stop("Must provide table and column names.")
+  if (missing(tableName) || is.null(tableName))
+    stop("Must provide table name.")
+    
+  if ((missing(columnName) && missing(columnNames)) ||
+        is.null(columnNames) ||
+        length(columnNames) == 0) {
+    stop("Must provide at least one column name.")
   }
   
   # percentiles

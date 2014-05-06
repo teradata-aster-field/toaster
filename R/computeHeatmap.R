@@ -78,21 +78,19 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
   # validate aggregate args
   # check for deprecated parameters first
   if (!missing(aggregateFun)) {
+    toa_dep("0.2.4", "\"aggregateFun\" and \"aggregateAlias\" arguments in computeHeatmap are deprecated. Use aggregates instead.")
+    
     if (length(aggregateFun) != length(aggregateAlias)) 
       stop("Lengths of parameters 'aggregateFun' and 'aggregateAlias' must be the same.")
-  }else {
-    if (is.null(aggregates) || length(aggregates) < 1) {
-      stop("Must have at least one aggregate defined.")
-    }
+    
+    aggregates = paste(aggregateFun, aggregateAlias, sep=" ")
+    
   }
   
-  # check for deprecated paramters first
-  if (!missing(aggregateFun)) {
-    aggSelectList = paste(aggregateFun, aggregateAlias, sep=" ", collapse=", ")
-  }else {
-    aggSelectList = paste(aggregates, collapse=", ")
-  }
+  if (is.null(aggregates) || length(aggregates) < 1)
+    stop("Must have at least one aggregate defined.")
   
+  aggSelectList = paste(aggregates, collapse=", ")
   
   if (is.null(by)) {
      sql = paste0("SELECT ", dimension1, ", ", dimension2, ", ", aggSelectList,

@@ -37,6 +37,7 @@ Collate:
     'toaster.R'
     'misc.R'
     'utils.R'
+    'tools.R'
     'computeCorrelations.R'
     'computeHistogram.R'
     'computeHeatmap.R'

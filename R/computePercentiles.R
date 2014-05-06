@@ -11,19 +11,34 @@
 #'   
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
-#' @param columnName name of the column to compute percentiles on
+#' @param columnName deprecated. Use \code{columnNames} instead. 
+#' @param columnNames names of the columns to compute percentiles on
 #' @param percentiles integer vector with percentiles to compute. Values \code{0, 25, 50, 75, 100}
 #'    will always be added if omitted.
 #' @param by for optional grouping by one or more values for faceting or alike. 
-#'   If used with \code{\link{createBoxplot}} then use first name for x-axis and 
-#'   the rest for wrap or grid faceting.
+#'   Used with \code{\link{createBoxplot}} in combination with column name for x-axis and 
+#'   wrap or grid faceting.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
+#' @param nameInDataFrame name of the column in returned data frame to store table column name(s)  
+#'   defined by parameter \code{columnNames}. \code{NULL} indicates omit this column from the data 
+#'   frame (not recommended when computing percentiles for two or more columns).
 #' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
 #'   and not converted to anything else be converted to factors?
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
+#' @return Data frame containing percentile values organized into following columns:
+#'   \itemize{
+#'     \item \emph{percentile} percentile to compute (from 0 to 100): will contain all valid values 
+#'       from \code{percentiles}
+#'     \item \emph{value} computed percentile
+#'     \item \emph{column} table column name. Override name \code{column} with parameter \code{nameInDataFrame}
+#'       or omit this column all together if \code{NULL}.
+#'     \item \emph{by[1], by[2], ...} in presence of parameter \code{by}, contain values of the grouping 
+#'       columns for computed percentiles (optional). 
+#'   }
+#' 
 #' @export
 #' @examples
 #' \donttest{
@@ -36,19 +51,26 @@
 #' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
 #' 
 #' }
-computePercentiles <- function(channel, tableName, columnName,
+computePercentiles <- function(channel, tableName, columnName = NULL, columnNames = columnName,
                                percentiles = c(0,5,10,25,50,75,90,95,100),
-                               by = NULL, where = NULL, 
+                               by = NULL, where = NULL, nameInDataFrame = 'column',
                                stringsAsFactors = FALSE, test = FALSE) {
+  
+  if (!is.null(columnName)) {
+    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columnNames for columns to compute percentiles on.")
+  }
   
   if (missing(channel)) {
     stop("Must provide connection.")
-  }
+  } 
   
-  
-  if (missing(tableName) || missing(columnName) || 
-        is.null(tableName) || is.null(columnName)) {
-    stop("Must provide table and column names.")
+  if (missing(tableName) || is.null(tableName))
+    stop("Must provide table name.")
+    
+  if ((missing(columnName) && missing(columnNames)) ||
+        is.null(columnNames) ||
+        length(columnNames) == 0) {
+    stop("Must provide at least one column name.")
   }
   
   # percentiles
@@ -81,24 +103,38 @@ computePercentiles <- function(channel, tableName, columnName,
     groupColumnsOpt = paste(" GROUP_COLUMNS(", paste0("'", by, "'", collapse=", "), ")", sep=" ")
   }
   
+  sql = assemblePercentileSql(tableName, where_clause, columnNames[[1]], partitionByList, percentileStr, groupColumnsOpt)
+  if (test) {
+    return(sql)
+  }else {
+    result = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+    if (!is.null(nameInDataFrame)) 
+      result[, nameInDataFrame] = columnNames[[1]]
+    for (name in columnNames[-1]) {
+      sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
+      rs = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+      if (!is.null(nameInDataFrame))
+        rs[, nameInDataFrame] = name
+      result = rbind(result, rs)
+    }
+    return(result)
+  }
+  
+}
+
+assemblePercentileSql <- function(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt) {
+  
   sql = paste0("SELECT * FROM approxPercentileReduce(
                                   ON (
                                     SELECT * FROM approxPercentileMap(
                                       ON  ( SELECT * FROM " , tableName, where_clause, " ) ",
-               "                      TARGET_COLUMN( '",columnName,"' )
+               "                      TARGET_COLUMN( '", name, "' )
                                       ERROR( 1 ) ",
-                                      groupColumnsOpt,
+               groupColumnsOpt,
                "                     )
                                      )
                                   PARTITION BY ", partitionByList, 
                "                  PERCENTILE( ", percentileStr, " )",
-                                  groupColumnsOpt,
+               groupColumnsOpt,
                "                  )")
-  
-  if (test) {
-    return(sql)
-  }else {
-    return(sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors))
-  }
-  
 }

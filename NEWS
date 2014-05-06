@@ -1,5 +1,14 @@
-toaster 0.2
-===========
+toaster 0.2.x
+
+MINOR FEATURES
+
+* `computePercentiles` now computes on multiple columns.
+
+* Added deprecated warning facility `toa_dep` similar to ggplot2 gg_dep 
+  function.
+
+toaster 0.2.5
+----------------------------------------------------------------
 
 NEW FEATURES
 

@@ -45,3 +45,8 @@ teamsBAbyDecadePerc = computePercentiles(conn, "batting_enh", "ba",
 createBoxplot(teamsBAbyDecadePerc, facet=c("lgid","decadeid"), fill="lgid", useIQR=TRUE,
               paletteValues = c("red","blue"), legendPosition="none",
               title="League BA by Decade")
+
+# League BA, SLG, TA, RBI
+teamsAllBatting = computePercentiles(conn, "batting_enh", columnNames = c("ba", "slg", "ta"),
+                              by=c('lgid','decadeid'), where="yearid >= 1980")
+createBoxplot(teamsAllBatting, x='column', facet=c('lgid', 'decadeid'), useIQR=TRUE, coordFlip=TRUE, legendPosition="none")

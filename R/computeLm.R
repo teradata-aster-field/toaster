@@ -19,11 +19,11 @@
 #'   a symbolic description of the model to be fitted. The details of model 
 #'   specification are given under `Details`.
 #' @tableInfo pre-built table summary with data types 
-#' @categories vector of category names. Predictor columns of character data type are always 
-#'   categorical predictors but if numerical column appears in this then it is also treated as 
-#'   categorical. Extra care should be applied not to have columns with excessive number 
-#'   of values as categorical as each distinct value results in dummy predictor in the 
-#'   final model.
+#' @categories vector with column names containing categorical data. Optional if the column is of
+#'   character type as it is automatically treated as categorical predictors. But if numerical 
+#'   column contains categorical data then then it has to be specified for a model to view it
+#'   as categorical. Apply extra care not to have columns with too many values (approximaltely > 10) 
+#'   as categorical because each value results in dummy predictor variable added to the model.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
@@ -82,7 +82,7 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
   predictors = vars[-responseIdx]
   
   
-  # check columns and their data types
+  # check columns and their data types to make dummy variables for categorical predictors
   if (missing(tableInfo)) {
     summary = sqlColumns(channel, tableName)
   }else {
@@ -100,9 +100,15 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
     stop("Response variable's column is not of numeric type.")
   }
   
-  
   char_predictors = predictors[predictors %in% char_cols]
   num_predictors = predictors[predictors %in% num_cols]
+  
+  # categories defines numerical columns that are actually categorical
+  if (!is.null(categories) && length(categories) > 0) {
+    nums_to_move = intersect(num_predictors, categories)
+    num_predictors = setdiff(num_predictors, nums_to_move)
+    char_predictors = union(char_predictors, nums_to_move)
+  }
   
   predictorColumns = num_predictors
   predictorNames = num_predictors

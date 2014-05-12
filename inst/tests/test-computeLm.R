@@ -10,6 +10,9 @@ batting_info2 = rbind(batting_info2, no_values_row)
 teamid_row = batting_info[1,]
 teamid_row[1,c('COLUMN_NAME', 'TYPE_NAME')] = c('teamid', 'varchar')
 batting_info2 = rbind(batting_info2, teamid_row)
+decadeid_row = batting_info[1,]
+decadeid_row[1, c('COLUMN_NAME', 'TYPE_NAME')] = c('decadeid', 'integer')
+batting_info2 = rbind(batting_info2, decadeid_row)
 
 test_that("computeLm throws errors", {
   
@@ -119,6 +122,20 @@ test_that("computeLm with categorical predictors SQL is correct", {
                     CASE WHEN teamid = 'TEX' THEN 1 ELSE 0 END x3, CASE WHEN teamid = 'TOR' THEN 1 ELSE 0 END x4, ba y  
                FROM batting WHERE decadeid >= 1980  )
          )
+         PARTITION BY 1
+       )")
+  
+  expect_equal_normalized(
+    computeLm(channel=NULL, tableName="batting", formula = ba ~ rbi + lgid + decadeid, 
+              categories="decadeid", tableInfo=batting_info2,
+              test=TRUE),
+    "SELECT *
+       FROM linreg(
+         ON linregmatrix(
+         ON (SELECT rbi x1, CASE WHEN lgid = 'NL' THEN 1 ELSE 0 END x2, CASE WHEN decadeid = '2000' THEN 1 ELSE 0 END x3, 
+                      CASE WHEN decadeid = '2010' THEN 1 ELSE 0 END x4, ba y  
+                 FROM batting )
+           )
          PARTITION BY 1
        )")
   

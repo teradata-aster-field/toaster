@@ -283,6 +283,8 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
       return (c('AL','NL'))
     if (columnName == 'teamid')
       return (c('NYY', 'TEX', 'BAL', 'TOR'))
+    if (columnName == 'decadeid')
+      return (c('1990', '2000', '2010'))
     if (columnName == 'non_compliant')
       return (c('+', '-'))
     if (columnName == 'no_values')

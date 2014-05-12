@@ -15,15 +15,26 @@
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
-#' @param expr an object of class "formula" (or one that can be coerced to that class): 
+#' @param formula an object of class "formula" (or one that can be coerced to that class): 
 #'   a symbolic description of the model to be fitted. The details of model 
 #'   specification are given under `Details`.
+#' @tableInfo pre-built table summary with data types 
+#' @categories vector of category names. Predictor columns of character data type are always 
+#'   categorical predictors but if numerical column appears in this then it is also treated as 
+#'   categorical. Extra care should be applied not to have columns with excessive number 
+#'   of values as categorical as each distinct value results in dummy predictor in the 
+#'   final model.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).  
 #' @return
+#' \code{computeLm} returns an object of \code{\link{class}} \code{"toalm", "lm"}.
+#' 
+#' The function \code{summary} .....
+#' 
+#' For backward compatibility 
 #' Outputs data frame containing 3 columns:
 #' \describe{
 #'   \item{coefficient_name}{name of predictor table column, zeroth coefficient name is "0"}
@@ -34,22 +45,28 @@
 #' @examples
 #' \donttest{
 #' 
-#' model1 = computeLm(channel=conn, tableName="batting_enh", expr= ba ~ rbi + bb + so)
+#' model1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)
 #' }
 #' 
-computeLm <- function(channel, tableName, expr, where = NULL, 
-                          test = FALSE) {
+computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories = NULL,
+                      sampleSize = 1000,
+                      where = NULL, test = FALSE) {
   
   if (missing(channel)) {
     stop("Must provide connection.")
   }
   
-  if (missing(tableName) || missing(expr)) {
+  if (missing(tableName) || missing(formula)) {
     stop("Must provide table and expression.")
   }
+  
+  if (missing(tableInfo) && test) {
+    stop("Must provide tableInfo when test==TRUE.")
+  }
     
-  ft = terms(expr)
-  #fvars = all.vars(expr)
+  cl <- match.call()
+  ft = terms(formula)
+  #fvars = all.vars(formula)
   vars = as.character(attr(ft, "variables"))[-1]
   if (length(vars) < 2) {
     stop("No predictors found in formula.")
@@ -59,13 +76,77 @@ computeLm <- function(channel, tableName, expr, where = NULL,
   if (responseIdx < 1) {
     stop("No response variable found in formula.")
   }
+  
   responseVar = vars[[responseIdx]]
   
-  where_clause = makeWhereClause(where)
-    
   predictors = vars[-responseIdx]
-  predictorList = paste0(predictors, rep(" x", length(predictors)), as.character(seq(1, length(predictors))), collapse=", ")
+  
+  
+  # check columns and their data types
+  if (missing(tableInfo)) {
+    summary = sqlColumns(channel, tableName)
+  }else {
+    summary = includeExcludeColumns(tableInfo, include=vars, except=NULL)
+  }
+  
+  num_cols = getNumericColumns(summary, names.only=TRUE)
+  char_cols = getCharacterColumns(summary, names.only=TRUE)
+  if (!all(vars %in% c(num_cols, char_cols))) {
+    stop(paste0("Columns ", paste(vars[!vars %in% c(num_cols, char_cols)], collapse=", "), 
+                " are not found in table ", tableName, ". Make sure all predictors are character or numeric types."))
+  }
+  
+  if (!responseVar %in% num_cols) {
+    stop("Response variable's column is not of numeric type.")
+  }
+  
+  
+  char_predictors = predictors[predictors %in% char_cols]
+  num_predictors = predictors[predictors %in% num_cols]
+  
+  predictorColumns = num_predictors
+  predictorNames = num_predictors
+  predictorNamesSQL = predictorNames
+  
+  # implement categorical variables
+  xlevels = NULL
+  if (length(char_predictors) > 0) {
+    
+    xlevels = list()
+    
+    for(name in char_predictors) {
+      col_values = getColumnValues(conn, tableName, name, where, test)
+      if (length(col_values) < 2) {
+        stop(paste0("Categorical column '", name, "' has 1 or no values. Consider removing or replacing it."))
+      }
+      numValuesBefore = length(unique(col_values))
+      col_values = gsub("[^[:alnum:]_]", "", col_values)
+      if (length(unique(col_values)) < numValuesBefore) {
+        stop(paste0("Categorical column '", name, "' values are not valid strings. Consider replacing them with alpha-numeric versions."))
+      }
+      
+      col_values = col_values[order(col_values)]
+      xlevels[[name]] = col_values
+      col_values = col_values[-1]
+      
+      # case when lgid = 'NL' then 1 else 0 end as "lgid_NL"
+      for (value in col_values) {
+        categoryExpr = paste0("CASE WHEN ", name, " = '", value, "' THEN 1 ELSE 0 END")
+        categoryName = paste0(tolower(name), "_", value)
+        categoryNameSQL = paste0("\"", tolower(name), "_", value, "\"")
+        
+        predictorColumns = c(predictorColumns, categoryExpr)
+        predictorNames = c(predictorNames, categoryName)
+        predictorNamesSQL = c(predictorNamesSQL, categoryNameSQL)
+      }
+    }
+  }
+  
+  predictorList = paste0(predictorColumns, rep(" x", length(predictorColumns)), 
+                         as.character(seq(1, length(predictorColumns))), collapse=", ")
   selectList = paste0(predictorList, ", ", responseVar, " y ")
+
+  where_clause = makeWhereClause(where)
   
   sql = paste0(
         "SELECT * 
@@ -81,8 +162,97 @@ computeLm <- function(channel, tableName, expr, where = NULL,
     return (sql)
   else {
     result = sqlQuery(channel, sql, stringsAsFactors=FALSE)
-    result = cbind(data.frame(coefficient_name = c("0", predictors)), result)
-    return(result)
   }
+  
+  # handle empty data set: currently Aster ODBC driver doesn't return SQL/MR error:
+  # ERROR: SQL-MR function LINREG failed: The input data results in a singular matrix and hence there is no solution
+  # so we handle it when no results returned
+  if (nrow(result) == 0) 
+    stop(paste0("Please re-run computeLm with test=TRUE and check that generated sql indeed triggers following error:
+ERROR: SQL-MR function LINREG failed: The input data results in a singular matrix and hence there is no solution
+Then refer to Aster Analytics Foundation Guide, Linear Regression Function, in particular:
+If two or more input columns are co-linear, or very closely correlated, then no solution to
+linear regression exists, so the function will fail. Looking at correlations between columns
+using Aster Database’s Correlation (stats correlation) function can help uncover sources of colinearity.
+Removing co-linear columns should resolve the issue.
+This inconvinience will be addressed in one of future releases of toaster."))
+  
+  z = createLm(channel, tableName, cl, result$value, ft, xlevels, predictors, 
+               predictorColumns, predictorNames, predictorNamesSQL, 
+               responseVar, sampleSize, where)
+  
+  # for previous version 0.2.5 support (not backward compatible)
+  z$old.result = cbind(data.frame(coefficient_name = c("0", predictorNames)), result)
+  
+  return(z)
+}
+
+createLm <- function(channel, tableName, cl, coefficients, ft, xlevels, predictors,
+                     predictorColumns, predictorNames, predictorNamesSQL, 
+                     response, sampleSize, where) {
+  
+  z <- structure(list(coefficients = coefficients,
+                      rank = length(predictors) + 1,
+                      call = cl,
+                      terms = ft,
+                      contrasts = NULL,
+                      xlevels = xlevels
+
+                      ),
+                 class = c("toalm", "lm"))
+  names(z$coefficients) = c("(Intercept)", predictorNames)
+  
+  if (!is.null(sampleSize) && sampleSize >= 30) {
+    fit = predictLm(channel, tableName, predictors, predictorColumns, predictorNamesSQL, response,
+                    coefficients, sampleSize, where)
+    
+    rownumbers = fit$`__row_number__`
+    
+    z$residuals = fit[, response] - fit$`__yt__`
+    names(z$residuals) = rownumbers
+    
+    z$fitted.values = fit$`__yt__`
+    names(z$fitted.values) = rownumbers
+    
+    z$df.residual = length(rownumbers) - z$rank
+    
+    z$qr = qr(cbind(1, fit[, predictorNames]))
+    
+    # z$model = model.frame(formula=formula, data=fit)
+  }else
+    warning("No sampling performed if sample size is NULL or < 30.")
+  
+  return (z)
+}
+
+predictLm <- function(channel, tableName, predictors, predictorColumns, predictorNamesSQL, response,
+                      coefficients, sampleSize, where) {
+  
+  
+  # omit rows with NULLs for predictors or response (na.omit action)
+  whereNotNull = paste0(predictors, " IS NOT NULL", collapse=" AND ")
+  whereNotNull = paste0(whereNotNull, " AND ", response, " IS NOT NULL ")
+  if (is.null(where)) 
+    where = whereNotNull
+  else 
+    where = paste0(where, " AND ( ", whereNotNull, " ) ")
+  
+  # generate sample SQL
+  selectSample = computeSample(NULL, tableName=tableName, sampleSize=sampleSize, where=where, test=TRUE)
+  
+  a0 = coefficients[[1]]
+  coefficients = coefficients[-1]
+  
+  predictExpr = paste0(" ( ", coefficients, " * ( ", predictorColumns, " ) ) ", collapse = " + ")
+  predictExpr = paste0(" ( ", a0, " + ", predictExpr, " ) __yt__ ")
+  selectList = paste0(predictorColumns, " ", predictorNamesSQL, collapse = ", ")
+  selectList = paste0(selectList, ", ", predictExpr, ", ", response, ", row_number() over (order by 1) as __row_number__ ")
+  
+  sql = paste0(
+    "SELECT ", selectList, " FROM ( ", selectSample, " ) t "
+  )
+  
+  return(sqlQuery(channel, sql, stringsAsFactors=FALSE))
+  
 }
 

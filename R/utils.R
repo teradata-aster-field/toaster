@@ -274,6 +274,28 @@ viewTableSummary <- function(tableInfo, types=NULL,
   return(1.0)
 }
 
+getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FALSE) {
+  
+  where_clause = makeWhereClause(where)
+  
+  if (mock) {
+    if (columnName == 'lgid') 
+      return (c('AL','NL'))
+    if (columnName == 'teamid')
+      return (c('NYY', 'TEX', 'BAL', 'TOR'))
+    if (columnName == 'non_compliant')
+      return (c('+', '-'))
+    if (columnName == 'no_values')
+      return (character(0))
+  }else {
+    sql = paste0("SELECT DISTINCT ", columnName, " values FROM ", tableName, where_clause)
+    
+    return (sqlQuery(conn, sql, stringsAsFactors=FALSE)[, 'values'])
+  }
+  
+  
+}
+
 # TODO: make part of utility convinience set of functions
 grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
   

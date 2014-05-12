@@ -3,7 +3,7 @@ baseball-computeAggregates      Demo compute aggregates
 baseball-computeBarchart        Demo compute bar chart
 baseball-computeCorrelations    Demo compute correlations and create correlation matrix
 baseball-computeHistogram       Demo compute and create histogram
-baseball-computeLm              Demo compute linear regression model
+baseball-computeLm              Demo compute linear regression model in Aster
 baseball-computePercentiles     Demo compute percentile and create box plot
 baseball-computeSample          Demo compute sample
 baseball-createHeatmap          Demo compute and create heatmap

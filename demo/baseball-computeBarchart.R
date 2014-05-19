@@ -49,3 +49,11 @@ createHistogram(franchwl, "decadeid", "wl", fill="franchid",
                 trend=TRUE,
                 title="Average W-L difference by decade per team (AL)",
                 ylab="Average W-L")
+
+# Players with top KtoBB average and average number of ipouts
+playerTopKtoBB = computeBarchart(conn, "pitching_enh", "playerid",
+               aggregates=c("AVG(ktobb) ktobb", "AVG(ipouts) ipouts"),
+               where="lgid in ('AL','NL') and yearid > 1960",
+               top=30, orderBy="ktobb desc")
+createHistogram(playerTopKtoBB, "playerid", "ktobb", fill="ipouts",
+                scaleGradient=scale_fill_gradient("IP Outs", high="red4", low="tan"))

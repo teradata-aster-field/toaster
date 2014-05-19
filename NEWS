@@ -1,4 +1,36 @@
+
 toaster 0.2.x
+----------------------------------------------------------------
+
+* New text mining functions `computeTf` and `computeTfIdf` 
+  process corpora in Aster and produce results compatible with package tm.
+
+* Text parsers `nGram` and `token` are pluggable into text mining functions
+  above.
+
+* Linear regression now is compatible with R standard lm functions returning
+  object of class c('toalm', 'lm'). This means methods `summary`, 
+  `coefficients`, etc. work with the object returned by `computeLm`.
+  This change is not backward compatible: to obtain result returned in 0.2.5 
+  list contains element `old.result`.
+
+* To compute results similar to `lm` `computeLm` uses sample (default 1000 
+  rows) to calculate stats like residuals, R-square, etc. in Aster. As before, 
+  linear regression coefficients are calculated on full data set with
+  SQL/MR linreg function.
+
+MINOR FEATURES
+
+* Parameter `formula` replaced defunct `expr` in the function `computeLm` 
+  for consistency with other model-fitting functions.
+
+* `computePercentiles` now computes on multiple columns.
+
+* Added deprecated warning facility `toa_dep` similar to ggplot2 gg_dep 
+  function.
+
+toaster 0.2.5
+----------------------------------------------------------------
 
 MINOR FEATURES
 

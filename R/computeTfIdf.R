@@ -18,7 +18,7 @@
 #' @param parser type of parser to use on text. For example, \code{ngram(2)} parser
 #'   generates 2-grams (ngrams of length 2), \code{token(2)} parser generates 2-word 
 #'   combinations of terms within documents.
-#' @param tfWeight 
+#' @param weighting term frequency formula to compute the tf value. 
 #' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
 #' @param idNull string to replace NULL value in document id columns.
 #' @param where specifies criteria to satisfy by the table rows before applying
@@ -26,7 +26,7 @@
 #'   \code{WHERE} clause).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions \link{sqlQuery} and \link{sqlSave}). 
-#' @seealso \code{\link{ngram}}, \code{\link{token}}
+#' @seealso \code{\link{nGram}}, \code{\link{token}}
 #' @export 
 computeTf <- function(channel, tableName, docId, textColumns, parser,
                       weighting = "normal",
@@ -79,12 +79,13 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'   combinations of terms within documents.
 #' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
 #' @param idNull string to replace NULL value in document id columns.
+#' @param adjustDocumentCount logical: if TRUE then number of documents 2 will be increased by 1.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The criteria are expressed in the form of SQL predicates (inside 
 #'   \code{WHERE} clause).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions \link{sqlQuery} and \link{sqlSave}). 
-#' @seealso \code{\link{ngram}}, \code{\link{token}}
+#' @seealso \code{\link{nGram}}, \code{\link{token}}
 #' @export 
 computeTfIdf <- function(channel, tableName, docId, textColumns, parser, 
                          where = NULL, idSep = '-', idNull = '(null)',

@@ -29,40 +29,74 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
   
   where_clause = makeWhereClause(where)
   
-  #derivedDocId = makeDocId(docId, idSep, idNull)
+  derivedDocId = makeDocumentId(docId, idSep, idNull)
   
+  # validate number of documents > 1 for TF-IDF
+  # and adjust 2 to 3 if requested
   if (!test) {
-    countSql = paste0("SELECT COUNT(DISTINCT(", docId, ")) count ", " FROM ", tableName, where_clause)
-    docCount = sqlQuery(channel, countSql)
-    if (docCount$count < 2)
+    countSql = paste0("SELECT COUNT(DISTINCT(", derivedDocId, ")) count ", " FROM ", tableName, where_clause)
+    docCount = sqlQuery(channel, countSql)$count[[1]]
+    if (docCount < 2)
       error("Can't compute TF-IDF for single document. Use 'computeTf` instead.")
     
     # adjust for 2 documents 
-    increaseByOne = ifelse(adjustDocCount && docCount == 2, " + 1 ", " ")
+    increaseByOne = ifelse(adjustDocumentCount && docCount == 2, " + 1 ", " ")
   }else
     increaseByOne = " "
-    
-  textSelectSQL = parseTextSQL(parser, tableName, docId, textColumns, where)
+  
+  textSelectSQL = parseTextSQL(parser, tableName, derivedDocId, textColumns, where)
   
   sql = paste0(
     "SELECT * FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term FROM ( ", textSelectSQL, " ) t ) PARTITION BY docid
           ) AS TF PARTITION BY term
-       ON ( SELECT COUNT(DISTINCT(", docId, ")) ", increaseByOne," FROM ", tableName, where_clause, " )
+       ON ( SELECT COUNT(DISTINCT(", derivedDocId, ")) ", increaseByOne," FROM ", tableName, where_clause, " )
             AS doccount dimension
      )")
   
   if (test) 
     return (sql)
   else {
-    sqlQuery(channel, sql, stringsAsFactors = FALSE)
+    rs = sqlQuery(channel, sql, stringsAsFactors = FALSE)
   }
+  
+  x = makeSimpleTripletMatrix(rs, 'tf_idf', "ti")
+  return (x)
 }
 
 
-makeDocId <- function(docId, idSep, idNull) {
+makeDocumentId <- function(docId, idSep, idNull) {
   
-  collapse = paste(" || '", idSep, "' || ")
-  derivedId = paste0("CAST(COALESCE(", docId, ", '", idNull, "') AS varchar)", collapse = collapse)
+  collapse = paste0(" || '", idSep, "' || ")
+  derivedId = paste0("COALESCE(CAST(", docId, " AS varchar), '", idNull, "')", collapse = collapse)
   
+}
+
+TermDocumentMatrix_classes <-
+  c("toaTermDocumentMatrix", "TermDocumentMatrix", "simple_triplet_matrix")
+
+makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
+  
+  terms = result_set$term
+  docs = result_set$docid
+  weights = result_set[, weight_name]
+  
+  allTerms = sort(unique(terms))
+  allDocs = sort(unique(docs))
+  i = match(terms, allTerms)
+  j = match(docs, allDocs)
+  
+  m = simple_triplet_matrix(i = i, j = j, v = as.numeric(weights),
+                            nrow = length(allTerms),
+                            ncol = length(allDocs),
+                            dimnames =
+                              list(Terms = allTerms,
+                                   Docs = allDocs))
+  
+  m$rs = result_set
+  class(m) <- TermDocumentMatrix_classes
+  attr(m, "Weighting") <- weighting
+  
+  return(m)
+}

@@ -86,7 +86,7 @@ parseTextSQL.nGram <- function(x, tableName, docId, textColumns, where) {
 
 buildNGramSQL <- function (x, n, tableName, docId, selectList, where_clause) {
   sql = paste0(
-    "SELECT ", docId, " docid, ngram as term, frequency 
+    "SELECT __doc_id__ docid, ngram as term, frequency 
          FROM nGram (
            ON (SELECT ", selectList, " FROM ", tableName, where_clause, ")
            TEXT_COLUMN('__text_column__') ",
@@ -96,7 +96,7 @@ buildNGramSQL <- function (x, n, tableName, docId, selectList, where_clause) {
            CASE_INSENSITIVE('", ifelse(x$ignoreCase, "true", "false"), "') ",
     ifelse(is.null(x$punctuation), " ", paste0(" PUNCTUATION('", x$punctuation, "') ")),
     ifelse(is.null(x$reset), " ", paste0(" RESET('", x$reset, "') ")), " 
-           ACCUMULATE('", docId, "')
+           ACCUMULATE('__doc_id__')
          ) "
   )
 }
@@ -106,19 +106,20 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
   where_clause = makeWhereClause(where)
   
   selectList = makeTextSelectList(docId, textColumns, x$sep)
+  
   withTable = "tokens"
   withSelect = paste0(
     "SELECT *
        FROM text_parser(
          ON (SELECT ", selectList, " FROM ", tableName, where_clause, " ) 
-         PARTITION BY ", docId, " 
+         PARTITION BY __doc_id__  
          TEXT_COLUMN('__text_column__') ",
     ifelse(is.null(x$delimiter), " ", paste0(" DELIMITER('", x$delimiter,"') ")), " 
          CASE_INSENSITIVE('", ifelse(x$ignoreCase, "true", "false"), "')
          STEMMING('", ifelse(x$stemming, "true", "false"), "') ",
     ifelse(is.null(x$punctuation), " ", paste0(" PUNCTUATION('", x$punctuation, "') ")),
     ifelse(is.null(x$stopwords), " ", paste0(" STOP_WORDS('", x$stopwords, "') ")), "
-         ACCUMULATE('", docId, "')
+         ACCUMULATE('__doc_id__')
          TOTAL('false')
          LIST_POSITIONS('false')
          TOKEN_COLUMN_NAME('term')
@@ -137,7 +138,7 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
       leftt = aliases[[i-1]]
       rightt = aliases[[i]]
       fromTables = paste0(fromTables, " JOIN ", withTable, " ", rightt,
-                             " ON (", leftt, ".", docId, " = ", rightt, ".", docId, " AND 
+                             " ON (", leftt, ".__doc_id__ = ", rightt, ".__doc_id__ AND 
                                   ",  leftt, ".term < ", rightt, ".term)")
     }
   }else {
@@ -150,7 +151,7 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
   sql = paste0(
     "WITH ", withTable, " AS 
        (", withSelect, ")  
-     SELECT ", aliases[[1]], ".", docId, " docid, ", termExpr, " term, COUNT(*) frequency
+     SELECT ", aliases[[1]], ".__doc_id__ docid, ", termExpr, " term, COUNT(*) frequency
        FROM ", fromTables, "
       GROUP BY 1, 2")
   
@@ -160,5 +161,5 @@ makeTextSelectList <- function(docId, textColumns, sep) {
   
   collapse = paste(" || '", sep, "' || ")
   textExpr = paste(textColumns, collapse=collapse)
-  selectList = paste0(docId, ", ", textExpr, " __text_column__ ")
+  selectList = paste0(docId, " __doc_id__, ", textExpr, " __text_column__ ")
 }

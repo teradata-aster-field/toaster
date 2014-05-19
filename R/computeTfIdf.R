@@ -6,16 +6,79 @@
 # tdm = TermDocumentMatrix(corps)
 # dtm = DocumentTermMatrix(corps)
 
-#' Compute TF-IDF on corpus of documents.
+#' Compute term frequencies on a corpus.
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
-#' @param docId name of the column with document id
+#' @param docId vector with one or more column names comprising unique document id. 
+#'   Values are concatenated with \code{idSep}. Database NULLs are replaced with
+#'   \code{idNull} string.
 #' @param textColumns one or more names of columns with text. Multiple coumn are
 #'   concatenated into single text field first.
 #' @param parser type of parser to use on text. For example, \code{ngram(2)} parser
-#'   generates ngrams of length 2, \code{token(2)} parser generates 2-word combination
-#'   terms.
+#'   generates 2-grams (ngrams of length 2), \code{token(2)} parser generates 2-word 
+#'   combinations of terms within documents.
+#' @param tfWeight 
+#' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
+#' @param idNull string to replace NULL value in document id columns.
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The criteria are expressed in the form of SQL predicates (inside 
+#'   \code{WHERE} clause).
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions \link{sqlQuery} and \link{sqlSave}). 
+#' @seealso \code{\link{ngram}}, \code{\link{token}}
+#' @export 
+computeTf <- function(channel, tableName, docId, textColumns, parser,
+                      weighting = "normal",
+                      where = NULL, idSep = '-', idNull = '(null)',
+                      test = FALSE) {
+  
+  weighting = match.arg(weighting, c('raw','bool','binary','log','augment','normal'))
+  tfFormula = switch(weighting,
+                    normal="normal",
+                    raw="normal",
+                    bool="bool",
+                    binary="bool",
+                    log="log",
+                    augment="augment",
+  )
+  
+  where_clause = makeWhereClause(where)
+  
+  derivedDocId = makeDocumentId(docId, idSep, idNull)
+  
+  textSelectSQL = parseTextSQL(parser, tableName, derivedDocId, textColumns, where)
+  
+  sql = paste0(
+    "SELECT * FROM TF(
+         ON (SELECT docid, term FROM ( ", textSelectSQL, " ) t ) PARTITION BY docid
+         FORMULA('", tfFormula, "')
+       )")
+  
+  if (test) 
+    return (sql)
+  else {
+    rs = sqlQuery(channel, sql, stringsAsFactors = FALSE)
+  }
+  
+  x = makeSimpleTripletMatrix(rs, ifelse(weighting == 'raw', 'count', 'tf'), 'tf')
+  return(x)
+}
+
+#' Compute Term Frequency - Inverse Document Frequency on a corpus.
+#' 
+#' @param channel connection object as returned by \code{\link{odbcConnect}}
+#' @param tableName Aster table name
+#' @param docId vector with one or more column names comprising unique document id. 
+#'   Values are concatenated with \code{idSep}. Database NULLs are replaced with
+#'   \code{idNull} string.
+#' @param textColumns one or more names of columns with text. Multiple coumn are
+#'   concatenated into single text field first.
+#' @param parser type of parser to use on text. For example, \code{ngram(2)} parser
+#'   generates 2-grams (ngrams of length 2), \code{token(2)} parser generates 2-word 
+#'   combinations of terms within documents.
+#' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
+#' @param idNull string to replace NULL value in document id columns.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The criteria are expressed in the form of SQL predicates (inside 
 #'   \code{WHERE} clause).

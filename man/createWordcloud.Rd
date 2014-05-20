@@ -2,12 +2,10 @@
 \alias{createWordcloud}
 \title{Create Word Cloud Visualization.}
 \usage{
-  createWordcloud(words, freq, title = "Wordcloud",
-    scale = c(8, 0.2), minFreq = 10, maxWords = 40,
-    filename,
-    format = c("png", "bmp", "jpeg", "tiff", "pdf"),
-    width = 480, height = 480, units = "px",
-    palette = brewer.pal(8, "Dark2"), titleFactor = 1)
+createWordcloud(words, freq, title = "Wordcloud", scale = c(8, 0.2),
+  minFreq = 10, maxWords = 40, filename, format = c("png", "bmp", "jpeg",
+  "tiff", "pdf"), width = 480, height = 480, units = "px",
+  palette = brewer.pal(8, "Dark2"), titleFactor = 1)
 }
 \arguments{
   \item{words}{the words}
@@ -46,32 +44,31 @@
   a factor of 1.}
 }
 \value{
-  nothing
+nothing
 }
 \description{
-  Wrapper around \code{\link{wordcloud}} function that
-  optionally saves graphics to the file of one of supported
-  formats.
+Wrapper around \code{\link{wordcloud}} function that
+optionally saves graphics to the file of one of supported
+formats.
 }
 \details{
-  Uses base graphics and worldcloud package to create a
-  word cloud (tag cloud) visual reprsentation of for text
-  data. Function uses 2 vectors of equal lengths: one
-  contains list of words and the other has their
-  frequencies.
+Uses base graphics and worldcloud package to create a word
+cloud (tag cloud) visual reprsentation of for text data.
+Function uses 2 vectors of equal lengths: one contains list
+of words and the other has their frequencies.
 
-  Resulting graphics is saved in file in one of available
-  graphical formats (png, bmp, jpeg, tiff, or pdf).
+Resulting graphics is saved in file in one of available
+graphical formats (png, bmp, jpeg, tiff, or pdf).
 
-  Word Cloud visuals apply to any concept that satisfies
-  following conditions: * each data point (artifact) can be
-  expressed with distinct word or compact text in distinct
-  and self-explanatory fashion and * it assigns each
-  artifact scalar non-negative metric. Given these two
-  conditions we can use Word Clouds to visualize top,
-  bottom or all artifacts in single word cloud visual.
+Word Cloud visuals apply to any concept that satisfies
+following conditions: * each data point (artifact) can be
+expressed with distinct word or compact text in distinct
+and self-explanatory fashion and * it assigns each artifact
+scalar non-negative metric. Given these two conditions we
+can use Word Clouds to visualize top, bottom or all
+artifacts in single word cloud visual.
 }
 \seealso{
-  \code{\link{wordcloud}}
+\code{\link{wordcloud}}
 }
 

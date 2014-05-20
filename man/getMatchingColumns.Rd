@@ -2,9 +2,8 @@
 \alias{getMatchingColumns}
 \title{Filter columns by pattern.}
 \usage{
-  getMatchingColumns(pattern, channel, tableName,
-    tableInfo, names.only = TRUE, ignore.case = TRUE,
-    invert = FALSE)
+getMatchingColumns(pattern, channel, tableName, tableInfo, names.only = TRUE,
+  ignore.case = TRUE, invert = FALSE)
 }
 \arguments{
   \item{pattern}{character string containing a
@@ -32,10 +31,10 @@
   match.}
 }
 \description{
-  Selects columns with names matching regular expression
-  pattern.
+Selects columns with names matching regular expression
+pattern.
 }
 \seealso{
-  \code{\link{grep}}
+\code{\link{grep}}
 }
 

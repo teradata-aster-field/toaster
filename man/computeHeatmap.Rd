@@ -2,11 +2,10 @@
 \alias{computeHeatmap}
 \title{Compute 2-dimensional multi-layered matrix for heat map visualizations.}
 \usage{
-  computeHeatmap(channel, tableName, dimension1,
-    dimension2, aggregates = "COUNT(*) cnt",
-    aggregateFun = NULL, aggregateAlias = NULL,
-    dimAsFactor = TRUE, withMelt = FALSE, where = NULL,
-    by = NULL, test = FALSE)
+computeHeatmap(channel, tableName, dimension1, dimension2,
+  aggregates = "COUNT(*) cnt", aggregateFun = NULL, aggregateAlias = NULL,
+  dimAsFactor = TRUE, withMelt = FALSE, where = NULL, by = NULL,
+  test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -55,37 +54,36 @@
   functions: \link{sqlQuery} and \link{sqlSave}).}
 }
 \value{
-  Data frame representing 2-dimensional multi-layered
-  matrix to use with \code{\link{createHeatmap}}. Matrix
-  has as many layers as there are aggregates computed. If
-  \code{by} defined, data frame contains multiple matrices
-  for each value(s) from the column(s) in \code{by} (to
-  support facets).  When \code{withMelt TRUE} function
-  \code{\link{melt}} applies transforming data frame and
-  columns with aggregate values for easy casting: expands
-  number of rows and replaces all aggregate columns with
-  two: \code{variable} and \code{value}.
+Data frame representing 2-dimensional multi-layered matrix
+to use with \code{\link{createHeatmap}}. Matrix has as many
+layers as there are aggregates computed. If \code{by}
+defined, data frame contains multiple matrices for each
+value(s) from the column(s) in \code{by} (to support
+facets).  When \code{withMelt TRUE} function
+\code{\link{melt}} applies transforming data frame and
+columns with aggregate values for easy casting: expands
+number of rows and replaces all aggregate columns with two:
+\code{variable} and \code{value}.
 }
 \description{
-  Compute aggregate value(s) across two category classes
-  represented by the table columns \code{dimension1} and
-  \code{dimension2}. Resulting data frame represents
-  2-dimensional multi-layered matrix where each layer
-  comprises values from single aggregate. Category columns
-  usually are of character, temporal, or discrete types.
-  Values are aggregates computed across category columns
-  utilizing SQL \code{GROUP BY <dimension1>, <dimension2>}.
-  Aggregate formula may use any SQL expressions allowed
-  with the \code{GROUP BY} as defined above. Results are
-  usually fed into \code{\link{createHeatmap}} for heat map
-  visualizations. If defined, parameter \code{by} expands
-  grouping columns to be used with heat maps with faceting.
+Compute aggregate value(s) across two category classes
+represented by the table columns \code{dimension1} and
+\code{dimension2}. Resulting data frame represents
+2-dimensional multi-layered matrix where each layer
+comprises values from single aggregate. Category columns
+usually are of character, temporal, or discrete types.
+Values are aggregates computed across category columns
+utilizing SQL \code{GROUP BY <dimension1>, <dimension2>}.
+Aggregate formula may use any SQL expressions allowed with
+the \code{GROUP BY} as defined above. Results are usually
+fed into \code{\link{createHeatmap}} for heat map
+visualizations. If defined, parameter \code{by} expands
+grouping columns to be used with heat maps with faceting.
 }
 \details{
-  Result represents 2-dimensional matrix with as many data
-  layers as there were aggregates computed. Additionally
-  more layers defined with parameter \code{by} support
-  facets.
+Result represents 2-dimensional matrix with as many data
+layers as there were aggregates computed. Additionally more
+layers defined with parameter \code{by} support facets.
 }
 \examples{
 \donttest{
@@ -102,6 +100,6 @@ createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
 }
 }
 \seealso{
-  \code{\link{createHeatmap}}
+\code{\link{createHeatmap}}
 }
 

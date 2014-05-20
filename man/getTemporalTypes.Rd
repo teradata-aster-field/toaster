@@ -2,13 +2,13 @@
 \alias{getTemporalTypes}
 \title{List Aster temporal data types.}
 \usage{
-  getTemporalTypes()
+getTemporalTypes()
 }
 \value{
-  character vector with names of Aster temporal data types
+character vector with names of Aster temporal data types
 }
 \description{
-  List Aster temporal data types.
+List Aster temporal data types.
 }
 \examples{
 getTemporalTypes()

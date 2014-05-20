@@ -5,7 +5,7 @@
 \title{toaster: analytical and visualization toolbox for Teradata Aster Discovery
 and Big Data Analytics Platform.}
 \description{
-  toaster: analytical and visualization toolbox for
-  Teradata Aster Discovery and Big Data Analytics Platform.
+toaster: analytical and visualization toolbox for Teradata
+Aster Discovery and Big Data Analytics Platform.
 }
 

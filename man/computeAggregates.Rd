@@ -2,9 +2,8 @@
 \alias{computeAggregates}
 \title{Compute aggregate values.}
 \usage{
-  computeAggregates(channel, tableName,
-    aggregates = c("COUNT(*) cnt"), by = vector(),
-    where = NULL, stringsAsFactors = FALSE, test = FALSE)
+computeAggregates(channel, tableName, aggregates = c("COUNT(*) cnt"),
+  by = vector(), where = NULL, stringsAsFactors = FALSE, test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -35,13 +34,12 @@
   functions like \link{sqlQuery} and \link{sqlSave}).}
 }
 \description{
-  Compute aggregates using SQL \code{SELECT...GROUP BY} in
-  Aster. Aggregates may be any valid SQL expressions
-  (including SQL \code{WINDOW} functions) in context of
-  group columns (parameter \code{by}). Neither SQL
-  \code{ORDER BY} nor \code{LIMIT} clauses are supported
-  (use \code{\link{computeBarchart}} when they are
-  required).
+Compute aggregates using SQL \code{SELECT...GROUP BY} in
+Aster. Aggregates may be any valid SQL expressions
+(including SQL \code{WINDOW} functions) in context of group
+columns (parameter \code{by}). Neither SQL \code{ORDER BY}
+nor \code{LIMIT} clauses are supported (use
+\code{\link{computeBarchart}} when they are required).
 }
 \examples{
 \donttest{

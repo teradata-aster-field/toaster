@@ -2,19 +2,15 @@
 \alias{createHeatmap}
 \title{Create Heat Map type of plot.}
 \usage{
-  createHeatmap(data, x, y, fill, facet = NULL, ncol = 1,
-    baseSize = 12, baseFamily = "sans",
-    thresholdValue = NULL, thresholdName = fill,
-    text = FALSE, textFill = fill, percent = FALSE,
-    digits = ifelse(percent, 2, 4),
-    divergingColourGradient = FALSE,
-    lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"),
-    midGradient = "white",
-    highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"),
-    title = paste("Heatmap by", fill), xlab = x, ylab = y,
-    legendPosition = "right",
-    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
-    themeExtra = NULL)
+createHeatmap(data, x, y, fill, facet = NULL, ncol = 1, baseSize = 12,
+  baseFamily = "sans", thresholdValue = NULL, thresholdName = fill,
+  text = FALSE, textFill = fill, percent = FALSE,
+  digits = ifelse(percent, 2, 4), divergingColourGradient = FALSE,
+  lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"),
+  midGradient = "white", highGradient = ifelse(divergingColourGradient,
+  muted("blue"), "#132B43"), title = paste("Heatmap by", fill), xlab = x,
+  ylab = y, legendPosition = "right", defaultTheme = theme_bw(base_size =
+  baseSize, base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
   \item{data}{data frame contains data computed for
@@ -97,12 +93,12 @@
   default theme.}
 }
 \description{
-  Create heat map visualization of 2D matrix from the data
-  frame \code{data} pre-computed with
-  \code{\link{computeHeatmap}}.
+Create heat map visualization of 2D matrix from the data
+frame \code{data} pre-computed with
+\code{\link{computeHeatmap}}.
 }
 \seealso{
-  \code{\link{computeHeatmap}} for computing data for heat
-  map
+\code{\link{computeHeatmap}} for computing data for heat
+map
 }
 

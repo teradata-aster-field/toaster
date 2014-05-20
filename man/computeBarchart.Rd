@@ -2,11 +2,9 @@
 \alias{computeBarchart}
 \title{Compute one or more aggregates across single class.}
 \usage{
-  computeBarchart(channel, tableName, category,
-    aggregates = "COUNT(*) cnt", where = NULL,
-    orderBy = NULL, top = NULL, by = NULL,
-    withMelt = FALSE, stringsAsFactors = FALSE,
-    test = FALSE)
+computeBarchart(channel, tableName, category, aggregates = "COUNT(*) cnt",
+  where = NULL, orderBy = NULL, top = NULL, by = NULL,
+  withMelt = FALSE, stringsAsFactors = FALSE, test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -55,20 +53,20 @@
   functions like \link{sqlQuery} and \link{sqlSave}).}
 }
 \value{
-  Data frame to use for bar chart plots with
-  \code{\link{createHistogram}}.
+Data frame to use for bar chart plots with
+\code{\link{createHistogram}}.
 }
 \description{
-  Compute aggregates across category class represented by
-  the table column. Values are one or more SQL aggregates
-  that are valid expressions with \code{GROUP BY <class
-  column>}. Class column usually is of character or other
-  discrete type. Typical example is computing a bar chart
-  for the column using SQL \code{COUNT(*) ... GROUP BY} -
-  hence the name of the function. Result is a data frame to
-  visualize as bar charts or heatmaps (see creating
-  visualizations with \code{\link{createHistogram}} and
-  \code{\link{createHeatmap}}).
+Compute aggregates across category class represented by the
+table column. Values are one or more SQL aggregates that
+are valid expressions with \code{GROUP BY <class column>}.
+Class column usually is of character or other discrete
+type. Typical example is computing a bar chart for the
+column using SQL \code{COUNT(*) ... GROUP BY} - hence the
+name of the function. Result is a data frame to visualize
+as bar charts or heatmaps (see creating visualizations with
+\code{\link{createHistogram}} and
+\code{\link{createHeatmap}}).
 }
 \examples{
 \donttest{
@@ -89,7 +87,7 @@ bc = computeBarchart(channel=conn, tablelName="pitching_enh", category="teamid",
 }
 }
 \seealso{
-  \code{\link{computeHistogram}},
-  \code{\link{createHistogram}}
+\code{\link{computeHistogram}},
+\code{\link{createHistogram}}
 }
 

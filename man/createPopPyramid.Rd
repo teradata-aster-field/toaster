@@ -2,15 +2,13 @@
 \alias{createPopPyramid}
 \title{Create Population Pyramid type of histogram plot.}
 \usage{
-  createPopPyramid(data, bin = "bin_start",
-    count = "bin_count", divideBy, values = NULL,
-    fillColours = c("blue", "red"), mainColour = "black",
-    facet = NULL, ncol = 1, facetScales = "fixed",
-    baseSize = 12, baseFamily = "sans",
-    title = paste("Population Pyramid Histogram by", divideBy),
-    xlab = bin, ylab = count, legendPosition = "right",
-    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
-    themeExtra = NULL)
+createPopPyramid(data, bin = "bin_start", count = "bin_count", divideBy,
+  values = NULL, fillColours = c("blue", "red"), mainColour = "black",
+  facet = NULL, ncol = 1, facetScales = "fixed", baseSize = 12,
+  baseFamily = "sans", title = paste("Population Pyramid Histogram by",
+  divideBy), xlab = bin, ylab = count, legendPosition = "right",
+  defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
   \item{data}{data frame contains 2 histograms for the same
@@ -81,13 +79,13 @@
   default theme.}
 }
 \description{
-  Create population pyramid type of histogram plot: two
-  back-to-back bar graphs on the same category class (e.g.
-  age) placed on Y-axis and distribution (population)
-  placed on the X-axis. Bar graphs correspond to two
-  distinct groups, e.g. sex (male and female), baseball
-  leagues (AL and NL), or customer types (new customers and
-  established customers).
+Create population pyramid type of histogram plot: two
+back-to-back bar graphs on the same category class (e.g.
+age) placed on Y-axis and distribution (population) placed
+on the X-axis. Bar graphs correspond to two distinct
+groups, e.g. sex (male and female), baseball leagues (AL
+and NL), or customer types (new customers and established
+customers).
 }
 \examples{
 \donttest{

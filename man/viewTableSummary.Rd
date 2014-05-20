@@ -2,8 +2,8 @@
 \alias{viewTableSummary}
 \title{Invoke a Data Viewer on table statistics.}
 \usage{
-  viewTableSummary(tableInfo, types = NULL, include = NULL,
-    except = NULL, basic = FALSE, percentiles = FALSE)
+viewTableSummary(tableInfo, types = NULL, include = NULL, except = NULL,
+  basic = FALSE, percentiles = FALSE)
 }
 \arguments{
   \item{tableInfo}{data frame with columns statistics to
@@ -25,12 +25,12 @@
   \item{percentiles}{logical: if TRUE display percentiles}
 }
 \description{
-  view computed column statistics in a spreadsheet-style
-  viewer in R.
+view computed column statistics in a spreadsheet-style
+viewer in R.
 }
 \details{
-  When both parameters \code{basic} and \code{percentiles}
-  are FALSE view displays \emph{all} statistics.
+When both parameters \code{basic} and \code{percentiles}
+are FALSE view displays \emph{all} statistics.
 }
 \examples{
 \donttest{
@@ -41,6 +41,6 @@ viewTableSummary(pitchingInfo, types=c("numeric", "temporal"))
 }
 }
 \seealso{
-  \code{\link{getTableSummary}}
+\code{\link{getTableSummary}}
 }
 

@@ -2,8 +2,8 @@
 \alias{getDateTimeColumns}
 \title{Filter Date and Time Table Columns.}
 \usage{
-  getDateTimeColumns(tableInfo, names.only = TRUE,
-    include = NULL, except = NULL)
+getDateTimeColumns(tableInfo, names.only = TRUE, include = NULL,
+  except = NULL)
 }
 \arguments{
   \item{tableInfo}{data frame obtained by calling
@@ -19,8 +19,8 @@
   only, otherwise full rows of \code{tableInfo}.}
 }
 \description{
-  Selects date and time columns (names or rows) from table
-  info data frame.
+Selects date and time columns (names or rows) from table
+info data frame.
 }
 \examples{
 \donttest{
@@ -30,6 +30,6 @@ date_cols_df = getDateTimeColumns(masterInfo, names.only=FALSE)
 }
 }
 \seealso{
-  \code{\link{getTableSummary}}
+\code{\link{getTableSummary}}
 }
 

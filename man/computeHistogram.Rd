@@ -2,12 +2,11 @@
 \alias{computeHistogram}
 \title{Compute histogram distribution of the column.}
 \usage{
-  computeHistogram(channel, tableName, columnName,
-    tableInfo = NULL, columnFrequency = FALSE,
-    binMethod = "manual", binsize = NULL,
-    startvalue = NULL, endvalue = NULL, numbins = NULL,
-    useIQR = TRUE, datepart = NULL, where = NULL,
-    by = NULL, test = FALSE, oldStyle = FALSE)
+computeHistogram(channel, tableName, columnName, tableInfo = NULL,
+  columnFrequency = FALSE, binMethod = "manual", binsize = NULL,
+  startvalue = NULL, endvalue = NULL, numbins = NULL, useIQR = TRUE,
+  datepart = NULL, where = NULL, by = NULL, test = FALSE,
+  oldStyle = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -66,16 +65,15 @@
   paramters are in use (before Aster AF 5.11)}
 }
 \description{
-  Compute histogram of the table column in Aster by mapping
-  its value to bins based on parameters specified. When
-  column is of numeric or temporal data type it uses
-  map-reduce histogram function over continuous values.
-  When column is categorical (character data types) it
-  defers to \code{\link{computeBarchart}} that uses SQL
-  aggregate \code{COUNT(*)} with \code{GROUP BY <column>}.
-  Result is a data frame to visualize as bar charts (see
-  creating visualizations with
-  \code{\link{createHistogram}}).
+Compute histogram of the table column in Aster by mapping
+its value to bins based on parameters specified. When
+column is of numeric or temporal data type it uses
+map-reduce histogram function over continuous values. When
+column is categorical (character data types) it defers to
+\code{\link{computeBarchart}} that uses SQL aggregate
+\code{COUNT(*)} with \code{GROUP BY <column>}. Result is a
+data frame to visualize as bar charts (see creating
+visualizations with \code{\link{createHistogram}}).
 }
 \examples{
 \donttest{
@@ -89,6 +87,6 @@ createHistogram(h2000s, fill='teamid', facet='teamid',
 }
 }
 \seealso{
-  \link{computeBarchart} and \link{createHistogram}
+\link{computeBarchart} and \link{createHistogram}
 }
 

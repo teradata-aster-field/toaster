@@ -2,8 +2,8 @@
 \alias{getCharacterColumns}
 \title{Filter character columns.}
 \usage{
-  getCharacterColumns(tableInfo, names.only = TRUE,
-    include = NULL, except = NULL)
+getCharacterColumns(tableInfo, names.only = TRUE, include = NULL,
+  except = NULL)
 }
 \arguments{
   \item{tableInfo}{data frame obtained by calling
@@ -19,8 +19,8 @@
   only, otherwise full rows of \code{tableInfo}.}
 }
 \description{
-  Selects character columns (names or rows) from table info
-  data frame.
+Selects character columns (names or rows) from table info
+data frame.
 }
 \examples{
 \donttest{
@@ -30,6 +30,6 @@ char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
 }
 }
 \seealso{
-  \code{\link{getTableSummary}}
+\code{\link{getTableSummary}}
 }
 

@@ -2,8 +2,8 @@
 \alias{computeCorrelations}
 \title{Compute correlation between pairs of columns.}
 \usage{
-  computeCorrelations(channel, tableName, tableInfo,
-    include, except = NULL, where = NULL, test = FALSE)
+computeCorrelations(channel, tableName, tableInfo, include, except = NULL,
+  where = NULL, test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -30,30 +30,28 @@
   functions like \link{sqlQuery} and \link{sqlSave}).}
 }
 \value{
-  data frame with columns: \itemize{ \item \emph{corr} pair
-  of 1st and 2d columns \code{"column1:column2"} \item
-  \emph{value} computed correlation value \item
-  \emph{metric1} name of 1st column \item \emph{metric2}
-  name of 2d column \item \emph{sign} correlation value
-  sign \code{sign(value)} (-1, 0, or 1) } Note that while
-  number of correlations function computes is
-  \code{choose(N, 2)}, where \code{N} is number of table
-  columns specified, resulting data frame contains twice as
-  many rows by duplicating each correlation value with
-  swaped column names (1st column to 2d and 2d to 1st
-  positions). This makes resulting data frame symmetrical
-  with respect to column order in pairs and is necessary to
-  correctly visualize correlation matrix with
-  \code{\link{createBubblechart}}.
+data frame with columns: \itemize{ \item \emph{corr} pair
+of 1st and 2d columns \code{"column1:column2"} \item
+\emph{value} computed correlation value \item
+\emph{metric1} name of 1st column \item \emph{metric2} name
+of 2d column \item \emph{sign} correlation value sign
+\code{sign(value)} (-1, 0, or 1) } Note that while number
+of correlations function computes is \code{choose(N, 2)},
+where \code{N} is number of table columns specified,
+resulting data frame contains twice as many rows by
+duplicating each correlation value with swaped column names
+(1st column to 2d and 2d to 1st positions). This makes
+resulting data frame symmetrical with respect to column
+order in pairs and is necessary to correctly visualize
+correlation matrix with \code{\link{createBubblechart}}.
 }
 \description{
-  Compute global correlation between all pairs of numeric
-  columns in table. Result includes all pairwise
-  combinations of numeric columns in the table, with
-  optionally limiting columns to those in the parameter
-  \code{include} or/and excluding columns defined by
-  parameter \code{except}. Limit computation on the table
-  subset defined with \code{where}.
+Compute global correlation between all pairs of numeric
+columns in table. Result includes all pairwise combinations
+of numeric columns in the table, with optionally limiting
+columns to those in the parameter \code{include} or/and
+excluding columns defined by parameter \code{except}. Limit
+computation on the table subset defined with \code{where}.
 }
 \examples{
 \donttest{
@@ -66,7 +64,6 @@ cormat = cormat[cormat$metric1 < cormat$metric2, ]
 }
 }
 \seealso{
-  \code{\link{createBubblechart}} and
-  \code{\link{showData}}.
+\code{\link{createBubblechart}} and \code{\link{showData}}.
 }
 

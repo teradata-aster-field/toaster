@@ -2,10 +2,9 @@
 \alias{computeSample}
 \title{Randomly sample data from the table.}
 \usage{
-  computeSample(channel, tableName, sampleFraction,
-    sampleSize, include = NULL, except = NULL,
-    where = NULL, as.is = FALSE, stringsAsFactors = FALSE,
-    test = FALSE)
+computeSample(channel, tableName, sampleFraction, sampleSize, include = NULL,
+  except = NULL, where = NULL, as.is = FALSE, stringsAsFactors = FALSE,
+  test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -45,12 +44,12 @@
   functions like \link{sqlQuery} and \link{sqlSave}).}
 }
 \description{
-  Draws a sample of rows from the table randomly. The
-  function offers two sampling schemes: - a simple binomial
-  (Bernoulli) sampling on a row-by-row basis with given
-  sample rate(s) - sampling a given number of rows without
-  replacement The sampling can be applied to the entire
-  table or can be refined with conditions.
+Draws a sample of rows from the table randomly. The
+function offers two sampling schemes: - a simple binomial
+(Bernoulli) sampling on a row-by-row basis with given
+sample rate(s) - sampling a given number of rows without
+replacement The sampling can be applied to the entire table
+or can be refined with conditions.
 }
 \examples{
 \donttest{

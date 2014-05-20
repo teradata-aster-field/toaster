@@ -2,8 +2,8 @@
 \alias{getNumericColumns}
 \title{Filter numeric columns.}
 \usage{
-  getNumericColumns(tableInfo, names.only = TRUE,
-    include = NULL, except = NULL)
+getNumericColumns(tableInfo, names.only = TRUE, include = NULL,
+  except = NULL)
 }
 \arguments{
   \item{tableInfo}{data frame obtained by calling
@@ -19,8 +19,8 @@
   never contains names from this list.}
 }
 \description{
-  Select numeric columns (names or rows) from table info
-  data frame.
+Select numeric columns (names or rows) from table info data
+frame.
 }
 \examples{
 \donttest{
@@ -30,6 +30,6 @@ num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
 }
 }
 \seealso{
-  \code{\link{getTableSummary}}
+\code{\link{getTableSummary}}
 }
 

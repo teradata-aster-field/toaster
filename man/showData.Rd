@@ -2,22 +2,18 @@
 \alias{showData}
 \title{Plot table level statistics, histograms, correlations and scatterplots in one go.}
 \usage{
-  showData(channel = NULL, tableName = NULL,
-    tableInfo = NULL, include = NULL, except = NULL,
-    type = "numeric", format = "histgoram",
-    measures = NULL,
-    title = paste("Table", toupper(tableName), format, "of", type, "columns"),
-    numBins = 30, useIQR = FALSE, extraPoints = NULL,
-    extraPointShape = 15, sampleFraction = NULL,
-    sampleSize = NULL, pointColour = NULL,
-    facetName = NULL, regressionLine = FALSE,
-    corrLabel = "none", digits = 2, shape = 21,
-    shapeSizeRange = c(1, 10), facet = FALSE, ncol = 4,
-    scales = ifelse(facet & format \%in\% c("boxplot", "overview"), "free", "fixed"),
-    coordFlip = FALSE, paletteName = "Set1", baseSize = 12,
-    baseFamily = "sans", legendPosition = "none",
-    defaultTheme = theme_bw(base_size = baseSize),
-    themeExtra = NULL, where = NULL, test = FALSE)
+showData(channel = NULL, tableName = NULL, tableInfo = NULL,
+  include = NULL, except = NULL, type = "numeric", format = "histgoram",
+  measures = NULL, title = paste("Table", toupper(tableName), format, "of",
+  type, "columns"), numBins = 30, useIQR = FALSE, extraPoints = NULL,
+  extraPointShape = 15, sampleFraction = NULL, sampleSize = NULL,
+  pointColour = NULL, facetName = NULL, regressionLine = FALSE,
+  corrLabel = "none", digits = 2, shape = 21, shapeSizeRange = c(1, 10),
+  facet = FALSE, ncol = 4, scales = ifelse(facet & format \%in\%
+  c("boxplot", "overview"), "free", "fixed"), coordFlip = FALSE,
+  paletteName = "Set1", baseSize = 12, baseFamily = "sans",
+  legendPosition = "none", defaultTheme = theme_bw(base_size = baseSize),
+  themeExtra = NULL, where = NULL, test = FALSE)
 }
 \arguments{
   \item{channel}{connection object as returned by
@@ -147,44 +143,43 @@
   run, e.g. format is \code{'boxplot'}.}
 }
 \value{
-  A ggplot visual object.
+A ggplot visual object.
 }
 \description{
-  \code{showData} is the basic plotting function in the
-  \code{toaster} package, designed to produce set of
-  standard visualizations (see parameter \code{format}) in
-  a single call. Depending on the \code{format} it is a
-  wrapper to other functions or simple plotting function.
-  It does all work in a single call by combining database
-  round-trip (if necessary) and plotting functionality.
+\code{showData} is the basic plotting function in the
+\code{toaster} package, designed to produce set of standard
+visualizations (see parameter \code{format}) in a single
+call. Depending on the \code{format} it is a wrapper to
+other functions or simple plotting function. It does all
+work in a single call by combining database round-trip (if
+necessary) and plotting functionality.
 }
 \details{
-  All formats support parameters \code{include} and
-  \code{except} to include and exclude table columns
-  respectively. The \code{include} list guarantees that no
-  columns outside of the list will be included in the
-  results. The \code{excpet} list guarantees that its
-  columns will not be included in the results.
+All formats support parameters \code{include} and
+\code{except} to include and exclude table columns
+respectively. The \code{include} list guarantees that no
+columns outside of the list will be included in the
+results. The \code{excpet} list guarantees that its columns
+will not be included in the results.
 
-  Format \code{overview}: produce set of histograms - one
-  for each statistic measure - across table columns. Thus,
-  it allows to compare averages, IQR, etc. across all or
-  selected columns.
+Format \code{overview}: produce set of histograms - one for
+each statistic measure - across table columns. Thus, it
+allows to compare averages, IQR, etc. across all or
+selected columns.
 
-  Format \code{boxplot}: produce boxplots for table
-  columns. Boxplots can belong to the same plot or can be
-  placed inside facet each (see logical parameter
-  \code{facet}).
+Format \code{boxplot}: produce boxplots for table columns.
+Boxplots can belong to the same plot or can be placed
+inside facet each (see logical parameter \code{facet}).
 
-  Format \code{histogram}: produce histograms - one for
-  each column - in a single plot or in facets (see logical
-  parameter \code{facet}).
+Format \code{histogram}: produce histograms - one for each
+column - in a single plot or in facets (see logical
+parameter \code{facet}).
 
-  Format \code{corr}: produce correlation matrix of numeric
-  columns.
+Format \code{corr}: produce correlation matrix of numeric
+columns.
 
-  Format \code{scatterplot}: produce scatterplots of
-  sampled data.
+Format \code{scatterplot}: produce scatterplots of sampled
+data.
 }
 \examples{
 \donttest{

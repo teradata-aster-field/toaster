@@ -2,20 +2,17 @@
 \alias{createHistogram}
 \title{Create histogram type of plot.}
 \usage{
-  createHistogram(data, x = "bin_start", y = "bin_count",
-    fill = NULL, position = "dodge", facet = NULL,
-    ncol = 1, facetScales = "free_y", baseSize = 12,
-    baseFamily = "", xlim = NULL, breaks = NULL,
-    text = FALSE, percent = FALSE, digits = 0,
-    textVJust = -2, mainColour = "black",
-    fillColour = "grey", scaleGradient = NULL,
-    paletteValues = NULL, palette = "Set1", trend = FALSE,
-    trendLinetype = "solid", trendLinesize = 1,
-    trendLinecolour = "black",
-    title = paste("Histgoram by", fill), xlab = x,
-    ylab = y, legendPosition = "right", coordFlip = FALSE,
-    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
-    themeExtra = NULL)
+createHistogram(data, x = "bin_start", y = "bin_count", fill = NULL,
+  position = "dodge", facet = NULL, ncol = 1, facetScales = "free_y",
+  baseSize = 12, baseFamily = "", xlim = NULL, breaks = NULL,
+  text = FALSE, percent = FALSE, digits = 0, textVJust = -2,
+  mainColour = "black", fillColour = "grey", scaleGradient = NULL,
+  paletteValues = NULL, palette = "Set1", trend = FALSE,
+  trendLinetype = "solid", trendLinesize = 1, trendLinecolour = "black",
+  title = paste("Histgoram by", fill), xlab = x, ylab = y,
+  legendPosition = "right", coordFlip = FALSE,
+  defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
   \item{data}{data frame contains computed histogram}
@@ -122,11 +119,11 @@
   default theme.}
 }
 \description{
-  Create histogram plot from the pre-computed distribution
-  of data. Parameter \code{data} is a data frame containing
-  intervals (bins) and counts obtained using
-  \code{\link{computeHistogram}} or
-  \code{\link{computeBarchart}}).
+Create histogram plot from the pre-computed distribution of
+data. Parameter \code{data} is a data frame containing
+intervals (bins) and counts obtained using
+\code{\link{computeHistogram}} or
+\code{\link{computeBarchart}}).
 }
 \examples{
 \donttest{
@@ -165,8 +162,7 @@ createHistogram(h2000s, fill='teamid', facet='teamid',
 }
 }
 \seealso{
-  \code{\link{computeHistogram}} and
-  \code{\link{computeBarchart}} to compute data for
-  histogram
+\code{\link{computeHistogram}} and
+\code{\link{computeBarchart}} to compute data for histogram
 }
 

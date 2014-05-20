@@ -2,14 +2,13 @@
 \alias{createBoxplot}
 \title{Create box plot.}
 \usage{
-  createBoxplot(data, x = NULL, fill = x, useIQR = FALSE,
-    facet = NULL, ncol = 1, facetScales = "fixed",
-    paletteValues = NULL, palette = "Set1",
-    title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))),
-    xlab = x, ylab = NULL, legendPosition = "right",
-    coordFlip = FALSE, baseSize = 12, baseFamily = "sans",
-    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
-    themeExtra = NULL)
+createBoxplot(data, x = NULL, fill = x, useIQR = FALSE, facet = NULL,
+  ncol = 1, facetScales = "fixed", paletteValues = NULL,
+  palette = "Set1", title = paste("Boxplots", ifelse(is.null(x), NULL,
+  paste("by", x))), xlab = x, ylab = NULL, legendPosition = "right",
+  coordFlip = FALSE, baseSize = 12, baseFamily = "sans",
+  defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
   \item{data}{quartiles precomputed with
@@ -84,33 +83,31 @@
   default theme.}
 }
 \description{
-  Create box plot visualization using quartiles calculated
-  with \code{\link{computePercentiles}}. The simplest case
-  without x value displays single boxplot from the single
-  set of percentiles. To plot multiple box plots and
-  multiple or single box plots with facets use parameters
-  \code{x} and/or \code{facet}.
+Create box plot visualization using quartiles calculated
+with \code{\link{computePercentiles}}. The simplest case
+without x value displays single boxplot from the single set
+of percentiles. To plot multiple box plots and multiple or
+single box plots with facets use parameters \code{x} and/or
+\code{facet}.
 }
 \details{
-  Multiple box plots: \code{x} is a name of variable where
-  each value corresponds to a set of percentiles. The
-  boxplots will be placed along the x-axis. Simply use
-  \code{\link{computePercentiles}} with parameter
-  \code{by="name to be passed in x variable"}.
+Multiple box plots: \code{x} is a name of variable where
+each value corresponds to a set of percentiles. The
+boxplots will be placed along the x-axis. Simply use
+\code{\link{computePercentiles}} with parameter
+\code{by="name to be passed in x variable"}.
 
-  Facets: \code{facet} vector contains one or two names of
-  vairables where each combination of values corresponds to
-  a set of percentiles. The boxplot(s) will be placed
-  inside separate sections of the plot (facets). Both
-  single boxplot (without variable \code{x} and with one)
-  are supported.
+Facets: \code{facet} vector contains one or two names of
+vairables where each combination of values corresponds to a
+set of percentiles. The boxplot(s) will be placed inside
+separate sections of the plot (facets). Both single boxplot
+(without variable \code{x} and with one) are supported.
 
-  Usually, with multiple percentile sets varying along
-  single value use parameter \code{x} and add facets on
-  top. The exception is when scale of percentile values
-  differs between each boxplot. Then omit parameter
-  \code{x} and use \code{facet} with
-  \code{facetScales='free_y'}.
+Usually, with multiple percentile sets varying along single
+value use parameter \code{x} and add facets on top. The
+exception is when scale of percentile values differs
+between each boxplot. Then omit parameter \code{x} and use
+\code{facet} with \code{facetScales='free_y'}.
 }
 \examples{
 \donttest{
@@ -136,7 +133,7 @@ createBoxplot(bapLgDec, facet=c("lgid", "decadeid"))
 }
 }
 \seealso{
-  \code{\link{computePercentiles}} for computing boxplot
-  quartiles
+\code{\link{computePercentiles}} for computing boxplot
+quartiles
 }
 

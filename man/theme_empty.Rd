@@ -2,7 +2,7 @@
 \alias{theme_empty}
 \title{Creates empty theme.}
 \usage{
-  theme_empty(baseSize = 12, baseFamily = "")
+theme_empty(baseSize = 12, baseFamily = "")
 }
 \arguments{
   \item{baseSize}{base font size}
@@ -10,10 +10,10 @@
   \item{baseFamily}{base font family}
 }
 \description{
-  Good to use with slopegraphs.
+Good to use with slopegraphs.
 }
 \seealso{
-  \code{\link{createHistogram}} and other visualization
-  functions that start with create.
+\code{\link{createHistogram}} and other visualization
+functions that start with create.
 }
 

@@ -2,19 +2,16 @@
 \alias{createBubblechart}
 \title{Create Bubble Chart type of plot.}
 \usage{
-  createBubblechart(data, x, y, z, label = z, fill = NULL,
-    facet = NULL, ncol = 1, facetScales = "fixed",
-    xlim = NULL, baseSize = 12, baseFamily = "sans",
-    shape = 21, shapeColour = "black", scaleSize = TRUE,
-    shapeSizeRange = c(3, 10), shapeMaxSize = 100,
-    paletteValues = NULL, palette = "Set1",
-    title = paste("Bubble Chart by", fill), xlab = x,
-    ylab = y, labelSize = 5, labelFamily = "",
-    labelFontface = "plain", labelColour = "black",
-    labelVJust = 0.5, labelHJust = 0.5, labelAlpha = 1,
-    labelAngle = 0, legendPosition = "right",
-    defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
-    themeExtra = NULL)
+createBubblechart(data, x, y, z, label = z, fill = NULL, facet = NULL,
+  ncol = 1, facetScales = "fixed", xlim = NULL, baseSize = 12,
+  baseFamily = "sans", shape = 21, shapeColour = "black",
+  scaleSize = TRUE, shapeSizeRange = c(3, 10), shapeMaxSize = 100,
+  paletteValues = NULL, palette = "Set1", title = paste("Bubble Chart by",
+  fill), xlab = x, ylab = y, labelSize = 5, labelFamily = "",
+  labelFontface = "plain", labelColour = "black", labelVJust = 0.5,
+  labelHJust = 0.5, labelAlpha = 1, labelAngle = 0,
+  legendPosition = "right", defaultTheme = theme_bw(base_size = baseSize,
+  base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
   \item{data}{data frame contains data computed for
@@ -122,14 +119,14 @@
   default theme.}
 }
 \description{
-  Create a bubble chart that utilizes three dimensions of
-  data. It is a variation of the scatter plot with data
-  points replaced with shapes ("bubbles"): x and y are
-  bubble location and z is its size. It can optionally
-  assign data points labels and fill shapes with colors.
+Create a bubble chart that utilizes three dimensions of
+data. It is a variation of the scatter plot with data
+points replaced with shapes ("bubbles"): x and y are bubble
+location and z is its size. It can optionally assign data
+points labels and fill shapes with colors.
 }
 \seealso{
-  \code{\link{computeAggregates}} computes data for the
-  bubble chart.
+\code{\link{computeAggregates}} computes data for the
+bubble chart.
 }
 

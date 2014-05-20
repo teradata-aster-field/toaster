@@ -2,18 +2,15 @@
 \alias{createSlopegraph}
 \title{Create plot with Slope Graph visualization.}
 \usage{
-  createSlopegraph(data, id, rankFrom, rankTo,
-    reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
-    fromLabel = rankFrom, toLabel = rankTo,
-    title = paste("Slopegraph by", rankTo), baseSize = 12,
-    baseFamily = "sans", classLabels = c(rankFrom, rankTo),
-    classTextSize = 12, colour = "#999999",
-    upColour = "#D55E00", downColour = "#009E73",
-    highlights = integer(0), lineSize = 0.15,
-    textSize = 3.75, panelGridColour = "black",
-    panelGridSize = 0.1,
-    defaultTheme = theme_classic(base_size = baseSize, base_family = baseFamily),
-    themeExtra = NULL)
+createSlopegraph(data, id, rankFrom, rankTo, reverse = TRUE, na.rm = FALSE,
+  scaleFactor = 1, fromLabel = rankFrom, toLabel = rankTo,
+  title = paste("Slopegraph by", rankTo), baseSize = 12,
+  baseFamily = "sans", classLabels = c(rankFrom, rankTo),
+  classTextSize = 12, colour = "#999999", upColour = "#D55E00",
+  downColour = "#009E73", highlights = integer(0), lineSize = 0.15,
+  textSize = 3.75, panelGridColour = "black", panelGridSize = 0.1,
+  defaultTheme = theme_classic(base_size = baseSize, base_family =
+  baseFamily), themeExtra = NULL)
 }
 \arguments{
   \item{data}{data frame contains data computed for
@@ -78,6 +75,6 @@
   default theme.}
 }
 \description{
-  Create plot with Slope Graph visualization.
+Create plot with Slope Graph visualization.
 }
 

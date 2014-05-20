@@ -18,12 +18,16 @@
 #' @param formula an object of class "formula" (or one that can be coerced to that class): 
 #'   a symbolic description of the model to be fitted. The details of model 
 #'   specification are given under `Details`.
-#' @tableInfo pre-built table summary with data types 
-#' @categories vector with column names containing categorical data. Optional if the column is of
+#' @param tableInfo pre-built table summary with data types 
+#' @param categories vector with column names containing categorical data. Optional if the column is of
 #'   character type as it is automatically treated as categorical predictors. But if numerical 
 #'   column contains categorical data then then it has to be specified for a model to view it
 #'   as categorical. Apply extra care not to have columns with too many values (approximaltely > 10) 
 #'   as categorical because each value results in dummy predictor variable added to the model.
+#' @param sampleSize function always computes regression model coefficent on all data in the table.
+#'   But it computes predictions and returns an object of \code{\link{class}} "lm" based on sample
+#'   of data. The sample size defines how big the sample is. Be careful not overestimating the size
+#'   as all results are loaded into memory. 
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).

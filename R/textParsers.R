@@ -1,13 +1,27 @@
 #' Tokenize (or split) text and emit n-word combinations from a document.
 #' 
-#' When n=1 simply tokenize text and emit words with counts. When n>1
+#' When \code{n=1} simply tokenize text and emit words with counts. When n>1
 #' tokenized words are combined into permutations of length n within
 #' each document.
 #' 
 #' @param n number of words 
+#' @param tokenSep a character string to separate the tokens when \code{n > 1}
+#' @param ignoreCase logical: treat text as-is (\code{FALSE}) or convert to all lowercase
+#'   (true); Default is \code{TRUE}. Note that if the \code{stemming} is set to 
+#'   \code{TRUE}, tokens will always be converted to lowercase, so this option 
+#'   will be ignored. 
+#' @param delimiter character or string that divides one word from the next. 
+#'   You can use a regular expression as the \code{delimiter} value.
+#' @param punctuation a regular expression that specifies the punctuation characters 
+#'   parser will remove before it evaluates the input text.
+#' @param stemming logical: If true, apply Porter2 Stemming to each token to reduce 
+#'   it to its root form. Default is \code{FALSE}.
+#' @param stopWordsFile The location of the file that contains stop words that should
+#'   be ignored when parsing text. Each stop word is specified on a separate line.
+#' @param sep a character string to separate multiple text columns.
 #' @export
-token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+', punctuation = NULL,
-                  stemming = FALSE, stopWordsFile = NULL, sep = " ") {
+token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+', 
+                  punctuation = NULL, stemming = FALSE, stopWordsFile = NULL, sep = " ") {
   
   stopifnot(n > 0)
   

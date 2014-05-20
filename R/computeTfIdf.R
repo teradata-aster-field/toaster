@@ -101,7 +101,7 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
     countSql = paste0("SELECT COUNT(DISTINCT(", derivedDocId, ")) count ", " FROM ", tableName, where_clause)
     docCount = sqlQuery(channel, countSql)$count[[1]]
     if (docCount < 2)
-      error("Can't compute TF-IDF for single document. Use 'computeTf` instead.")
+      stop("Can't compute TF-IDF for single document. Use 'computeTf` that computes term frequency instead.")
     
     # adjust for 2 documents 
     increaseByOne = ifelse(adjustDocumentCount && docCount == 2, " + 1 ", " ")

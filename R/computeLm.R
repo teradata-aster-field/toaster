@@ -125,7 +125,7 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
     xlevels = list()
     
     for(name in char_predictors) {
-      col_values = getColumnValues(conn, tableName, name, where, test)
+      col_values = getColumnValues(channel, tableName, name, where, test)
       if (length(col_values) < 2) {
         stop(paste0("Categorical column '", name, "' has 1 or no values. Consider removing or replacing it."))
       }

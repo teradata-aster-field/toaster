@@ -138,6 +138,10 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
       }
     }
     
+    if (startvalue >= endvalue) {
+      stop("Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
+    }
+    
     histPrep = paste0(" binsize('", binsize, "')
                         startvalue('", startvalue, "')
                         endvalue('", endvalue, "') ")

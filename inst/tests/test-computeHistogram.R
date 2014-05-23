@@ -19,11 +19,11 @@ test_that("computeHistogram throws errors", {
   
   expect_error(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
                                 tableInfo=start_end_test_info),
-               "xStart value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
+               "Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
   
   expect_error(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
                                 tableInfo=start_end_test_info, useIQR=TRUE),
-               "xStart value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
+               "Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
   
   
 })

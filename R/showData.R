@@ -289,7 +289,12 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
                           title=title, xlab="Bins", ylab="Frequency",
                           paletteValues = getPalette(length(unique(all_hist$COLUMN_NAME))),
                           legendPosition=legendPosition,
-                          defaultTheme=defaultTheme, themeExtra=themeExtra)
+                          defaultTheme=defaultTheme, 
+                          themeExtra=themeExtra)
+      
+      # remove legend for fill legend 
+      if (legendPosition == "none") 
+        p = p + guides(fill = FALSE)
       
       # force parameter facet to FALSE
       facet = FALSE

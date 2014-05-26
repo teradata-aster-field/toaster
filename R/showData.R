@@ -259,9 +259,13 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     corrLabelName = list('none', 'valuePretty', 'corr')[match(corrLabel, c('none','value','pair'))]
     p = createBubblechart(corrmat, "metric1", "metric2", "value", label=corrLabelName, fill="sign",
                           shape=shape, shapeSizeRange=shapeSizeRange, labelSize=5, labelVJust=0,
-                          title=title, 
-                          defaultTheme=defaultTheme,
+                          title=title, legendPosition=legendPosition,
+                          defaultTheme=defaultTheme, 
                           themeExtra=theme(axis.title = element_blank()))
+    
+    # remove fill legend 
+    if (legendPosition == "none") 
+      p = p + guides(fill = FALSE)
     
     # force parameter facet to FALSE
     facet = FALSE
@@ -292,7 +296,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
                           defaultTheme=defaultTheme, 
                           themeExtra=themeExtra)
       
-      # remove legend for fill legend 
+      # remove fill legend 
       if (legendPosition == "none") 
         p = p + guides(fill = FALSE)
       
@@ -353,6 +357,12 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
       
     }
     
+    # remove colour legend 
+    if (legendPosition == "none") 
+      p = p + guides(colour = FALSE)
+    else 
+      p = p + guides(colour = guide_legend())
+    
     facet = FALSE
   }
   else if (format=='overview') {
@@ -377,6 +387,10 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
       scale_fill_manual(values = getPalette(nrow(data))) +
       facet_wrap(~variable, ncol=1, scales=scales) +
       labs(title=title, x='Columns')
+    
+    # remove fill legend 
+    if (legendPosition == "none") 
+      p = p + guides(fill = FALSE)
     
     # force facet to FALSE
     facet = FALSE

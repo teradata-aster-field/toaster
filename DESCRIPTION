@@ -23,7 +23,8 @@ Depends:
 Suggests:
     testthat (>= 0.2),
     memoise,
-    tm
+    tm,
+    doParallel (>= 1.0.8)
 Imports:
     plyr (>= 1.8),
     reshape2 (>= 1.2.2),
@@ -33,7 +34,8 @@ Imports:
     grid,
     wordcloud (>= 2.4),
     ggmap (>= 2.3),
-    slam (>= 0.1-31)
+    slam (>= 0.1-31),
+    foreach (>= 1.4.2)
 License: GPL-2
 Collate:
     'toaster.R'

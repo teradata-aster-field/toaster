@@ -18,6 +18,9 @@
 #' @param percentiles list of percentiles (integers between 0 and 100) to collect (always collects 25th and 75th 
 #'   for IQR calculation). There is no penalty in specifying more percentiles as they get calculated in a single call 
 #'   for each column - no matter how many different values are requested.
+#' @param parallel logical: enable parallel calls to Aster database. This option requires parallel backend enabled and
+#'   registered (see in examples). Parallel execution requires ODBC \code{channel} obtained only with 
+#'   \code{\link{odbcDriverConnect}} function, not \code{\link{odbcConnect}}.
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE).
 #' @param mock logical: if TRUE returns pre-computed table statistics for tables \code{pitching} or \code{batting}, only.
 #' @return data frame returned by \code{\link{sqlColumns}} with additional columns:
@@ -63,7 +66,11 @@
 getTableSummary <- function (channel, tableName, include = NULL, except = NULL, 
                              modeValue = FALSE,
                              percentiles = c(0,5,10,25,50,75,90,95,100),
-                             where = NULL, mock = FALSE) {
+                             where = NULL, mock = FALSE, parallel = FALSE) {
+  
+  # check if parallel option is valid
+  if (parallel && !getDoParRegistered())
+    stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
   
   if (mock) {
     if (substr(tableName, nchar(tableName)-nchar('pitching')+1, nchar(tableName))=='pitching') {
@@ -107,7 +114,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   percentileStr = paste(percentiles, collapse=",")
   
   # Create data frame columns for table statistics
-  table_info[c("total_count","distinct_count","not_null_count")] = as.integer(NA)
+  table_info[c("total_count","distinct_count","not_null_count","null_count")] = as.integer(NA)
   table_info[c("minimum","maximum","average","deviation", percentileNames, "IQR")] = as.numeric(NA)
   table_info[c("minimum_str","maximum_str")] = as.character(NA)
   
@@ -120,97 +127,233 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   total_count = total_rows[[1,1]]
   table_info[, "total_count"] = total_count
   
-  # Loop over numeric columns
-  for(column_name in getNumericColumns(table_info)) {
+  # compute numeric metrics
+  numeric_columns = getNumericColumns(table_info)
+  
+  if (length(numeric_columns) > 0) {
+    metrics = computeNumericMetrics(channel, tableName, table_info, numeric_columns, 
+                                    percentileNames, percentileStr, 
+                                    where_clause, total_count, parallel)
     
-    # Compute SELECT aggregate statistics on each numeric column
-    column_stats = sqlQuery(channel,
-                            paste0("SELECT cast(count(distinct\"", column_name,"\") as bigint) as distinct_count, ",
-                                   "       cast(count(\"", column_name, "\") as bigint) as not_null_count, ",
-                                   "       min(\"", column_name,"\") as minimum, ",
-                                   "       max(\"", column_name,"\") as maximum, ",
-                                   "       avg(\"", column_name,"\"::numeric) as average, ",
-                                   "       stddev(\"", column_name,"\"::numeric) as deviation ",
-                                   "  FROM ", tableName, where_clause))
-    if (!is.data.frame(column_stats) || nrow(column_stats) != 1)
-      stop(paste("Not a valid sql to compute stats on numeric column '", column_name, "'"))
+    table_info[metrics$idx, 
+               c("distinct_count", "not_null_count", "null_count", 
+                 "minimum", "maximum", "average", "deviation", percentileNames, "IQR")] =
+      metrics[, c("distinct_count", "not_null_count", "null_count", 
+                  "minimum", "maximum", "average", "deviation", percentileNames, "IQR")]
+  }
+  
+  
+  # compute non-numeric metrics 
+  non_numeric_columns = c(getCharacterColumns(table_info),
+                          getDateTimeColumns(table_info))
+  
+  if (length(non_numeric_columns) > 0) {
+    metrics = computeNonNumericMetrics(channel, tableName, table_info, non_numeric_columns, 
+                                       where_clause, total_count, parallel)
     
-    column_idx = which(table_info$COLUMN_NAME == column_name)
+    table_info[metrics$idx, c("distinct_count", "not_null_count", "null_count", 
+                              "minimum_str", "maximum_str")] =
+      metrics[, c("distinct_count", "not_null_count", "null_count", 
+                  "minimum_str", "maximum_str")]
+  }
+  
+  # Compute modes
+  if(modeValue) {
+    table_info = cbind(table_info, 
+                       mode=character(length(table_info$COLUMN_NAME)), 
+                       mode_count=integer(length(table_info$COLUMN_NAME)),
+                       stringsAsFactors=FALSE)
     
-    table_info[column_idx, "distinct_count"] = column_stats[[1,"distinct_count"]]
-    table_info[column_idx, "not_null_count"] = column_stats[[1,"not_null_count"]]
-    table_info[column_idx, "null_count"] = total_count - column_stats[[1,"not_null_count"]]
-    table_info[column_idx, "minimum"] = column_stats[[1,"minimum"]]
-    table_info[column_idx, "maximum"] = column_stats[[1,"maximum"]]
-    table_info[column_idx, "average"] = column_stats[[1,"average"]]
-    table_info[column_idx, "deviation"] = column_stats[[1,"deviation"]]
+    modes = computeModes(channel, tableName, table_info, where_clause, parallel)
     
-    # compute all percentiles at once with SQL/MR approximate percentile function
-    presults = sqlQuery(channel,
-                           paste0("SELECT * FROM approxPercentileReduce(
+    table_info[modes$idx, c("mode", "mode_count")] = modes[, c('mode_value', 'mode_count')]
+
+  }
+  
+  return(table_info)
+  
+}
+
+makeNumericMetrics <- function(idx, column_stats, total_count, presults, percentileNames) {
+  df = data.frame(
+             idx=idx,
+             distinct_count=column_stats[[1,"distinct_count"]],
+             not_null_count=column_stats[[1,"not_null_count"]],
+             null_count=total_count - column_stats[[1,"not_null_count"]],
+             minimum=column_stats[[1,"minimum"]],
+             maximum=column_stats[[1,"maximum"]],
+             average=column_stats[[1,"average"]],
+             deviation=column_stats[[1,"deviation"]],
+             stringsAsFactors=FALSE)
+  
+  if (nrow(presults) > 0) {
+    for (tile in 1:nrow(presults)) {
+      ptile = as.character(presults[[tile, "percentile"]])
+      ptileValue = presults[[tile, "value"]]
+      df[1, percentileNames[ptile]] = ptileValue
+    }
+    
+    df[1, "IQR"] = presults[[which(presults$percentile==75),"value"]] -
+      presults[[which(presults$percentile==25),"value"]]
+  }
+  
+  return (df)
+}
+
+computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns,
+                                  percentileNames, percentileStr, where_clause, 
+                                  total_count, parallel=FALSE) {
+  
+  metricsSql = 
+    paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
+           "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
+           "       min((%%%column__name%%%)) as minimum, ",
+           "       max((%%%column__name%%%)) as maximum, ",
+           "       avg((%%%column__name%%%)::numeric) as average, ",
+           "       stddev((%%%column__name%%%)::numeric) as deviation ",
+           "  FROM ", tableName, where_clause)
+  
+  percentileSql = 
+    paste0("SELECT * FROM approxPercentileReduce(
                                   ON (
                                   SELECT * FROM approxPercentileMap(
                                   ON  ( SELECT * FROM " , tableName, where_clause, " ) ",
-                                  " TARGET_COLUMN( '",column_name,"' )
+           " TARGET_COLUMN( '(%%%column__name%%%)' )
                                   ERROR( 1 )
                                   )
                                   )
                                   PARTITION BY 1
                                   PERCENTILE( ", percentileStr, " ))")
-                           )
-    
-    if (nrow(presults) > 0) {
-      for (tile in 1:nrow(presults)) {
-        ptile = as.character(presults[[tile, "percentile"]])
-        ptileValue = presults[[tile, "value"]]
-        table_info[column_idx, percentileNames[ptile]] = ptileValue
-      }
+  
+  if (!parallel) {
+    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC')) %do% {
+                       
+               if (column_name %in% numeric_columns) {
+                 
+                 # Compute SELECT aggregate statistics on each numeric column
+                 column_stats = sqlQuery(channel, gsub('(%%%column__name%%%)', column_name, metricsSql, fixed=TRUE), 
+                                         stringsAsFactors = FALSE)
+                         
+                 # compute all percentiles at once with SQL/MR approximate percentile function
+                 presults = sqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, fixed=TRUE), 
+                                     stringsAsFactors = FALSE)
+                         
+                 makeNumericMetrics(idx, column_stats, total_count, presults, percentileNames)
+               }  
+            }
+  }else {
+    # parallel mode compute
+    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
+                       
+               if (column_name %in% numeric_columns) {
+                         
+                 parChan = odbcReConnect(channel)
+                 # Compute SELECT aggregate statistics on each numeric column
+                 column_stats = sqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, metricsSql, fixed=TRUE), 
+                                         stringsAsFactors = FALSE)
+                         
+                 # compute all percentiles at once with SQL/MR approximate percentile function
+                 presults = sqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, percentileSql, fixed=TRUE), 
+                                     stringsAsFactors = FALSE)
+                 close(parChan)
+                         
+                 makeNumericMetrics(idx, column_stats, total_count, presults, percentileNames)
+              }  
+            }
+  }
+
+  return (result)
+  
+}
+
+makeNonNumericMetrics <- function(idx, column_stats, total_count) {
+  data.frame(idx=idx, 
+             distinct_count=column_stats[[1,"distinct_count"]],
+             not_null_count=column_stats[[1,"not_null_count"]],
+             null_count=total_count - column_stats[[1,"not_null_count"]],
+             minimum_str=as.character(column_stats[[1,"minimum"]]),
+             maximum_str=as.character(column_stats[[1,"maximum"]]),
+             stringsAsFactors=FALSE)
+}
+
+computeNonNumericMetrics <- function(channel, tableName, tableInfo, non_numeric_columns, 
+                                     where_clause, total_count, parallel=FALSE) {
+  
+  sql =
+    paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
+           "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
+           "       min((%%%column__name%%%)) as minimum, ",
+           "       max((%%%column__name%%%)) as maximum ",
+           "  FROM ", tableName, where_clause)
+  
+  if (!parallel) {
+    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC')) %do% {
+                       
+               if (column_name %in% non_numeric_columns) {
+                 column_stats = sqlQuery(channel, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                                         stringsAsFactors = FALSE)
+                         
+                 makeNonNumericMetrics(idx, column_stats, total_count) 
+               }
+            }
+  }else {
+    # parallel mode compute
+    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
       
-      table_info[column_idx, "IQR"] = presults[[which(presults$percentile==75),"value"]] -
-        presults[[which(presults$percentile==25),"value"]]
-      
-    }
+              if (column_name %in% non_numeric_columns) {
+                parChan = odbcReConnect(channel)
+                column_stats = sqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                                                 stringsAsFactors = FALSE)
+                close(parChan)
+                         
+                makeNonNumericMetrics(idx, column_stats, total_count) 
+              }
+            }
   }
   
-  # Loop over non-numeric columns 
-  non_numeric_columns = c(getCharacterColumns(table_info),
-                          getDateTimeColumns(table_info))
-  for(column_name in non_numeric_columns) {
-    column_stats = sqlQuery(channel,
-                            paste0("SELECT cast(count(distinct\"", column_name, "\") as bigint) as distinct_count, ",
-                                   "       cast(count(\"", column_name, "\") as bigint) as not_null_count, ",
-                                   "       min(\"", column_name, "\") as minimum, ",
-                                   "       max(\"", column_name, "\") as maximum ",
-                                   "  FROM ", tableName, where_clause)
-    )
-    if (!is.data.frame(column_stats) || nrow(column_stats) != 1)
-      stop(paste("Not a valid sql to compute stats on non-numeric column '", column_name, "'"))
-    
-    column_idx = which(table_info$COLUMN_NAME == column_name)
-    table_info[column_idx, "distinct_count"] = column_stats[[1,"distinct_count"]]
-    table_info[column_idx, "not_null_count"] = column_stats[[1,"not_null_count"]]
-    table_info[column_idx, "null_count"] = total_count - column_stats[[1,"not_null_count"]]
-    table_info[column_idx, "minimum_str"] = as.character(column_stats[[1,"minimum"]])
-    table_info[column_idx, "maximum_str"] = as.character(column_stats[[1,"maximum"]])
+  return (result)
+}
+
+makeMode <- function(idx, mode) {
+  data.frame(idx=idx, mode_value=mode[[1,"val"]], mode_count=mode[[1, "cnt"]], 
+             stringsAsFactors=FALSE)
+}
+
+computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=FALSE) {
+  
+  sql =
+    paste0("SELECT CAST((%%%column__name%%%) as varchar) val, count(*) cnt ",
+               "  FROM ", tableName, where_clause,
+               " GROUP BY 1 ORDER BY 2 DESC LIMIT 1")
+  
+  if (!parallel) {
+    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC')) %do% {      
+              
+              mode = sqlQuery(channel, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                              stringsAsFactors = FALSE)
+              
+              makeMode(idx, mode)
+             }
+  }else {
+    # parallel mode compute 
+    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
+              
+              parChan = odbcReConnect(channel)
+              mode = sqlQuery(parChan, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                              stringsAsFactors = FALSE)
+              close(parChan)
+              
+              makeMode(idx, mode)
+            }
   }
   
-  # Compute modes
-  if(modeValue) {
-    for(column_name in table_info$COLUMN_NAME) {
-      mode = sqlQuery(channel,
-                      paste0("SELECT \"", column_name, "\" val, count(*) cnt ",
-                             "  FROM ", tableName, where_clause,
-                             " GROUP BY 1 ORDER BY 2 DESC LIMIT 1")
-      )
-      column_idx = which(table_info$COLUMN_NAME == column_name)
-      table_info[column_idx, "mode"] = toString(mode[[1,"val"]])
-      table_info[column_idx, "mode_count"] = mode[[1, "cnt"]]
-    }
-    
-  }
-  
-  return(table_info)
-  
+  return (result)
 }
 
 #' Invoke a Data Viewer on table statistics.

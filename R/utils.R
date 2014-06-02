@@ -18,9 +18,10 @@
 #' @param percentiles list of percentiles (integers between 0 and 100) to collect (always collects 25th and 75th 
 #'   for IQR calculation). There is no penalty in specifying more percentiles as they get calculated in a single call 
 #'   for each column - no matter how many different values are requested.
-#' @param parallel logical: enable parallel calls to Aster database. This option requires parallel backend enabled and
-#'   registered (see in examples). Parallel execution requires ODBC \code{channel} obtained only with 
-#'   \code{\link{odbcDriverConnect}} function, not \code{\link{odbcConnect}}.
+#' @param parallel logical: enable parallel calls to Aster database. This option requires parallel 
+#'   backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel} 
+#'   obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or 
+#'   \code{\link{odbcDriverConnect}} calls, but not with \code{\link{odbcConnect}(dsn, user, password)}.
 #' @param where SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE).
 #' @param mock logical: if TRUE returns pre-computed table statistics for tables \code{pitching} or \code{batting}, only.
 #' @return data frame returned by \code{\link{sqlColumns}} with additional columns:

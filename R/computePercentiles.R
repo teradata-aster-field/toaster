@@ -18,6 +18,10 @@
 #' @param by for optional grouping by one or more values for faceting or alike. 
 #'   Used with \code{\link{createBoxplot}} in combination with column name for x-axis and 
 #'   wrap or grid faceting.
+#' @param parallel logical: enable parallel calls to Aster database. This option requires parallel 
+#'   backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel} 
+#'   obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or 
+#'   \code{\link{odbcDriverConnect}} calls, but not with \code{\link{odbcConnect}(dsn, user, password)}.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
@@ -54,7 +58,7 @@
 computePercentiles <- function(channel, tableName, columnName = NULL, columnNames = columnName,
                                percentiles = c(0,5,10,25,50,75,90,95,100),
                                by = NULL, where = NULL, nameInDataFrame = 'column',
-                               stringsAsFactors = FALSE, test = FALSE) {
+                               stringsAsFactors = FALSE, test = FALSE, parallel = FALSE) {
   
   if (!is.null(columnName)) {
     toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columnNames for columns to compute percentiles on.")
@@ -103,20 +107,31 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columnName
     groupColumnsOpt = paste(" GROUP_COLUMNS(", paste0("'", by, "'", collapse=", "), ")", sep=" ")
   }
   
-  sql = assemblePercentileSql(tableName, where_clause, columnNames[[1]], partitionByList, percentileStr, groupColumnsOpt)
+  
   if (test) {
+    sql = assemblePercentileSql(tableName, where_clause, columnNames[[1]], partitionByList, percentileStr, groupColumnsOpt)
     return(sql)
   }else {
-    result = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
-    if (!is.null(nameInDataFrame)) 
-      result[, nameInDataFrame] = columnNames[[1]]
-    for (name in columnNames[-1]) {
-      sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
-      rs = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
-      if (!is.null(nameInDataFrame))
-        rs[, nameInDataFrame] = name
-      result = rbind(result, rs)
+    if (!parallel) {
+      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
+        sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
+        rs = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+        if (!is.null(nameInDataFrame))
+          rs[, nameInDataFrame] = name
+        rs
+      }
+    }else {
+      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC')) %dopar% {
+        sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
+        parChan = odbcReConnect(channel)
+        rs = sqlQuery(parChan, sql, stringsAsFactors=stringsAsFactors)
+        close(parChan)
+        if (!is.null(nameInDataFrame))
+          rs[, nameInDataFrame] = name
+        rs
+      }
     }
+    
     return(result)
   }
   

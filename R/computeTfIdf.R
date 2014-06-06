@@ -58,7 +58,7 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
   if (test) 
     return (sql)
   else {
-    rs = sqlQuery(channel, sql, stringsAsFactors = FALSE)
+    rs = toaSqlQuery(channel, sql, stringsAsFactors = FALSE)
   }
   
   x = makeSimpleTripletMatrix(rs, ifelse(weighting == 'raw', 'count', 'tf'), 'tf')
@@ -99,7 +99,7 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
   # and adjust 2 to 3 if requested
   if (!test) {
     countSql = paste0("SELECT COUNT(DISTINCT(", derivedDocId, ")) count ", " FROM ", tableName, where_clause)
-    docCount = sqlQuery(channel, countSql)$count[[1]]
+    docCount = toaSqlQuery(channel, countSql)$count[[1]]
     if (docCount < 2)
       stop("Can't compute TF-IDF for single document. Use 'computeTf` that computes term frequency instead.")
     
@@ -122,7 +122,7 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
   if (test) 
     return (sql)
   else {
-    rs = sqlQuery(channel, sql, stringsAsFactors = FALSE)
+    rs = toaSqlQuery(channel, sql, stringsAsFactors = FALSE)
   }
   
   x = makeSimpleTripletMatrix(rs, 'tf_idf', "ti")

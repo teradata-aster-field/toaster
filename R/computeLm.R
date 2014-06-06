@@ -171,7 +171,7 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
   if (test) 
     return (sql)
   else {
-    result = sqlQuery(channel, sql, stringsAsFactors=FALSE)
+    result = toaSqlQuery(channel, sql, stringsAsFactors=FALSE)
   }
   
   # handle empty data set: currently Aster ODBC driver doesn't return SQL/MR error:
@@ -262,7 +262,7 @@ predictLm <- function(channel, tableName, predictors, predictorColumns, predicto
     "SELECT ", selectList, " FROM ( ", selectSample, " ) t "
   )
   
-  return(sqlQuery(channel, sql, stringsAsFactors=FALSE))
+  return(toaSqlQuery(channel, sql, stringsAsFactors=FALSE))
   
 }
 

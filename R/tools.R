@@ -47,3 +47,17 @@ toa_dep <- function(version, msg) {
   
   invisible()
 }
+
+
+toaSqlQuery <- function(channel, sql, errors = FALSE, ..., closeOnError=FALSE) {
+  
+  rs = sqlQuery(channel, sql, errors=errors, ...)
+  
+  if (length(rs) == 1 && is.numeric(rs) && rs == -1) {
+    msg = odbcGetErrMsg(channel)
+    if (closeOnError) 
+      close(channel)
+    stop(msg)
+  }else
+    return(rs)
+}

@@ -69,7 +69,7 @@ computeAggregates <- function(channel, tableName,
   if (test) {
     return(sql)
   }else {
-    return(sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors))
+    return(toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors))
   }
   
 }

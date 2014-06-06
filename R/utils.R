@@ -120,8 +120,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   table_info[c("minimum_str","maximum_str")] = as.character(NA)
   
   # Total rows
-  total_rows = sqlQuery(channel,
-                        paste0("SELECT COUNT(*) cnt FROM ", tableName, where_clause))
+  total_rows = toaSqlQuery(channel, paste0("SELECT COUNT(*) cnt FROM ", tableName, where_clause))
   if (!is.data.frame(total_rows) || nrow(total_rows) != 1)
     stop(paste("Not a valid sql to count total number of rows in the table '", tableName, "'"))
   
@@ -233,12 +232,12 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
                if (column_name %in% numeric_columns) {
                  
                  # Compute SELECT aggregate statistics on each numeric column
-                 column_stats = sqlQuery(channel, gsub('(%%%column__name%%%)', column_name, metricsSql, fixed=TRUE), 
-                                         stringsAsFactors = FALSE)
+                 column_stats = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, metricsSql, 
+                                                          fixed=TRUE), stringsAsFactors = FALSE)
                          
                  # compute all percentiles at once with SQL/MR approximate percentile function
-                 presults = sqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, fixed=TRUE), 
-                                     stringsAsFactors = FALSE)
+                 presults = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, 
+                                                      fixed=TRUE), stringsAsFactors = FALSE)
                          
                  makeNumericMetrics(idx, column_stats, total_count, presults, percentileNames)
                }  
@@ -252,12 +251,14 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
                          
                  parChan = odbcReConnect(channel)
                  # Compute SELECT aggregate statistics on each numeric column
-                 column_stats = sqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, metricsSql, fixed=TRUE), 
-                                         stringsAsFactors = FALSE)
+                 column_stats = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, metricsSql, 
+                                                          fixed=TRUE), 
+                                         stringsAsFactors = FALSE, closeOnError=TRUE)
                          
                  # compute all percentiles at once with SQL/MR approximate percentile function
-                 presults = sqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, percentileSql, fixed=TRUE), 
-                                     stringsAsFactors = FALSE)
+                 presults = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, percentileSql, 
+                                                      fixed=TRUE), 
+                                     stringsAsFactors = FALSE, closeOnError=TRUE)
                  close(parChan)
                          
                  makeNumericMetrics(idx, column_stats, total_count, presults, percentileNames)
@@ -294,7 +295,7 @@ computeNonNumericMetrics <- function(channel, tableName, tableInfo, non_numeric_
                      .combine='rbind', .packages=c('RODBC')) %do% {
                        
                if (column_name %in% non_numeric_columns) {
-                 column_stats = sqlQuery(channel, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                 column_stats = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
                                          stringsAsFactors = FALSE)
                          
                  makeNonNumericMetrics(idx, column_stats, total_count) 
@@ -307,8 +308,8 @@ computeNonNumericMetrics <- function(channel, tableName, tableInfo, non_numeric_
       
               if (column_name %in% non_numeric_columns) {
                 parChan = odbcReConnect(channel)
-                column_stats = sqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
-                                                 stringsAsFactors = FALSE)
+                column_stats = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                                                 stringsAsFactors = FALSE, closeOnError=TRUE)
                 close(parChan)
                          
                 makeNonNumericMetrics(idx, column_stats, total_count) 
@@ -335,7 +336,7 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC')) %do% {      
               
-              mode = sqlQuery(channel, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+              mode = toaSqlQuery(channel, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
                               stringsAsFactors = FALSE)
               
               makeMode(idx, mode)
@@ -346,8 +347,8 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
                      .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
               
               parChan = odbcReConnect(channel)
-              mode = sqlQuery(parChan, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
-                              stringsAsFactors = FALSE)
+              mode = toaSqlQuery(parChan, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                              stringsAsFactors = FALSE, closeOnError=TRUE)
               close(parChan)
               
               makeMode(idx, mode)
@@ -436,7 +437,9 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
   }else {
     sql = paste0("SELECT DISTINCT ", columnName, " values FROM ", tableName, where_clause)
     
-    return (sqlQuery(conn, sql, stringsAsFactors=FALSE)[, 'values'])
+    rs = toaSqlQuery(conn, sql, stringsAsFactors=FALSE)
+    
+    return (rs[, 'values'])
   }
   
   
@@ -452,7 +455,7 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
   sql = paste0("select * from nc_system.nc_all_sqlmr_funcs where funcname like '", name, "' and funcowner = '",
                owner, "'")
   
-  func_list = sqlQuery(conn, sql)
+  func_list = toaSqlQuery(conn, sql)
   
   if (!('funcname' %in% names(func_list)) || length(func_list$funcname) == 0) {
     stop("No functions to grant execute permission to.")
@@ -460,7 +463,8 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
   
   for(func_name in func_list$funcname){
     sql = paste0("grant execute on function ", func_name, " to ", user)
-    # print(sql)
-    result = sqlQuery(conn, sql)
+    result = toaSqlQuery(conn, sql)
+    
+    return (result)
   }
 }

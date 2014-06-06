@@ -107,7 +107,7 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
   if (test) {
     return (sql)
   }else {
-    heatmap = sqlQuery(channel, sql)
+    heatmap = toaSqlQuery(channel, sql)
   }
   
   if (dimAsFactor) {

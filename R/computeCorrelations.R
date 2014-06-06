@@ -79,7 +79,7 @@ computeCorrelations <- function(channel, tableName, tableInfo, include, except=N
   if (test) {
     return (sql)
   }else {
-    rs_corrs = sqlQuery(channel, sql)
+    rs_corrs = toaSqlQuery(channel, sql)
   }
   
   rs_corrs = cbind(rs_corrs, t(sapply(rs_corrs$corr, 

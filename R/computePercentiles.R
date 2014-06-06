@@ -115,18 +115,19 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columnName
     if (!parallel) {
       result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
         sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
-        rs = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
-        if (!is.null(nameInDataFrame))
+        rs = toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+        if (!is.null(nameInDataFrame) && nrow(rs) > 0)
           rs[, nameInDataFrame] = name
         rs
       }
     }else {
-      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC')) %dopar% {
+      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC'),
+                       .errorhandling='stop') %dopar% {
         sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
         parChan = odbcReConnect(channel)
-        rs = sqlQuery(parChan, sql, stringsAsFactors=stringsAsFactors)
+        rs = toaSqlQuery(parChan, sql, stringsAsFactors=stringsAsFactors, closeOnError=TRUE)
         close(parChan)
-        if (!is.null(nameInDataFrame))
+        if (!is.null(nameInDataFrame) && nrow(rs) > 0)
           rs[, nameInDataFrame] = name
         rs
       }

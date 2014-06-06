@@ -98,7 +98,7 @@ computeBarchart <- function(channel, tableName, category,
   if (test) {
     return(sql)
   }else {
-    df = sqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+    df = toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
     
     if (withMelt) {
       df = melt(df, id.vars=c(category, by))

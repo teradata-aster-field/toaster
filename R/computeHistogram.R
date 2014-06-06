@@ -173,7 +173,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   if (test) {
     return (sql)
   }else {
-    return (sqlQuery(channel, sql))
+    return (toaSqlQuery(channel, sql))
   }
   
 }
@@ -220,7 +220,7 @@ computeHistogramOfFrequencies <- function(channel, tableName, columnName,
   if (test) {
     return (sql)
   }else {
-    return (histogram = sqlQuery(channel,sql))
+    return (histogram = toaSqlQuery(channel,sql))
   }
   
 }
@@ -238,7 +238,7 @@ computeDateHistogram <- function(channel, tableName, columnName,
     }
     
     # compute percentiles first
-    percentiles = sqlQuery(channel,
+    percentiles = toaSqlQuery(channel,
                            paste0("SELECT * FROM approxPercentileReduce(
                                     ON (
                                       SELECT * FROM approxPercentileMap(
@@ -296,7 +296,7 @@ computeDateHistogram <- function(channel, tableName, columnName,
   if (test) {
     return(sql)
   }else {
-    return (sqlQuery(channel, sql))
+    return (toaSqlQuery(channel, sql))
   }
   
 }

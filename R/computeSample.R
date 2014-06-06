@@ -88,7 +88,7 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize,
   if(test) {
     return(sql)
   }else {
-    return(sqlQuery(channel, sql, as.is=as.is, stringsAsFactors=stringsAsFactors))
+    return(toaSqlQuery(channel, sql, as.is=as.is, stringsAsFactors=stringsAsFactors))
   }
   
 }

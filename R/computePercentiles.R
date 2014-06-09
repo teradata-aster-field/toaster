@@ -11,10 +11,17 @@
 #'   
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName Aster table name
-#' @param columnName deprecated. Use \code{columnNames} instead. 
-#' @param columnNames names of the columns to compute percentiles on
+#' @param columnName deprecated. Use vector \code{columns} instead. 
+#' @param columns names of the columns to compute percentiles on
+#' @param temporal logical: TRUE indicates all columns are temporal, otherwsie numerical.
+#'   Temporal percentiles have 2 values: character \code{value} representing temporal
+#'   percentile (date, time, timestamp or datetime) and integer \code{epoch} value 
+#'   of the number of seconds since 1970-01-01 00:00:00-00 (can be negative) or for interval 
+#'   values includeing \code{time}, the total number of seconds in the interval.
 #' @param percentiles integer vector with percentiles to compute. Values \code{0, 25, 50, 75, 100}
-#'    will always be added if omitted.
+#'    will always be added if omitted for numerical types, and \code{25, 50, 75, 100} for 
+#'    temporal. Percentile 0 (minimum) has to be included explicitly for temporals as its 
+#'    computation affects performance more than others.
 #' @param by for optional grouping by one or more values for faceting or alike. 
 #'   Used with \code{\link{createBoxplot}} in combination with column name for x-axis and 
 #'   wrap or grid faceting.
@@ -26,13 +33,14 @@
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
 #' @param nameInDataFrame name of the column in returned data frame to store table column name(s)  
-#'   defined by parameter \code{columnNames}. \code{NULL} indicates omit this column from the data 
-#'   frame (not recommended when computing percentiles for two or more columns).
+#'   defined by parameter \code{columns}. \code{NULL} indicates omit this column from the data 
+#'   frame (not recommended when computing percentiles for multiple columns).
 #' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
 #'   and not converted to anything else be converted to factors?
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
-#' @return Data frame containing percentile values organized into following columns:
+#' @return For numeric data function returns a data frame with percentile values organized 
+#'   into following columns:
 #'   \itemize{
 #'     \item \emph{percentile} percentile to compute (from 0 to 100): will contain all valid values 
 #'       from \code{percentiles}
@@ -41,6 +49,21 @@
 #'       or omit this column all together if \code{NULL}.
 #'     \item \emph{by[1], by[2], ...} in presence of parameter \code{by}, contain values of the grouping 
 #'       columns for computed percentiles (optional). 
+#'   }
+#'   For temporal data function returns a data frame with percentile values organized 
+#'   into following columns:
+#'   \itemize{
+#'     \item \emph{percentile} percentile to compute (from 0 to 100): will contain all valid values 
+#'       from \code{percentiles}
+#'     \item \emph{value} computed percentile value converted from temporal data type to its character 
+#'       representation.
+#'     \item \emph{epoch} corresponding to temporal percentile value epoch: for \code{date} and 
+#'       \code{timestamp} values, the number of seconds since 1970-01-01 00:00:00-00 (can be negative); 
+#'       for interval values include \code{time}, the total number of seconds in the interval. 
+#'     \item \emph{column} table column name. Override name \code{column} with parameter \code{nameInDataFrame}
+#'       or omit this column all together if \code{NULL}.
+#'     \item \emph{by[1], by[2], ...} in presence of parameter \code{by}, contain values of the grouping 
+#'       columns for computed percentiles (optional).
 #'   }
 #' 
 #' @export
@@ -55,13 +78,13 @@
 #' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
 #' 
 #' }
-computePercentiles <- function(channel, tableName, columnName = NULL, columnNames = columnName,
-                               percentiles = c(0,5,10,25,50,75,90,95,100),
+computePercentiles <- function(channel, tableName, columnName = NULL, columns = columnName,
+                               temporal = FALSE, percentiles = c(ifelse(temporal, 5, 0),5,10,25,50,75,90,95,100), 
                                by = NULL, where = NULL, nameInDataFrame = 'column',
                                stringsAsFactors = FALSE, test = FALSE, parallel = FALSE) {
   
   if (!is.null(columnName)) {
-    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columnNames for columns to compute percentiles on.")
+    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columns for columns to compute percentiles on.")
   }
   
   if (missing(channel)) {
@@ -71,18 +94,19 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columnName
   if (missing(tableName) || is.null(tableName))
     stop("Must provide table name.")
     
-  if ((missing(columnName) && missing(columnNames)) ||
-        is.null(columnNames) ||
-        length(columnNames) == 0) {
+  if ((missing(columnName) && missing(columns)) ||
+        is.null(columns) ||
+        length(columns) == 0) {
     stop("Must provide at least one column name.")
   }
   
   # percentiles
   # always add 50 (median) and 25, 75 for IQR computations
+  default_percentiles = c(ifelse(temporal, 25, 0), 25, 50, 75, 100)
   if (is.null(percentiles) | !is.numeric(percentiles)) {
-    percentiles = c(0, 25, 50, 75, 100)
+    percentiles = unique(default_percentiles)
   }else {
-    percentiles = union(percentiles, c(0, 25, 50, 75, 100)) 
+    percentiles = union(percentiles, default_percentiles) 
   }
   if (any(percentiles < 0 | percentiles > 100)) {
     stop (paste("Invalid percentile value(s) passed (below 0 or above 100): ", percentiles))
@@ -91,11 +115,24 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columnName
   
   where_clause = makeWhereClause(where)
   
-  percentileNames = paste0(percentiles, "%")
-  names(percentileNames) = percentiles
   percentileStr = paste(percentiles, collapse=",")
   
-  if (missing(by)) {
+  if (temporal)
+    return (computeTemporalPercentiles(channel, tableName, columns, 
+                                       percentiles, percentileStr, by, where_clause, nameInDataFrame,
+                                       stringsAsFactors, test, parallel))
+  else
+    return (computeNumericPercentiles(channel, tableName, columns,
+                                      percentiles, percentileStr, by, where_clause, nameInDataFrame,
+                                      stringsAsFactors, test, parallel))
+}
+
+
+computeNumericPercentiles <- function(channel, tableName, columnNames,
+                                      percentiles, percentileStr, by, where_clause, nameInDataFrame,
+                                      stringsAsFactors, test, parallel) {
+  
+  if (is.null(by)) {
     # construct column list
     partitionByList = " 1 " 
     # construct group by list by removing aliases (if any)
@@ -135,7 +172,6 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columnName
     
     return(result)
   }
-  
 }
 
 assemblePercentileSql <- function(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt) {
@@ -153,4 +189,86 @@ assemblePercentileSql <- function(tableName, where_clause, name, partitionByList
                "                  PERCENTILE( ", percentileStr, " )",
                groupColumnsOpt,
                "                  )")
+}
+
+
+computeTemporalPercentiles <- function(channel, tableName, columnNames,
+                                       percentiles, percentileStr, by, where_clause, nameInDataFrame,
+                                       stringsAsFactors, test, parallel) {
+  
+  if (is.null(by)) {
+    # construct group select list
+    selectByList = " "
+    # construct partition by list
+    partitionByList = " " 
+    # construct group by list 
+    groupByList = "1"
+    groupBy0PercentileList = ""
+  }else {
+    # construct group select list
+    selectByList = paste0(paste(by, collapse=", "), ", ")
+    # construct partition by list
+    partitionByList = paste("PARTITION BY", paste(by, collapse=", "))
+    # construct group by list by removing aliases (if any)
+    groupByList = paste(as.character(1:(length(by)+1)), collapse=", ")
+    groupBy0PercentileList = paste("GROUP BY", paste(as.character(1:length(by)), collapse=", "))
+  }
+  
+  if (test) {
+    sql = assembleTemporalPercentileSql(tableName, where_clause, percentiles, percentileStr, 
+                                        selectByList, partitionByList, groupByList, 
+                                        groupBy0PercentileList)
+    return(gsub('(%%%column__name%%%)', columnNames[[1]], sql, fixed=TRUE))
+  }else {
+    if (!parallel) {
+      result = foreach(name=columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
+        sql = assembleTemporalPercentileSql(tableName, where_clause, percentiles, percentileStr,
+                                            selectByList, partitionByList, groupByList,
+                                            groupBy0PercentileList)
+        rs = toaSqlQuery(channel, gsub('(%%%column__name%%%)', name, sql, fixed=TRUE), stringsAsFactors=stringsAsFactors)
+        if (!is.null(nameInDataFrame) && nrow(rs) > 0)
+          rs[, nameInDataFrame] = name
+        rs
+      }
+    }else {
+      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC'),
+                       .errorhandling='stop') %dopar% {
+        sql = assembleTemporalPercentileSql(tableName, where_clause, percentiles, percentileStr,
+                                            selectByList, partitionByList, groupByList,
+                                            groupBy0PercentileList)
+        parChan = odbcReConnect(channel)
+        rs = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', name, sql, fixed=TRUE), stringsAsFactors=stringsAsFactors)
+        close(parChan)
+        if (!is.null(nameInDataFrame) && nrow(rs) > 0)
+          rs[, nameInDataFrame] = name
+        rs
+      }
+    }
+    
+    return (result)
+  }
+  
+}
+
+assembleTemporalPercentileSql <- function(tableName, where_clause, percentiles, percentileStr, 
+                                          selectByList, partitionByList, groupByList, 
+                                          groupBy0PercentileList) {
+  
+  where_clause = ifelse(grepl('[^ ]',where_clause), paste0(where_clause, " AND (%%%column__name%%%) IS NOT NULL"),
+                        " WHERE (%%%column__name%%%) IS NOT NULL")
+  
+  sql = paste0("SELECT ", selectByList, " percentile, MAX((%%%column__name%%%)) value, MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
+              FROM (SELECT ", selectByList, " (%%%column__name%%%), 
+                              ntile(100) OVER (", partitionByList, " ORDER BY (%%%column__name%%%)) percentile
+                      FROM ", tableName, where_clause, ") t
+             WHERE percentile IN ( ", percentileStr, " ) 
+             GROUP BY ", groupByList, 
+               # performance enhancement: include SELECT below only when 0 percentile (min) requested
+               ifelse(0 %in% percentiles, paste0(
+          " UNION  
+            SELECT ", selectByList, " 0, MIN((%%%column__name%%%)), MIN(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch 
+              FROM ", tableName, where_clause, " ", groupBy0PercentileList),
+                 " "),
+               "  ORDER BY ", groupByList)
+  
 }

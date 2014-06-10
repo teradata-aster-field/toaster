@@ -25,8 +25,8 @@ battingInfo = getTableSummary(channel=conn, 'batting_enh',
  
 # compute statistics for certain columns including each percentile from 1 to 99
 pitchingInfo = getTableSummary(channel=conn, 'pitching_enh',
-                             include=c('h', 'er', 'hr', 'bb', 'so'),
-                             percentiles=seq(1,99))
+                             include=c('hr', 'bb', 'so', 'lgid'),
+                             percentiles=seq(1,99,3), mode=TRUE)
 names(pitchingInfo)
                               
 # compute statistics except for certain columns
@@ -37,3 +37,8 @@ pitchingInfo = getTableSummary(channel=conn, 'pitching_enh',
 teamInfo = getTableSummary(channel=conn, 'teams_enh', 
                            include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
                            except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))
+
+# compute statistics on master table including temporal columns
+masterInfo = getTableSummary(channel=conn, 'master_enh', 
+                             except=c('lahmanid','playerid','managerid','hofid','lahman40id','lahman45id',
+                                      'retroid','holtzid','bbrefid'))

@@ -370,19 +370,31 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                                    percentiles, percentileNames, percentileStrNames, percentileStr, 
                                    where_clause, total_count, parallel=FALSE) {
   
-  metricsSql = 
-    paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
-           "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
-           "       min((%%%column__name%%%)) as minimum, ",
-           "       max((%%%column__name%%%)) as maximum, ",
-           "       avg((%%%column__name%%%)) as average  ",
-           "  FROM ", tableName, where_clause)
-  
   where_clause = ifelse(length(where_clause)>1, paste0(where_clause, " AND (%%%column__name%%%) IS NOT NULL"),
                         " WHERE (%%%column__name%%%) IS NOT NULL ")
   
+  getTemporalMetricsSql <- function(name, type) {
+    
+    # this variable is not used - for reference only
+    temporalTypes = c('timestamp', 'timestamp without time zone', 'timestamp with time zone','interval',
+                      'date','time', 'time with timezone','time without time zone')
+    
+    sql = 
+      paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
+             "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
+             "       min((%%%column__name%%%))::varchar as minimum, ",
+             "       max((%%%column__name%%%))::varchar as maximum, ",
+             ifelse(grepl("^(timestamp|date)", type, ignore.case=TRUE),
+             "       to_timestamp(avg(extract('EPOCH' FROM (%%%column__name%%%)))) as average ",
+             "       avg((%%%column__name%%%)) as average "),
+             "  FROM ", tableName, where_clause) 
+    
+    gsub('(%%%column__name%%%)', name, sql, fixed=TRUE)
+  }
+  
   percentileSql = 
-    paste0("SELECT percentile, MAX((%%%column__name%%%)) value, MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
+    paste0("SELECT percentile, MAX((%%%column__name%%%))::varchar value, 
+                   MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
               FROM (SELECT (%%%column__name%%%), ntile(100) OVER (ORDER BY (%%%column__name%%%)) AS percentile
                       FROM ", tableName, where_clause, ") t
              WHERE percentile IN ( ", percentileStr, " ) 
@@ -396,14 +408,15 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
           "  ORDER BY 1")
   
   if (!parallel) {
-    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+    result = foreach(column_name = tableInfo$COLUMN_NAME, column_type = tableInfo$TYPE_NAME,
+                     idx = seq_along(tableInfo$COLUMN_NAME), 
                      .combine='rbind', .packages=c('RODBC')) %do% {
                        
                        if (column_name %in% temporal_columns) {
                          
                          # Compute SELECT aggregate statistics on each temporal column
-                         column_stats = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, metricsSql, 
-                                                                  fixed=TRUE), stringsAsFactors = FALSE)
+                         column_stats = toaSqlQuery(channel, getTemporalMetricsSql(column_name, column_type), 
+                                                    stringsAsFactors = FALSE)
                          
                          # compute all percentiles at once with SQL/MR approximate percentile function
                          presults = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, 
@@ -415,15 +428,15 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
     
   }else{
     # parallel mode compute
-    result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+    result = foreach(column_name = tableInfo$COLUMN_NAME, column_type = tableInfo$TYPE_NAME,
+                     idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
                        
                        if (column_name %in% temporal_columns) {
                          
                          parChan = odbcReConnect(channel)
                          # Compute SELECT aggregate statistics on each temporal column
-                         column_stats = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, metricsSql, 
-                                                                  fixed=TRUE), 
+                         column_stats = toaSqlQuery(parChan, getTemporalMetricsSql(column_name, column_type), 
                                                     stringsAsFactors = FALSE, closeOnError=TRUE)
                          
                          # compute all percentiles at once with SQL/MR approximate percentile function

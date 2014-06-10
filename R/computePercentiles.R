@@ -257,7 +257,9 @@ assembleTemporalPercentileSql <- function(tableName, where_clause, percentiles, 
   where_clause = ifelse(grepl('[^ ]',where_clause), paste0(where_clause, " AND (%%%column__name%%%) IS NOT NULL"),
                         " WHERE (%%%column__name%%%) IS NOT NULL")
   
-  sql = paste0("SELECT ", selectByList, " percentile, MAX((%%%column__name%%%)) value, MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
+  sql = paste0("SELECT ", selectByList, " percentile, 
+                       MAX((%%%column__name%%%))::varchar value, 
+                       MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
               FROM (SELECT ", selectByList, " (%%%column__name%%%), 
                               ntile(100) OVER (", partitionByList, " ORDER BY (%%%column__name%%%)) percentile
                       FROM ", tableName, where_clause, ") t

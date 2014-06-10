@@ -66,7 +66,7 @@
 #' }
 getTableSummary <- function (channel, tableName, include = NULL, except = NULL, 
                              modeValue = FALSE,
-                             percentiles = c(0,5,10,25,50,75,90,95,100),
+                             percentiles = c(5,10,25,50,75,90,95,100),
                              where = NULL, mock = FALSE, parallel = FALSE) {
   
   # check if parallel option is valid
@@ -111,13 +111,15 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   }
   
   percentileNames = paste0(percentiles, "%")
+  percentileStrNames = paste0(percentiles, "%str")
   names(percentileNames) = percentiles
+  names(percentileStrNames) = percentiles
   percentileStr = paste(percentiles, collapse=",")
   
   # Create data frame columns for table statistics
   table_info[c("total_count","distinct_count","not_null_count","null_count")] = as.integer(NA)
   table_info[c("minimum","maximum","average","deviation", percentileNames, "IQR")] = as.numeric(NA)
-  table_info[c("minimum_str","maximum_str")] = as.character(NA)
+  table_info[c("minimum_str","maximum_str", "average_str", percentileStrNames)] = as.character(NA)
   
   # Total rows
   total_rows = toaSqlQuery(channel, paste0("SELECT COUNT(*) cnt FROM ", tableName, where_clause))
@@ -143,18 +145,33 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   }
   
   
-  # compute non-numeric metrics 
-  non_numeric_columns = c(getCharacterColumns(table_info),
-                          getDateTimeColumns(table_info))
+  # compute character metrics 
+  character_columns = getCharacterColumns(table_info)
   
-  if (length(non_numeric_columns) > 0) {
-    metrics = computeNonNumericMetrics(channel, tableName, table_info, non_numeric_columns, 
+  if (length(character_columns) > 0) {
+    metrics = computeCharacterMetrics(channel, tableName, table_info, character_columns, 
                                        where_clause, total_count, parallel)
     
     table_info[metrics$idx, c("distinct_count", "not_null_count", "null_count", 
                               "minimum_str", "maximum_str")] =
       metrics[, c("distinct_count", "not_null_count", "null_count", 
                   "minimum_str", "maximum_str")]
+  }
+  
+  # compute temporal metrics
+  temporal_columns = getDateTimeColumns(table_info)
+  
+  if (length(temporal_columns) > 0) {
+    metrics = computeTemporalMetrics(channel, tableName, table_info, temporal_columns,
+                                     percentiles, percentileNames, percentileStrNames, percentileStr, 
+                                     where_clause, total_count, parallel)
+    
+    table_info[metrics$idx, c("distinct_count", "not_null_count", "null_count",
+                              "minimum_str", "maximum_str", "average_str", 
+                              percentileNames, "IQR", percentileStrNames)] =
+      metrics[, c("distinct_count", "not_null_count", "null_count",
+                  "minimum_str", "maximum_str", "average_str", 
+                  percentileNames, "IQR", percentileStrNames)]
   }
   
   # Compute modes
@@ -270,7 +287,7 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
   
 }
 
-makeNonNumericMetrics <- function(idx, column_stats, total_count) {
+makeCharacterMetrics <- function(idx, column_stats, total_count) {
   data.frame(idx=idx, 
              distinct_count=column_stats[[1,"distinct_count"]],
              not_null_count=column_stats[[1,"not_null_count"]],
@@ -280,7 +297,7 @@ makeNonNumericMetrics <- function(idx, column_stats, total_count) {
              stringsAsFactors=FALSE)
 }
 
-computeNonNumericMetrics <- function(channel, tableName, tableInfo, non_numeric_columns, 
+computeCharacterMetrics <- function(channel, tableName, tableInfo, character_columns, 
                                      where_clause, total_count, parallel=FALSE) {
   
   sql =
@@ -294,11 +311,11 @@ computeNonNumericMetrics <- function(channel, tableName, tableInfo, non_numeric_
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC')) %do% {
                        
-               if (column_name %in% non_numeric_columns) {
+               if (column_name %in% character_columns) {
                  column_stats = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
                                          stringsAsFactors = FALSE)
                          
-                 makeNonNumericMetrics(idx, column_stats, total_count) 
+                 makeCharacterMetrics(idx, column_stats, total_count) 
                }
             }
   }else {
@@ -306,18 +323,133 @@ computeNonNumericMetrics <- function(channel, tableName, tableInfo, non_numeric_
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
       
-              if (column_name %in% non_numeric_columns) {
+              if (column_name %in% character_columns) {
                 parChan = odbcReConnect(channel)
                 column_stats = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
                                                  stringsAsFactors = FALSE, closeOnError=TRUE)
                 close(parChan)
                          
-                makeNonNumericMetrics(idx, column_stats, total_count) 
+                makeCharacterMetrics(idx, column_stats, total_count) 
               }
             }
   }
   
   return (result)
+}
+
+makeTemporalMetrics <- function(idx, column_stats, total_count, presults, percentileNames, percentileStrNames) {
+  df = data.frame(
+    idx=idx,
+    distinct_count=column_stats[[1,"distinct_count"]],
+    not_null_count=column_stats[[1,"not_null_count"]],
+    null_count=total_count - column_stats[[1,"not_null_count"]],
+    minimum_str=column_stats[[1,"minimum"]],
+    maximum_str=column_stats[[1,"maximum"]],
+    average_str=column_stats[[1,"average"]],
+    stringsAsFactors=FALSE)
+  
+  if (nrow(presults) > 0) {
+    for (tile in 1:nrow(presults)) {
+      ptile = as.character(presults[[tile, "percentile"]])
+      ptileValue = presults[[tile, "epoch"]]
+      df[1, percentileNames[ptile]] = ptileValue
+      
+      ptile = as.character(presults[[tile, "percentile"]])
+      ptileValue = presults[[tile, "value"]]
+      df[1, percentileStrNames[ptile]] = ptileValue
+      
+      df[1, "IQR"] = presults[[which(presults$percentile==75),"epoch"]] -
+        presults[[which(presults$percentile==25),"epoch"]]
+    }
+  }
+  
+  return (df)
+}
+
+computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_columns,
+                                   percentiles, percentileNames, percentileStrNames, percentileStr, 
+                                   where_clause, total_count, parallel=FALSE) {
+  
+  where_clause = ifelse(length(where_clause)>1, paste0(where_clause, " AND (%%%column__name%%%) IS NOT NULL"),
+                        " WHERE (%%%column__name%%%) IS NOT NULL ")
+  
+  getTemporalMetricsSql <- function(name, type) {
+    
+    # this variable is not used - for reference only
+    temporalTypes = c('timestamp', 'timestamp without time zone', 'timestamp with time zone','interval',
+                      'date','time', 'time with timezone','time without time zone')
+    
+    sql = 
+      paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
+             "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
+             "       min((%%%column__name%%%))::varchar as minimum, ",
+             "       max((%%%column__name%%%))::varchar as maximum, ",
+             ifelse(grepl("^(timestamp|date)", type, ignore.case=TRUE),
+             "       to_timestamp(avg(extract('EPOCH' FROM (%%%column__name%%%)))) as average ",
+             "       avg((%%%column__name%%%)) as average "),
+             "  FROM ", tableName, where_clause) 
+    
+    gsub('(%%%column__name%%%)', name, sql, fixed=TRUE)
+  }
+  
+  percentileSql = 
+    paste0("SELECT percentile, MAX((%%%column__name%%%))::varchar value, 
+                   MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
+              FROM (SELECT (%%%column__name%%%), ntile(100) OVER (ORDER BY (%%%column__name%%%)) AS percentile
+                      FROM ", tableName, where_clause, ") t
+             WHERE percentile IN ( ", percentileStr, " ) 
+             GROUP BY 1 ",
+           # performance enhancement: include SELECT belo only when 0 percentile (min) requested
+           ifelse(0 %in% percentiles, paste0(
+          " UNION  
+            SELECT 0, MIN((%%%column__name%%%)), MIN(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch 
+              FROM svplan.containertrailerplans ", where_clause),
+          " "),
+          "  ORDER BY 1")
+  
+  if (!parallel) {
+    result = foreach(column_name = tableInfo$COLUMN_NAME, column_type = tableInfo$TYPE_NAME,
+                     idx = seq_along(tableInfo$COLUMN_NAME), 
+                     .combine='rbind', .packages=c('RODBC')) %do% {
+                       
+                       if (column_name %in% temporal_columns) {
+                         
+                         # Compute SELECT aggregate statistics on each temporal column
+                         column_stats = toaSqlQuery(channel, getTemporalMetricsSql(column_name, column_type), 
+                                                    stringsAsFactors = FALSE)
+                         
+                         # compute all percentiles at once with SQL/MR approximate percentile function
+                         presults = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, 
+                                                              fixed=TRUE), stringsAsFactors = FALSE)
+                         
+                         makeTemporalMetrics(idx, column_stats, total_count, presults, percentileNames, percentileStrNames)
+                       }
+                     }
+    
+  }else{
+    # parallel mode compute
+    result = foreach(column_name = tableInfo$COLUMN_NAME, column_type = tableInfo$TYPE_NAME,
+                     idx = seq_along(tableInfo$COLUMN_NAME),
+                     .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
+                       
+                       if (column_name %in% temporal_columns) {
+                         
+                         parChan = odbcReConnect(channel)
+                         # Compute SELECT aggregate statistics on each temporal column
+                         column_stats = toaSqlQuery(parChan, getTemporalMetricsSql(column_name, column_type), 
+                                                    stringsAsFactors = FALSE, closeOnError=TRUE)
+                         
+                         # compute all percentiles at once with SQL/MR approximate percentile function
+                         presults = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, percentileSql, 
+                                                              fixed=TRUE), 
+                                                stringsAsFactors = FALSE, closeOnError=TRUE)
+                         close(parChan)
+                         
+                         makeTemporalMetrics(idx, column_stats, total_count, presults, percentileNames, percentileStrNames)
+                       }  
+                     }
+  }
+  
 }
 
 makeMode <- function(idx, mode) {

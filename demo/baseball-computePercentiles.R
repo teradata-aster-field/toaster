@@ -16,7 +16,7 @@ close(conn)
 conn = odbcConnect(dsn, uid, pwd)
 
 # Single boxplot: BA of all players
-allBAPerc = computePercentiles(conn, "batting_enh", "ba")
+allBAPerc = computePercentiles(conn, "batting_enh", columns="ba")
 createBoxplot(allBAPerc, fill=NULL, title="BA Boxplot")
 
 # Team BA in 2000s 
@@ -47,6 +47,14 @@ createBoxplot(teamsBAbyDecadePerc, facet=c("lgid","decadeid"), fill="lgid", useI
               title="League BA by Decade")
 
 # League BA, SLG, TA, RBI
-teamsAllBatting = computePercentiles(conn, "batting_enh", columnNames = c("ba", "slg", "ta"),
+teamsAllBatting = computePercentiles(conn, "batting_enh", columns = c("ba", "slg", "ta"),
                               by=c('lgid','decadeid'), where="yearid >= 1980")
-createBoxplot(teamsAllBatting, x='column', facet=c('lgid', 'decadeid'), useIQR=TRUE, coordFlip=TRUE, legendPosition="none")
+createBoxplot(teamsAllBatting, x='column', facet=c('lgid', 'decadeid'), useIQR=TRUE, coordFlip=TRUE, 
+              title="Batting by League and Decades",
+              legendPosition="none")
+
+# Temporal percentiles
+playerAllDates = computePercentiles(conn, "master_enh", columns=c('debut','finalgame','birthdate','deathdate'),
+                                    temporal=TRUE, percentiles=c(0))
+createBoxplot(playerAllDates, x='column', value='epoch', useIQR=TRUE, 
+              legendPosition="none")

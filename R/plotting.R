@@ -370,7 +370,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' 
 #'  
 #' }
-createBoxplot <- function(data, x=NULL, fill=x, useIQR = FALSE,
+createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FALSE,
                           facet = NULL, ncol = 1, facetScales = "fixed",                          
                           paletteValues = NULL, palette = "Set1",
                           title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))), 
@@ -392,7 +392,7 @@ createBoxplot <- function(data, x=NULL, fill=x, useIQR = FALSE,
   }else {
     formu = as.formula(paste(x, '+', paste(facet, collapse='+'), '~', 'percentile'))
   }
-  ndata = dcast(data, formu)
+  ndata = dcast(data, formu, value.var=value)
   
   # calculate IQR-based bounds
   if (useIQR) {

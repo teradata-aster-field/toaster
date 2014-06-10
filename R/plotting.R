@@ -316,6 +316,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'   along the x-axis. Each value of \code{x} must have corresponding
 #'   percentiles calculated.
 #' @param fill name of a column with values to colour box plots
+#' @param value column name with percentile value. Usually default \code{'value'}
+#'   with exception of temporal percentiles that should use \code{'epoch'} value.
 #' @param useIQR logical indicates use of IQR interval to compute cutoff lower 
 #'   and upper bounds: \code{[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR], IQR = Q3 - Q1}, 
 #'   if FALSE then use maximum and minimum bounds (all values).    

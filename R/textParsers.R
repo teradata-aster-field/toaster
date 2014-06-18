@@ -190,7 +190,7 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
 
 makeTextSelectList <- function(docId, textColumns, sep) {
   
-  collapse = paste(" || '", sep, "' || ")
+  collapse = paste0(" || '", sep, "' || ")
   textExpr = paste(textColumns, collapse=collapse)
   selectList = paste0(docId, " __doc_id__, ", textExpr, " __text_column__ ")
 }

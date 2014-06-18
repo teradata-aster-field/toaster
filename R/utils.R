@@ -159,7 +159,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   }
   
   # compute temporal metrics
-  temporal_columns = getDateTimeColumns(table_info)
+  temporal_columns = getTemporalColumns(table_info)
   
   if (length(temporal_columns) > 0) {
     metrics = computeTemporalMetrics(channel, tableName, table_info, temporal_columns,

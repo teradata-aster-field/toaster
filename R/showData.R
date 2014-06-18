@@ -207,7 +207,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   
   dataNum = getNumericColumns(summary, names.only=FALSE)
   dataChar = getCharacterColumns(summary, names.only=FALSE)
-  dataTemp = getDateTimeColumns(summary, names.only=FALSE)
+  dataTemp = getTemporalColumns(summary, names.only=FALSE)
   
   getPalette = colorRampPalette(brewer.pal(brewer.pal.info[paletteName,"maxcolors"], paletteName))
   

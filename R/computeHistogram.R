@@ -101,7 +101,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   
   # check if histogram is for date/time column
   # if so use EXTRACT function and SQL/MR
-  if (isDateTimeColumn(column_stats, columnName)) {
+  if (isTemporalColumn(column_stats, columnName)) {
     return (computeDateHistogram(channel, tableName, columnName, 
                                  binsize, startvalue, endvalue, numbins,
                                  useIQR,

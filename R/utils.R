@@ -212,6 +212,10 @@ makeNumericMetrics <- function(idx, column_stats, total_count, presults, percent
     
     df[1, "IQR"] = presults[[which(presults$percentile==75),"value"]] -
       presults[[which(presults$percentile==25),"value"]]
+  }else {
+    for (ptileName in percentileNames)
+      df[1, ptileName] = NA
+    df[1, "IQR"] = NA
   }
   
   return (df)
@@ -354,13 +358,20 @@ makeTemporalMetrics <- function(idx, column_stats, total_count, presults, percen
       ptileValue = presults[[tile, "epoch"]]
       df[1, percentileNames[ptile]] = ptileValue
       
-      ptile = as.character(presults[[tile, "percentile"]])
       ptileValue = presults[[tile, "value"]]
       df[1, percentileStrNames[ptile]] = ptileValue
-      
-      df[1, "IQR"] = presults[[which(presults$percentile==75),"epoch"]] -
-        presults[[which(presults$percentile==25),"epoch"]]
     }
+    
+    df[1, "IQR"] = presults[[which(presults$percentile==75),"epoch"]] -
+      presults[[which(presults$percentile==25),"epoch"]]
+  }else {
+    for (ptileName in percentileNames)
+      df[1, ptileName] = NA
+    
+    for (ptileStrName in percentileStrNames)
+      df[1, ptileStrName] = NA
+    
+    df[1, "IQR"] = NA
   }
   
   return (df)

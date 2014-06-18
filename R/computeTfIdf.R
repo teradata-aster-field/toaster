@@ -149,8 +149,8 @@ makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
   docs = result_set$docid
   weights = result_set[, weight_name]
   
-  allTerms = sort(unique(terms))
-  allDocs = sort(unique(docs))
+  allTerms = as.character(sort(unique(terms)))
+  allDocs = as.character(sort(unique(docs)))
   i = match(terms, allTerms)
   j = match(docs, allDocs)
   

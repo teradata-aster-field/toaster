@@ -101,7 +101,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
   # percentiles
   # always add 50 (median) and 25, 75 for IQR computations
-  if (is.null(percentiles) | !is.numeric(percentiles)) {
+  if (is.null(percentiles) || !is.numeric(percentiles)) {
     percentiles = c(25, 50, 75)
   }else {
     percentiles = union(percentiles, c(25, 50, 75)) 

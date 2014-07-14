@@ -82,7 +82,7 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize,
                              AS DATA PARTITION BY ANY
                            ON (SELECT COUNT(*) as stratum_count FROM ", tableName, where_clause, ") 
                              AS SUMMARY DIMENSION
-                           ApproximateSampleSize('", as.character(sampleSize), "'))")
+                           ApproximateSampleSize('", format(sampleSize, scientific=FALSE), "'))")
   }
   
   if(test) {

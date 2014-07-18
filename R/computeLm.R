@@ -26,8 +26,9 @@
 #'   as categorical because each value results in dummy predictor variable added to the model.
 #' @param sampleSize function always computes regression model coefficent on all data in the table.
 #'   But it computes predictions and returns an object of \code{\link{class}} "lm" based on sample
-#'   of data. The sample size defines how big the sample is. Be careful not overestimating the size
-#'   as all results are loaded into memory. 
+#'   of data. The sample size is in an absolute value for number of rows in the sample. 
+#'   Be careful not overestimating the size as all results are loaded into memory. 
+#'   Special value \code{"all"} or \code{"ALL"} will include all data in computation.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
@@ -248,7 +249,10 @@ predictLm <- function(channel, tableName, predictors, predictorColumns, predicto
     where = paste0(where, " AND ( ", whereNotNull, " ) ")
   
   # generate sample SQL
-  selectSample = computeSample(NULL, tableName=tableName, sampleSize=sampleSize, where=where, test=TRUE)
+  if (tolower(sampleSize) == "all") {
+    selectSample = paste0("SELECT * FROM ", tableName,  makeWhereClause(where))
+  }else
+    selectSample = computeSample(NULL, tableName=tableName, sampleSize=sampleSize, where=where, test=TRUE)
   
   a0 = coefficients[[1]]
   coefficients = coefficients[-1]
@@ -262,7 +266,20 @@ predictLm <- function(channel, tableName, predictors, predictorColumns, predicto
     "SELECT ", selectList, " FROM ( ", selectSample, " ) t "
   )
   
-  return(toaSqlQuery(channel, sql, stringsAsFactors=FALSE))
+  result = toaSqlQuery(channel, sql, stringsAsFactors=FALSE)
   
+  # handle hidden errors by analyzing number of rows
+  if (nrow(result) == 0) {
+    stop("No rows to compute lm characteristics. One of the reason could be insufficient number of rows for sample - try using sampleSize='ALL'.")
+  }
+  
+  # sometimes numeric columns get converted to character 
+  # (guessing due to large number of digits after decimal point)
+  for (i in 1:length(result)) {
+    if (class(result[,i]) == "character") 
+      result[,i] = as.numeric(result[,i])
+  }
+  
+  return(result)
 }
 

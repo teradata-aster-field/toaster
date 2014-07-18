@@ -2,10 +2,10 @@
 toaster 0.2.x
 ----------------------------------------------------------------
 
-* New text mining functions `computeTf` and `computeTfIdf` 
+* New text analysis functions `computeTf` and `computeTfIdf` 
   process corpora in Aster and produce results compatible with package tm.
 
-* Text parsers `nGram` and `token` are pluggable into text mining functions
+* Text parsers `nGram` and `token` are pluggable into text analysis functions
   above.
 
 * Linear regression now is compatible with R standard lm functions returning
@@ -19,6 +19,24 @@ toaster 0.2.x
   linear regression coefficients are calculated on full data set with
   SQL/MR linreg function.
 
+* `getTableSummary` is enabled for parallel execution. Simply create and 
+  register parallel cluster of your choice with doParallel package and set
+  parameter parallel=TRUE. Performance gains may be up to 50% or better 
+  depending on size of the table, number of parallel processes, and number 
+  of columns.
+
+* `computePercentiles` is enabled for parallel execution. Simply create and
+  register parallel cluster of your choice with doParallel package and set
+  parameter parallel=TRUE. Performance gains may be up to 50% or better 
+  depending on size of the table, number of parallel processes, and number 
+  of columns.
+
+* Temporal data types in Aster are supported by both `getTableSummary` and
+  `computePercentiles`. For latter, use parameter temporal=TRUE to 
+  compute percentiles on date, time, timestamp, or interval.
+
+* Added factory function `colorDiscretePalette`. 
+
 MINOR FEATURES
 
 * Parameter `formula` replaced defunct `expr` in the function `computeLm` 
@@ -28,6 +46,15 @@ MINOR FEATURES
 
 * Added deprecated warning facility `toa_dep` similar to ggplot2 gg_dep 
   function.
+
+BUG FIXES
+
+* Legend position in `showData` histogram format is completely removed now
+  when legendPosition="none".
+
+* `computePercentiles` now returns no rows for the column that contains all NULLs. 
+  Before it threw error without completing.
+
 
 toaster 0.2.5
 ----------------------------------------------------------------

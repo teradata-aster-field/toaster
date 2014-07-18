@@ -21,7 +21,7 @@ readlineDef <- function(prompt, default) {
     return (result)
 }
 
-connectToAster <- function(uid="beehive", pwd=NULL, server="localhost", port="2406", database="beehive") {
+connectAdHocToAster <- function(uid="beehive", pwd=NULL, server="localhost", port="2406", database="beehive") {
   uid = readlineDef("Enter user id: ", uid)
   pwd = readlineDef("Enter password: ", pwd)
   server = readlineDef("Enter server: ", server)
@@ -42,6 +42,20 @@ connectToAster <- function(uid="beehive", pwd=NULL, server="localhost", port="24
   })
 }
 
+connectWithDSNToAster <- function(dsn=NULL) {
+  dsn = readlineDef("Enter Aster ODBC DSN: ", dsn)
+  
+  tryCatch(close(conn), error=function(err) {NULL})
+  
+  conn = tryCatch({
+    conn = odbcConnect(dsn)
+    odbcGetInfo(conn)
+    return (conn)
+  }, error=function(err) {
+    stop(paste("Can't connect to Aster - check DSN:", dsn))
+  })
+}
+
 pause <- function() {
   cat("Press ENTER/RETURN/NEWLINE to continue.")
   readLines(n=1)
@@ -49,7 +63,7 @@ pause <- function() {
 }
 
 ### connect first
-conn = connectToAster(pwd="beehive", server="141.206.75.100", database="partners2013")
+conn = connectWithDSNToAster()
 
 pause()
 
@@ -77,4 +91,4 @@ pause()
 ### (coefficients are always computed on all data)
 modelTeam10K = computeLm(channel=conn, tableName="batting_enh", formula=ba ~ rbi + bb + so + teamid,
                     sampleSize = 50, where="teamid in ('TEX','NYY','OAK','PIT','DET') and yearid >= 1990")
-summary(modelLg10K)
+summary(modelTeam10K)

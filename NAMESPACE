@@ -1,3 +1,4 @@
+export(colorDiscretePalette)
 export(computeAggregates)
 export(computeBarchart)
 export(computeCorrelations)

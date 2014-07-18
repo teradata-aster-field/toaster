@@ -32,5 +32,4 @@ If you encounter a clear bug, please file a minimal reproducible example on [bit
 
 Attribution:
 
-* Icon: [Toaster Icon by Greg Barnes](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes/Toaster-icon.html), [Vintage Kitchen](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes.html)
-
+* Icon: [toAster](http://maytitan.deviantart.com/art/ToAster-468393069) by [Madison Clarke](http://maytitan.deviantart.com/)

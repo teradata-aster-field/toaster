@@ -84,7 +84,7 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columns = 
                                stringsAsFactors = FALSE, test = FALSE, parallel = FALSE) {
   
   if (!is.null(columnName)) {
-    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columns for columns to compute percentiles on.")
+    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use \"columns\" for column names to compute percentiles on.")
   }
   
   if (missing(channel)) {

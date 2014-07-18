@@ -123,7 +123,7 @@ test_that("computePercentiles temporal SQL is correct", {
   expect_equal_normalized(
     computePercentiles(channel=NULL, tableName="public.master_enh", columnName="birthdate",
                        temporal=TRUE, test=TRUE),
-    "SELECT percentile, MAX(birthdate) value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
+    "SELECT percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT birthdate, ntile(100) OVER ( ORDER BY birthdate) percentile
           FROM public.master_enh WHERE birthdate IS NOT NULL) t
       WHERE percentile IN ( 5,10,25,50,75,90,95,100 )
@@ -133,7 +133,7 @@ test_that("computePercentiles temporal SQL is correct", {
   expect_equal_normalized(
     computePercentiles(channel=NULL, tableName="public.master_enh", columns=c("birthdate", "deathdate"),
                        temporal=TRUE, by=c("bats", "throws"), test=TRUE),
-    "SELECT bats, throws, percentile, MAX(birthdate) value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
+    "SELECT bats, throws, percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT bats, throws, birthdate, ntile(100) OVER (PARTITION BY bats, throws ORDER BY birthdate) percentile
           FROM public.master_enh WHERE birthdate IS NOT NULL) t
       WHERE percentile IN ( 5,10,25,50,75,90,95,100 )
@@ -143,13 +143,13 @@ test_that("computePercentiles temporal SQL is correct", {
   expect_equal_normalized(
     computePercentiles(channel=NULL, tableName="public.master_enh", columnName="birthdate",
                        temporal=TRUE, percentiles=c(0,5,10,25,50,75,90,95,100), test=TRUE),
-    "SELECT percentile, MAX(birthdate) value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
+    "SELECT percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT birthdate, ntile(100) OVER ( ORDER BY birthdate) percentile
           FROM public.master_enh WHERE birthdate IS NOT NULL) t
       WHERE percentile IN ( 0,5,10,25,50,75,90,95,100 )
       GROUP BY 1 
      UNION 
-     SELECT 0, MIN(birthdate), MIN(EXTRACT('EPOCH' FROM birthdate)) epoch
+     SELECT 0, MIN(birthdate)::varchar, MIN(EXTRACT('EPOCH' FROM birthdate)) epoch
        FROM public.master_enh WHERE birthdate IS NOT NULL
       ORDER BY 1")
   
@@ -157,13 +157,13 @@ test_that("computePercentiles temporal SQL is correct", {
     computePercentiles(channel=NULL, tableName="public.master_enh", columns=c("birthdate", "deathdate"),
                        temporal=TRUE, percentiles=c(0,5,10,25,50,75,90,95,100), 
                        by=c("bats", "throws"), test=TRUE),
-    "SELECT bats, throws, percentile, MAX(birthdate) value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
+    "SELECT bats, throws, percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT bats, throws, birthdate, ntile(100) OVER (PARTITION BY bats, throws ORDER BY birthdate) percentile
           FROM public.master_enh WHERE birthdate IS NOT NULL) t
       WHERE percentile IN ( 0,5,10,25,50,75,90,95,100 )
       GROUP BY 1, 2, 3
      UNION
-     SELECT bats, throws, 0, MIN(birthdate), MIN(EXTRACT('EPOCH' FROM birthdate)) epoch FROM public.master_enh WHERE birthdate IS NOT NULL
+     SELECT bats, throws, 0, MIN(birthdate)::varchar, MIN(EXTRACT('EPOCH' FROM birthdate)) epoch FROM public.master_enh WHERE birthdate IS NOT NULL
       GROUP BY 1, 2
       ORDER BY 1, 2, 3")
   
@@ -171,13 +171,13 @@ test_that("computePercentiles temporal SQL is correct", {
     computePercentiles(channel=NULL, tableName="public.master_enh", columnName="birthdate",
                        temporal=TRUE, percentiles=c(0,5,10,25,50,75,90,95,100), 
                        where="birthcountry = 'USA'", test=TRUE),
-    "SELECT percentile, MAX(birthdate) value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
+    "SELECT percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT birthdate, ntile(100) OVER ( ORDER BY birthdate) percentile
           FROM public.master_enh WHERE birthcountry = 'USA' AND birthdate IS NOT NULL) t
       WHERE percentile IN ( 0,5,10,25,50,75,90,95,100 )
       GROUP BY 1 
      UNION 
-     SELECT 0, MIN(birthdate), MIN(EXTRACT('EPOCH' FROM birthdate)) epoch
+     SELECT 0, MIN(birthdate)::varchar, MIN(EXTRACT('EPOCH' FROM birthdate)) epoch
        FROM public.master_enh WHERE birthcountry = 'USA' AND birthdate IS NOT NULL
       ORDER BY 1")
   
@@ -185,13 +185,13 @@ test_that("computePercentiles temporal SQL is correct", {
     computePercentiles(channel=NULL, tableName="public.master_enh", columns=c("birthdate", "deathdate"),
                        temporal=TRUE, percentiles=c(0,5,10,25,50,75,90,95,100), 
                        by=c("bats", "throws"), where="birthcountry = 'USA'", test=TRUE),
-    "SELECT bats, throws, percentile, MAX(birthdate) value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
+    "SELECT bats, throws, percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT bats, throws, birthdate, ntile(100) OVER (PARTITION BY bats, throws ORDER BY birthdate) percentile
           FROM public.master_enh WHERE birthcountry = 'USA' AND birthdate IS NOT NULL) t
       WHERE percentile IN ( 0,5,10,25,50,75,90,95,100 )
       GROUP BY 1, 2, 3
      UNION
-     SELECT bats, throws, 0, MIN(birthdate), MIN(EXTRACT('EPOCH' FROM birthdate)) epoch 
+     SELECT bats, throws, 0, MIN(birthdate)::varchar, MIN(EXTRACT('EPOCH' FROM birthdate)) epoch 
        FROM public.master_enh WHERE birthcountry = 'USA' AND birthdate IS NOT NULL
       GROUP BY 1, 2
       ORDER BY 1, 2, 3")

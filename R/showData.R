@@ -200,14 +200,14 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     if (!is.null(except)) {
       include = setdiff(include, except)
     }
-    if (any(!(include %in% summary$COLUMN_NAME))) {
+    if (!all(include %in% summary$COLUMN_NAME)) {
       stop(paste("Not all specified columns are in the table summary (tableInfo):", include[!(include %in% summary$COLUMN_NAME)]))
     }
   }
   
   dataNum = getNumericColumns(summary, names.only=FALSE)
   dataChar = getCharacterColumns(summary, names.only=FALSE)
-  dataTemp = getDateTimeColumns(summary, names.only=FALSE)
+  dataTemp = getTemporalColumns(summary, names.only=FALSE)
   
   getPalette = colorRampPalette(brewer.pal(brewer.pal.info[paletteName,"maxcolors"], paletteName))
   
@@ -316,7 +316,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     if (missing(include) | length(include)<2) {
       stop("Scatterplot format requires parameter 'include' define x and y coordiantes.")
     }
-    if (any(!(include[1:2] %in% dataNum$COLUMN_NAME))) {
+    if (!all(include[1:2] %in% dataNum$COLUMN_NAME)) {
       stop("Scatterplot format is valid for numerical data only.")
     }
     
@@ -366,13 +366,13 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     facet = FALSE
   }
   else if (format=='overview') {
-    if (type=='character' & missing(measures)) {
+    if (type=='character' && missing(measures)) {
       measures = c('distinct_count', 'not_null_count', 'null_count')
     }
-    else if (type=='numeric' & missing(measures)) {
+    else if (type=='numeric' && missing(measures)) {
       measures = c('distinct_count','not_null_count','null_count',
                    'maximum','minimum','average','deviation',
-                   '0%','10%','25%','50%','75%','90%','100%','IQR')
+                   '25%','50%','75%','IQR')
     }
     
     if (type=='character') 

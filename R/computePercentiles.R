@@ -84,7 +84,7 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columns = 
                                stringsAsFactors = FALSE, test = FALSE, parallel = FALSE) {
   
   if (!is.null(columnName)) {
-    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use columns for columns to compute percentiles on.")
+    toa_dep("0.2.5", "\"columnName\" argument in computePercentiles is deprecated. Use \"columns\" for column names to compute percentiles on.")
   }
   
   if (missing(channel)) {
@@ -268,7 +268,7 @@ assembleTemporalPercentileSql <- function(tableName, where_clause, percentiles, 
                # performance enhancement: include SELECT below only when 0 percentile (min) requested
                ifelse(0 %in% percentiles, paste0(
           " UNION  
-            SELECT ", selectByList, " 0, MIN((%%%column__name%%%)), MIN(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch 
+            SELECT ", selectByList, " 0, MIN((%%%column__name%%%))::varchar, MIN(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch 
               FROM ", tableName, where_clause, " ", groupBy0PercentileList),
                  " "),
                "  ORDER BY ", groupByList)

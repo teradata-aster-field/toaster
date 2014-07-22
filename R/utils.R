@@ -101,7 +101,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
   # percentiles
   # always add 50 (median) and 25, 75 for IQR computations
-  if (is.null(percentiles) | !is.numeric(percentiles)) {
+  if (is.null(percentiles) || !is.numeric(percentiles)) {
     percentiles = c(25, 50, 75)
   }else {
     percentiles = union(percentiles, c(25, 50, 75)) 
@@ -159,7 +159,7 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   }
   
   # compute temporal metrics
-  temporal_columns = getDateTimeColumns(table_info)
+  temporal_columns = getTemporalColumns(table_info)
   
   if (length(temporal_columns) > 0) {
     metrics = computeTemporalMetrics(channel, tableName, table_info, temporal_columns,
@@ -212,6 +212,10 @@ makeNumericMetrics <- function(idx, column_stats, total_count, presults, percent
     
     df[1, "IQR"] = presults[[which(presults$percentile==75),"value"]] -
       presults[[which(presults$percentile==25),"value"]]
+  }else {
+    for (ptileName in percentileNames)
+      df[1, ptileName] = NA
+    df[1, "IQR"] = NA
   }
   
   return (df)
@@ -354,13 +358,20 @@ makeTemporalMetrics <- function(idx, column_stats, total_count, presults, percen
       ptileValue = presults[[tile, "epoch"]]
       df[1, percentileNames[ptile]] = ptileValue
       
-      ptile = as.character(presults[[tile, "percentile"]])
       ptileValue = presults[[tile, "value"]]
       df[1, percentileStrNames[ptile]] = ptileValue
-      
-      df[1, "IQR"] = presults[[which(presults$percentile==75),"epoch"]] -
-        presults[[which(presults$percentile==25),"epoch"]]
     }
+    
+    df[1, "IQR"] = presults[[which(presults$percentile==75),"epoch"]] -
+      presults[[which(presults$percentile==25),"epoch"]]
+  }else {
+    for (ptileName in percentileNames)
+      df[1, ptileName] = NA
+    
+    for (ptileStrName in percentileStrNames)
+      df[1, ptileStrName] = NA
+    
+    df[1, "IQR"] = NA
   }
   
   return (df)

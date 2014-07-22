@@ -18,7 +18,9 @@
 #' @param parser type of parser to use on text. For example, \code{ngram(2)} parser
 #'   generates 2-grams (ngrams of length 2), \code{token(2)} parser generates 2-word 
 #'   combinations of terms within documents.
-#' @param weighting term frequency formula to compute the tf value. 
+#' @param weighting term frequency formula to compute the tf value. One of following: 
+#'   \code{'raw'}, \code{'bool'}, \code{'binary'}, \code{'log'}, \code{'augment'}, and
+#'   \code{'normal'} (default). 
 #' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
 #' @param idNull string to replace NULL value in document id columns.
 #' @param where specifies criteria to satisfy by the table rows before applying
@@ -88,8 +90,9 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #' @seealso \code{\link{nGram}}, \code{\link{token}}
 #' @export 
 computeTfIdf <- function(channel, tableName, docId, textColumns, parser, 
-                         where = NULL, idSep = '-', idNull = '(null)',
-                         adjustDocumentCount = FALSE, test = FALSE) {
+                         idSep = '-', idNull = '(null)',
+                         adjustDocumentCount = FALSE, where = NULL, 
+                         test = FALSE) {
   
   where_clause = makeWhereClause(where)
   
@@ -146,8 +149,8 @@ makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
   docs = result_set$docid
   weights = result_set[, weight_name]
   
-  allTerms = sort(unique(terms))
-  allDocs = sort(unique(docs))
+  allTerms = as.character(sort(unique(terms)))
+  allDocs = as.character(sort(unique(docs)))
   i = match(terms, allTerms)
   j = match(docs, allDocs)
   

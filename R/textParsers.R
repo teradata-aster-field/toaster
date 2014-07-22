@@ -16,12 +16,16 @@
 #'   parser will remove before it evaluates the input text.
 #' @param stemming logical: If true, apply Porter2 Stemming to each token to reduce 
 #'   it to its root form. Default is \code{FALSE}.
-#' @param stopWordsFile The location of the file that contains stop words that should
+#' @param stopWords logical or string with the name of the file that contains stop words.
+#'   If TRUE then  that should
 #'   be ignored when parsing text. Each stop word is specified on a separate line.
 #' @param sep a character string to separate multiple text columns.
+#' @param minLength exclude tokens shorter than minLength characters.
+#'   
 #' @export
 token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+', 
-                  punctuation = NULL, stemming = FALSE, stopWordsFile = NULL, sep = " ") {
+                  punctuation = NULL, stemming = FALSE, stopWords = FALSE, 
+                  sep = " ", minLength = 1) {
   
   stopifnot(n > 0)
   
@@ -32,8 +36,9 @@ token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\
                       delimiter = delimiter,
                       punctuation = punctuation,
                       stemming = stemming,
-                      stopwords = stopWordsFile,
-                      sep = sep
+                      stopwords = stopWords,
+                      sep = sep,
+                      minLength = minLength
   ),
   class = c("token", "toatextparser"))
   
@@ -57,10 +62,15 @@ token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\
 #'   \code{nGram} discards any partial n-grams and proceeds to the next sentence to search 
 #'   for the next n-gram. In other words, no n-gram can span two sentences.
 #' @param sep a character string to separate multiple text columns.
+#' @param minLength minimum length of words in ngram. Ngrams that contains words below 
+#'   shorter than the limit are omitted. Current implementation is not complete: it
+#'   filters out ngrams where each word is below the minimum length, i.e. total length of 
+#'   ngram is below n*minLength + (n-1).
 #' 
 #' @export
-nGram <- function(n, delimiter = NULL, overlapping = TRUE, ignoreCase = FALSE, 
-                  punctuation = NULL, reset = NULL, sep = " ") {
+nGram <- function(n, ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+',
+                  punctuation = NULL, overlapping = TRUE, reset = NULL,
+                  sep = " ", minLength = 1) {
   
   stopifnot(n > 0)
   
@@ -71,7 +81,8 @@ nGram <- function(n, delimiter = NULL, overlapping = TRUE, ignoreCase = FALSE,
                       ignoreCase = ignoreCase,
                       punctuation = punctuation,
                       reset = reset,
-                      sep = sep
+                      sep = sep,
+                      minLength = minLength
   ),
   class = c("nGram", "toatextparser"))
   
@@ -99,6 +110,9 @@ parseTextSQL.nGram <- function(x, tableName, docId, textColumns, where) {
 }
 
 buildNGramSQL <- function (x, n, tableName, docId, selectList, where_clause) {
+  
+  ngramLength = x$minLength * n + (n - 1)
+    
   sql = paste0(
     "SELECT __doc_id__ docid, ngram as term, frequency 
          FROM nGram (
@@ -111,7 +125,8 @@ buildNGramSQL <- function (x, n, tableName, docId, selectList, where_clause) {
     ifelse(is.null(x$punctuation), " ", paste0(" PUNCTUATION('", x$punctuation, "') ")),
     ifelse(is.null(x$reset), " ", paste0(" RESET('", x$reset, "') ")), " 
            ACCUMULATE('__doc_id__')
-         ) "
+         )
+      WHERE length(ngram) >= ", as.character(ngramLength)
   )
 }
 
@@ -132,7 +147,9 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
          CASE_INSENSITIVE('", ifelse(x$ignoreCase, "true", "false"), "')
          STEMMING('", ifelse(x$stemming, "true", "false"), "') ",
     ifelse(is.null(x$punctuation), " ", paste0(" PUNCTUATION('", x$punctuation, "') ")),
-    ifelse(is.null(x$stopwords), " ", paste0(" STOP_WORDS('", x$stopwords, "') ")), "
+    ifelse(is.null(x$stopwords), " ", 
+           ifelse(is.logical(x$stopwords), ifelse(x$stopwords, " REMOVE_STOP_WORDS('true') ", " "),
+                  paste0("REMOVE_STOP_WORDS('true') STOP_WORDS('", x$stopwords, "') "))), "
          ACCUMULATE('__doc_id__')
          TOTAL('false')
          LIST_POSITIONS('false')
@@ -140,7 +157,7 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
          FREQUENCY_COLUMN_NAME('frequency')
          OUTPUT_BY_WORD('true')
        )
-      WHERE length(term) > 0"
+      WHERE length(term) >= ", as.character(x$minLength)
   )
   
   aliases = paste0(rep("t", x$n), as.character(seq(1, x$n)))
@@ -173,7 +190,7 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
 
 makeTextSelectList <- function(docId, textColumns, sep) {
   
-  collapse = paste(" || '", sep, "' || ")
+  collapse = paste0(" || '", sep, "' || ")
   textExpr = paste(textColumns, collapse=collapse)
   selectList = paste0(docId, " __doc_id__, ", textExpr, " __text_column__ ")
 }

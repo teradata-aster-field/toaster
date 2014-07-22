@@ -37,9 +37,9 @@ test_that("computeHistogram SQL is correct", {
                           "SELECT * FROM hist_reduce(
                                       ON hist_map(
                                            ON (SELECT   cast(h as numeric) h FROM pitching ) as data_input PARTITION BY ANY  
-                                           binsize('6.3')
+                                           binsize('6.1')
                                            startvalue('0')
-                                           endvalue('189')    
+                                           endvalue('183')    
                                            VALUE_COLUMN('h')     
                                       ) 
                                       partition by  1 )"
@@ -51,9 +51,9 @@ test_that("computeHistogram SQL is correct", {
                           "SELECT * FROM hist_reduce(
                                       ON hist_map(
                                            ON (SELECT lgid, cast(h as numeric) h FROM pitching ) as data_input PARTITION BY ANY  
-                                           binsize('6.3')
+                                           binsize('6.1')
                                            startvalue('0')
-                                           endvalue('189')    
+                                           endvalue('183')    
                                            VALUE_COLUMN('h')     
                                            GROUP_COLUMNS('lgid')
                                       ) 
@@ -66,9 +66,9 @@ test_that("computeHistogram SQL is correct", {
                           "SELECT * FROM hist_reduce(
                                       ON hist_map(
                                            ON (SELECT lgid, teamid, cast(h as numeric) h FROM pitching ) as data_input PARTITION BY ANY  
-                                           binsize('6.3')
+                                           binsize('6.1')
                                            startvalue('0')
-                                           endvalue('189')    
+                                           endvalue('183')    
                                            VALUE_COLUMN('h')     
                                            GROUP_COLUMNS('lgid', 'teamid')
                                       ) 

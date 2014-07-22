@@ -17,15 +17,11 @@ close(conn)
 conn = odbcConnect(dsn, uid, pwd)
 
 # Bubble chart example
-bubble = computeHeatmap(asterConn, 'teams_enh', 'franchid', 'decadeid',
-                        aggregateFun=c("SUM(BA*AB)/SUM(AB)", 
-                                       "SUM(IPOuts*ERA)/SUM(IPOuts)",
-                                       "ROUND(AVG(8-rank))",
-                                       "MIN(lgid)"),
-                        aggregateAlias=c("ba", 
-                                         "era",
-                                         "rank",
-                                         "lgid"),
+bubble = computeHeatmap(conn, 'teams_enh', 'franchid', 'decadeid',
+                        aggregates=c("SUM(BA*AB)/SUM(AB)ba", 
+                                       "SUM(IPOuts*ERA)/SUM(IPOuts) era",
+                                       "ROUND(AVG(8-rank)) rank",
+                                       "MIN(lgid) lgid"),
                         where="yearid between 1970 and 2009")
 
 

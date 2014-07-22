@@ -54,7 +54,7 @@ test_that("computeCorrelations SQL is correct", {
   expect_equal_normalized(
     computeCorrelations(channel=conn, tableName="pitching_enh", tableInfo=pitching_info,
                         include=getNumericColumns(pitching_info), 
-                        except=c("yearid"), test=TRUE),
+                        except=c("yearid", "decadeid", "sh", "sf", "gidp"), test=TRUE),
     "SELECT * FROM corr_reduce(
                   ON corr_map(
                     ON ( SELECT w, l, g, gs, cg, sho, sv, ipouts, h, er, hr, bb, so, baopp, era, ibb, wp, 

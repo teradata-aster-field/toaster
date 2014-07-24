@@ -21,6 +21,16 @@
 #' @param weighting term frequency formula to compute the tf value. One of following: 
 #'   \code{'raw'}, \code{'bool'}, \code{'binary'}, \code{'log'}, \code{'augment'}, and
 #'   \code{'normal'} (default). 
+#' @param top specifies threshold to cut off terms ranked below \code{top} value. If value
+#'   is greater than 0 then included top ranking terms only, otherwise all. Ranking is 
+#'   defined with \code{rankFunction}. Terms are always ordered by their term frequency (tf)
+#'   for each document. Filtered out terms are ranked above \code{top} threshold value (see details):
+#'   term is more important the smaller its rank.
+#' @param rankFunction one of \code{rownumber, rank, denserank, percentrank}. Rank computed and
+#'   returned for each term within each document. function determines which SQL window function computes 
+#'   term rank value (default \code{rank} corresponds to SQL \code{RANK()} window function). 
+#'   When threshold \code{top} is greater than 0 ranking function used to limit number of 
+#'   terms returned (see details).
 #' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
 #' @param idNull string to replace NULL value in document id columns.
 #' @param where specifies criteria to satisfy by the table rows before applying
@@ -28,22 +38,76 @@
 #'   \code{WHERE} clause).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions \link{sqlQuery} and \link{sqlSave}). 
-#' @seealso \code{\link{nGram}}, \code{\link{token}}
+#'   
+#' @details
+#' By default function computes and returns all terms. When large number of terms is expected then
+#' use parameters \code{top} to limit number of terms returned by 
+#' filtering top ranked terms for each document. Thus if set \code{top=1000} and there
+#' is 100 documents then at least 100,000 terms (rows) will be returned. Result size could 
+#' exceed this number when other than \code{rownumber} \code{rankFunction} used:
+#' \itemize{
+#'     \item \emph{\code{rownumber}} applies a sequential row number, starting at 1, to each term in a document.
+#'       The tie-breaker behavior is as follows: Rows that compare as equal in the sort order will be
+#'       sorted arbitrarily within the scope of the tie, and all terms will be given unique row numbers.
+#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms’s rank, provided the 
+#'       term does not sort as equal (tie) with another term. The tie-breaker behavior is as follows: 
+#'       terms that compare as equal in the sort order are sorted arbitrarily within the scope of the tie, 
+#'       and the sorted-as-equal terms get the same rank number.
+#'     \item \emph{\code{denserank}} behaves like the \code{rank} function, except that it never places 
+#'       gaps in the rank sequence. The tie-breaker behavior is the same as that of RANK(), in that 
+#'       the sorted-as-equal terms receive the same rank. With \code{denserank}, however, the next term after 
+#'       the set of equally ranked terms gets a rank 1 higher than preceding tied terms.
+#'     \teim \emph{\code{percentrank}} assigns a relative rank to each term, using the formula: 
+#'       \code{(rank - 1) / (total rows - 1)}. The tie-breaker behavior is as follows: Terms that compare 
+#'       as equal are sorted arbitrarily within the scope of the tie, and the sorted-as-equal rows 
+#'       get the same percent rank number.
+#' }
+#' The ordering of the rows is always by their tf value within each document.
+#'  
+#' @seealso \code{computeTfIdf}, \code{\link{nGram}}, \code{\link{token}}
 #' @export 
+#' 
+#' @examples
+#' \donttest{
+#' 
+#' # compute term-document-matrix of all 2-word Ngrams of Dallas police open crime reports
+#' tdm1 = computeTf(channel=conn, tableName="public.dallaspoliceall", docId="offensestatus", 
+#'                  textColumns=c("offensedescription", "offensenarrative"),
+#'                  parser=nGram(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
+#'                     
+#' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
+#' tdm2 = computeTf(channel=conn, tableName="public.dallaspoliceall", 
+#'                  docId="(extract('hour' from offensestarttime)/6)::int%4",
+#'                  textColumns=c("offensedescription", "offensenarrative"),
+#'                  parser=token(2, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+", stopWords=TRUE),
+#'                  where="offensenarrative IS NOT NULL")
+#'                     
+#' # include only top 100 ranked 2-word ngrams for each offense status
+#' # into resulting term-document-matrix using dense rank function  
+#' tdm3 = computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+#'                  textColumns=c("offensedescription", "offensenarrative"),
+#'                  parser=nGram(2), top=100, rankFunction="denserank",
+#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")                                                         
+#' 
+#' }
+#' 
 computeTf <- function(channel, tableName, docId, textColumns, parser,
                       weighting = "normal",
+                      top = NULL, rankFunction = "rank",
                       where = NULL, idSep = '-', idNull = '(null)',
                       test = FALSE) {
   
   weighting = match.arg(weighting, c('raw','bool','binary','log','augment','normal'))
-  tfFormula = switch(weighting,
+  rankFunction = match.arg(rankFunction, c('rank', 'rownumber', 'row', 'denserank', 'percentrank'))
+  tfFormula = switch(tolower(weighting),
                     normal="normal",
                     raw="normal",
                     bool="bool",
                     binary="bool",
                     log="log",
-                    augment="augment",
+                    augment="augment"
   )
+  windowFunction = getWindowFunction(rankFunction)
   
   where_clause = makeWhereClause(where)
   
@@ -52,10 +116,12 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
   textSelectSQL = parseTextSQL(parser, tableName, derivedDocId, textColumns, where)
   
   sql = paste0(
-    "SELECT * FROM TF(
+    "SELECT * FROM 
+       (SELECT *, ", windowFunction, " OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
          ON (SELECT docid, term FROM ( ", textSelectSQL, " ) t ) PARTITION BY docid
          FORMULA('", tfFormula, "')
-       )")
+       )) t2", makeRankFilter(top)
+    )
   
   if (test) 
     return (sql)
@@ -79,6 +145,16 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #' @param parser type of parser to use on text. For example, \code{ngram(2)} parser
 #'   generates 2-grams (ngrams of length 2), \code{token(2)} parser generates 2-word 
 #'   combinations of terms within documents.
+#' @param top specifies threshold to cut off terms ranked below \code{top} value. If value
+#'   is greater than 0 then included top ranking terms only, otherwise all. Ranking is 
+#'   defined with \code{rankFunction}. Terms are always ordered by their tf-idf value
+#'   for each document. Filtered out terms are ranked above \code{top} threshold value (see details):
+#'   term is more important the smaller its rank.
+#' @param rankFunction one of \code{rownumber, rank, denserank, percentrank}. Rank computed and
+#'   returned for each term within each document. function determines which SQL window function computes 
+#'   term rank value (default \code{rank} corresponds to SQL \code{RANK()} window function). 
+#'   When threshold \code{top} is greater than 0 ranking function used to limit number of 
+#'   terms returned (see details).
 #' @param idSep separator when concatenating 2 or more document id columns (see \code{docId}).
 #' @param idNull string to replace NULL value in document id columns.
 #' @param adjustDocumentCount logical: if TRUE then number of documents 2 will be increased by 1.
@@ -87,12 +163,71 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'   \code{WHERE} clause).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions \link{sqlQuery} and \link{sqlSave}). 
-#' @seealso \code{\link{nGram}}, \code{\link{token}}
+#'   
+#' @details
+#' By default function computes and returns all terms. When large number of terms is expected then
+#' use parameters \code{top} to limit number of terms returned by 
+#' filtering top ranked terms for each document. Thus if set \code{top=1000} and there
+#' is 100 documents then at least 100,000 terms (rows) will be returned. Result size could 
+#' exceed this number when other than \code{rownumber} \code{rankFunction} used:
+#' \itemize{
+#'     \item \emph{\code{rownumber}} applies a sequential row number, starting at 1, to each term in a document.
+#'       The tie-breaker behavior is as follows: Rows that compare as equal in the sort order will be
+#'       sorted arbitrarily within the scope of the tie, and all terms will be given unique row numbers.
+#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms’s rank, provided the 
+#'       term does not sort as equal (tie) with another term. The tie-breaker behavior is as follows: 
+#'       terms that compare as equal in the sort order are sorted arbitrarily within the scope of the tie, 
+#'       and the sorted-as-equal terms get the same rank number.
+#'     \item \emph{\code{denserank}} behaves like the \code{rank} function, except that it never places 
+#'       gaps in the rank sequence. The tie-breaker behavior is the same as that of RANK(), in that 
+#'       the sorted-as-equal terms receive the same rank. With \code{denserank}, however, the next term after 
+#'       the set of equally ranked terms gets a rank 1 higher than preceding tied terms.
+#'     \teim \emph{\code{percentrank}} assigns a relative rank to each term, using the formula: 
+#'       \code{(rank - 1) / (total rows - 1)}. The tie-breaker behavior is as follows: Terms that compare 
+#'       as equal are sorted arbitrarily within the scope of the tie, and the sorted-as-equal rows 
+#'       get the same percent rank number.
+#' }
+#' The ordering of the rows is always by their tf-idf value within each document.   
+#'   
+#' @seealso \code{computeTf}, \code{\link{nGram}}, \code{\link{token}}
 #' @export 
+#' 
+#' @examples
+#' \donttest{
+#' 
+#' # compute term-document-matrix of all 2-word Ngrams of Dallas police crime reports
+#' # for each 4-digit zip
+#' tdm1 = computeTfIdf(channel=conn, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#'                     textColumns=c("offensedescription", "offensenarrative"),
+#'                     parser=nGram(2, ignoreCase=TRUE, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+"))
+#'                     
+#' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
+#' # for each type of offense status
+#' tdm2 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+#'                     textColumns=c("offensedescription", "offensenarrative", "offenseweather"),
+#'                     parser=token(2), 
+#'                     where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
+#'                     
+#' # include only top 100 ranked 1-word ngrams for each 4-digit zip into resulting term-document-matrix,
+#' # using dense rank function  
+#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#'                     textColumns=c("offensedescription", "offensenarrative"),
+#'                     parser=nGram(1), top=100, rankFunction="denserank")
+#'                     
+#' # same but get top 10% ranked terms using percent rank function                                                        
+#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#'                     textColumns=c("offensedescription", "offensenarrative"),
+#'                     parser=nGram(1), top=0.10, rankFunction="percentrank") 
+#' 
+#' }
 computeTfIdf <- function(channel, tableName, docId, textColumns, parser, 
+                         top = NULL, rankFunction = 'rank',
                          idSep = '-', idNull = '(null)',
                          adjustDocumentCount = FALSE, where = NULL, 
                          test = FALSE) {
+  
+  rankFunction = match.arg(rankFunction, c('rank', 'rownumber', 'row', 'denserank', 'percentrank'))
+  windowFunction = getWindowFunction(rankFunction)
   
   where_clause = makeWhereClause(where)
   
@@ -114,13 +249,15 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
   textSelectSQL = parseTextSQL(parser, tableName, derivedDocId, textColumns, where)
   
   sql = paste0(
-    "SELECT * FROM TF_IDF(
-       ON TF(
-         ON (SELECT docid, term FROM ( ", textSelectSQL, " ) t ) PARTITION BY docid
-          ) AS TF PARTITION BY term
-       ON ( SELECT COUNT(DISTINCT(", derivedDocId, ")) ", increaseByOne," FROM ", tableName, where_clause, " )
-            AS doccount dimension
-     )")
+    "SELECT * FROM 
+       (SELECT *, ", windowFunction, " OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank FROM TF_IDF(
+         ON TF(
+           ON (SELECT docid, term FROM ( ", textSelectSQL, " ) t ) PARTITION BY docid
+            ) AS TF PARTITION BY term
+         ON ( SELECT COUNT(DISTINCT(", derivedDocId, ")) ", increaseByOne," FROM ", tableName, where_clause, " 
+            ) AS doccount dimension
+       )) t2", makeRankFilter(top)
+    )
   
   if (test) 
     return (sql)
@@ -166,4 +303,23 @@ makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
   attr(m, "Weighting") <- weighting
   
   return(m)
+}
+
+getWindowFunction <- function(rankFunction) {
+  windowFunction = switch(tolower(rankFunction),
+                          rank="RANK()",
+                          row="ROW_NUMBER()",
+                          rownumber="ROW_NUMBER()",
+                          denserank="DENSE_RANK()",
+                          percentrank = "PERCENT_RANK()"
+  )
+  
+  return(windowFunction)
+}
+
+makeRankFilter <- function(top) {
+  
+  ifelse(!is.null(top) && is.numeric(top) && top > 0, 
+         paste0(" WHERE rank <= ", as.character(top)), 
+         "")
 }

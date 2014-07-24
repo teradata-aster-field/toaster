@@ -1,14 +1,14 @@
 context("computeTfIdf")
 
 
-
 test_that("computeTfIdf SQL with nGram parser is correct", {
   
   expect_equal_normalized(
     computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
                  textColumns=c("offensedescription", "offensenarrative"),
                  parser=nGram(2), test=TRUE),
-    "SELECT * FROM TF_IDF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
@@ -29,7 +29,7 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
           ) AS TF PARTITION BY term
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(substr(offensezip, 1, 4) AS varchar), '(null)'))) FROM public.dallaspoliceall )
             AS doccount dimension
-     )"
+     )) t2"
     )
   
   expect_equal_normalized(
@@ -38,7 +38,8 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
                  parser=nGram(3, minLength=5, delimiter="[ -]+", overlapping=FALSE, ignoreCase=TRUE,
                               punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+", reset="[#]+", sep="###"), 
                  test=TRUE),
-    "SELECT * FROM TF_IDF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
@@ -61,7 +62,7 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
           ) AS TF PARTITION BY term
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(substr(offensezip, 1, 4) AS varchar), '(null)'))) FROM public.dallaspoliceall )
             AS doccount dimension
-     )"
+     )) t2"
   )
   
   expect_equal_normalized(
@@ -69,7 +70,8 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
                  idSep = '***', idNull = '<n-u-l-l>',
                  textColumns=c("offensedescription", "offensenarrative"),
                  parser=nGram(2), test=TRUE),
-    "SELECT * FROM TF_IDF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
@@ -91,14 +93,15 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(substr(offensezip, 1, 3) AS varchar), '<n-u-l-l>') || '***' || COALESCE(CAST(offensecity AS varchar), '<n-u-l-l>'))) 
                 FROM public.dallaspoliceall )
             AS doccount dimension
-     )"
+     )) t2"
   )
   
   expect_equal_normalized(
     computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensezip",
                  textColumns=c("offensedescription"), 
                  parser=nGram(2), where="offensezip like '75%'", test=TRUE),
-    "SELECT * FROM TF_IDF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
@@ -119,14 +122,15 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(offensezip AS varchar), '(null)'))) FROM public.dallaspoliceall 
                WHERE offensezip like '75%' )
             AS doccount dimension
-     )"
+     )) t2"
     )
   
   expect_equal_normalized(
     computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensegender", 
                  textColumns=c("offensedescription", "offensenarrative", "offenseweather"),
                  parser=nGram(2:4), test=TRUE),
-    "SELECT * FROM TF_IDF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
@@ -175,7 +179,7 @@ test_that("computeTfIdf SQL with nGram parser is correct", {
           ) AS TF PARTITION BY term
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(offensegender AS varchar), '(null)'))) FROM public.dallaspoliceall )
             AS doccount dimension
-     )"
+     )) t2"
   )
 })
 
@@ -185,7 +189,8 @@ test_that("computeTfIdf SQL with token parser is correct", {
     computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
                  textColumns=c("offensedescription", "offensenarrative", "offenseweather"),
                  parser=token(1, stopWords="english.dat"), test=TRUE),
-    "SELECT * FROM TF_IDF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( 
@@ -218,13 +223,16 @@ test_that("computeTfIdf SQL with token parser is correct", {
           ) AS TF PARTITION BY term
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(offensestatus AS varchar), '(null)'))) FROM public.dallaspoliceall )
             AS doccount dimension
-     )")
+     )) t2"
+    )
   
   expect_equal_normalized(
     computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
                  textColumns=c("offensedescription", "offensenarrative", "offenseweather"),
-                 parser=token(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')", test=TRUE),
-    "SELECT * FROM TF_IDF(
+                 parser=token(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')", 
+                 rankFunction="denserank", test=TRUE),
+    "SELECT * FROM (SELECT *, DENSE_RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank 
+       FROM TF_IDF(
        ON TF(
          ON (SELECT docid, term 
                FROM ( 
@@ -257,7 +265,106 @@ test_that("computeTfIdf SQL with token parser is correct", {
          ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(offensestatus AS varchar), '(null)'))) FROM public.dallaspoliceall 
                WHERE offensestatus NOT IN ('System.Xml.XmlElement', 'C') )
             AS doccount dimension
-     )")
+     )) t2"
+    )  
+  
+})
+
+
+test_that("computeTfIdf SQL with top ranking is correct", {
+  
+  expect_equal_normalized(
+    computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+                 textColumns=c("offensedescription", "offensenarrative"),
+                 parser=nGram(1), top=100, rankFunction="denserank",
+                 test=TRUE),
+    "SELECT * FROM (SELECT *, DENSE_RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank 
+       FROM TF_IDF(
+       ON TF(
+         ON (SELECT docid, term 
+               FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
+                    FROM nGram (
+                      ON (SELECT COALESCE(CAST(substr(offensezip, 1, 4) AS varchar), '(null)') __doc_id__, 
+                                 offensedescription || ' ' || offensenarrative __text_column__  
+                            FROM public.dallaspoliceall )      
+                      TEXT_COLUMN('__text_column__')  
+                      DELIMITER('[ \\t\\b\\f\\r]+')
+                      GRAMS(1) 
+                      OVERLAPPING('true')
+                      CASE_INSENSITIVE('false')        
+                      ACCUMULATE('__doc_id__')
+                    )
+               WHERE length(ngram) >= 1
+               ) t
+            ) PARTITION BY docid
+          ) AS TF PARTITION BY term
+         ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(substr(offensezip, 1, 4) AS varchar), '(null)'))) FROM public.dallaspoliceall )
+            AS doccount dimension
+     )) t2
+     WHERE rank <= 100"
+    )
+  
+  expect_equal_normalized(
+    computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensezip",
+                 textColumns=c("offensedescription", "offensenarrative"),
+                 parser=nGram(1), top=10, 
+                 test=TRUE),
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank 
+       FROM TF_IDF(
+       ON TF(
+         ON (SELECT docid, term 
+               FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
+                    FROM nGram (
+                      ON (SELECT COALESCE(CAST(offensezip AS varchar), '(null)') __doc_id__, 
+                                 offensedescription || ' ' || offensenarrative __text_column__  
+                            FROM public.dallaspoliceall )      
+                      TEXT_COLUMN('__text_column__')  
+                      DELIMITER('[ \\t\\b\\f\\r]+')
+                      GRAMS(1) 
+                      OVERLAPPING('true')
+                      CASE_INSENSITIVE('false')        
+                      ACCUMULATE('__doc_id__')
+                    )
+               WHERE length(ngram) >= 1
+               ) t
+            ) PARTITION BY docid
+          ) AS TF PARTITION BY term
+         ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(offensezip AS varchar), '(null)'))) FROM public.dallaspoliceall )
+            AS doccount dimension
+     )) t2
+     WHERE rank <= 10"
+    )
+  
+  expect_equal_normalized(
+    computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="offensezip",
+                 textColumns=c("offensedescription", "offensenarrative"),
+                 parser=nGram(1), top=0.1, rankFunction="percentrank",
+                 test=TRUE),
+    "SELECT * FROM (SELECT *, PERCENT_RANK() OVER (PARTITION BY docid ORDER BY tf_idf DESC) rank 
+       FROM TF_IDF(
+       ON TF(
+         ON (SELECT docid, term 
+               FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
+                    FROM nGram (
+                      ON (SELECT COALESCE(CAST(offensezip AS varchar), '(null)') __doc_id__, 
+                                 offensedescription || ' ' || offensenarrative __text_column__  
+                            FROM public.dallaspoliceall )      
+                      TEXT_COLUMN('__text_column__')  
+                      DELIMITER('[ \\t\\b\\f\\r]+')
+                      GRAMS(1) 
+                      OVERLAPPING('true')
+                      CASE_INSENSITIVE('false')        
+                      ACCUMULATE('__doc_id__')
+                    )
+               WHERE length(ngram) >= 1
+               ) t
+            ) PARTITION BY docid
+          ) AS TF PARTITION BY term
+         ON ( SELECT COUNT(DISTINCT(COALESCE(CAST(offensezip AS varchar), '(null)'))) FROM public.dallaspoliceall )
+            AS doccount dimension
+     )) t2
+     WHERE rank <= 0.1"
+  )
   
   
 })

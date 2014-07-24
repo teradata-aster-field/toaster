@@ -1,14 +1,13 @@
 context("computeTf")
 
 
-
 test_that("computeTf SQL with nGram parser is correct", {
   
   expect_equal_normalized(
     computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
               textColumns=c("offensedescription", "offensenarrative"),
               parser=nGram(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')", test=TRUE),
-    "SELECT * FROM TF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
          ON (SELECT docid, term 
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
                     FROM nGram (
@@ -27,14 +26,14 @@ test_that("computeTf SQL with nGram parser is correct", {
                ) t
             ) PARTITION BY docid
          FORMULA('normal')
-     )"
+     )) t2"
     )
   
   expect_equal_normalized(
     computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)",
               textColumns=c("offensedescription", "offensenarrative"),
               parser=nGram(2, minLength=2), test=TRUE),
-    "SELECT * FROM TF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
          ON (SELECT docid, term
                FROM ( SELECT __doc_id__ docid, ngram as term, frequency
                     FROM nGram (
@@ -51,7 +50,7 @@ test_that("computeTf SQL with nGram parser is correct", {
                 ) t
               ) PARTITION BY docid
             FORMULA('normal')
-      )"
+      )) t2"
     )
 })
 
@@ -62,7 +61,7 @@ test_that("computeTf SQL with token parser is correct", {
               textColumns=c("offensedescription", "offensenarrative"),
               parser=token(1, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+", stopWords=TRUE),
               where="offensenarrative IS NOT NULL", test=TRUE),
-    "SELECT * FROM TF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
          ON (SELECT docid, term 
                FROM ( 
                  WITH tokens AS
@@ -93,7 +92,7 @@ test_that("computeTf SQL with token parser is correct", {
             ) 
          PARTITION BY docid
          FORMULA('normal')
-      )"
+      )) t2"
     )
   
   expect_equal_normalized(
@@ -101,7 +100,7 @@ test_that("computeTf SQL with token parser is correct", {
               textColumns=c("offensedescription", "offensenarrative", "offenseweather"),
               parser=token(1, stopWords="english.dat"), where="offensenarrative IS NOT NULL AND offenseweather IS NOT NULL",
               test=TRUE),
-    "SELECT * FROM TF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
          ON (SELECT docid, term 
                FROM ( 
                  WITH tokens AS
@@ -132,7 +131,7 @@ test_that("computeTf SQL with token parser is correct", {
             ) 
          PARTITION BY docid
          FORMULA('normal')
-      )"
+      )) t2"
   )
   
   expect_equal_normalized(
@@ -143,7 +142,7 @@ test_that("computeTf SQL with token parser is correct", {
                            punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+", stemming=TRUE, 
                            stopWords=TRUE, minLength=4), 
               where="offensenarrative IS NOT NULL", test=TRUE),
-    "SELECT * FROM TF(
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
          ON (SELECT docid, term
                FROM (
                  WITH tokens AS
@@ -176,6 +175,94 @@ test_that("computeTf SQL with token parser is correct", {
             )
          PARTITION BY docid
          FORMULA('bool')
-     )"
+     )) t2"
   )
+})
+
+test_that("computeTf SQL with top ranking is correct", {
+  
+  expect_equal_normalized(
+    computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+              textColumns=c("offensedescription", "offensenarrative"),
+              parser=nGram(2), top=100, rankFunction="denserank",
+              where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')", test=TRUE),
+    "SELECT * FROM (SELECT *, DENSE_RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
+         ON (SELECT docid, term 
+               FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
+                    FROM nGram (
+                      ON (SELECT COALESCE(CAST(offensestatus AS varchar), '(null)') __doc_id__, 
+                                 offensedescription || ' ' || offensenarrative __text_column__  
+                            FROM public.dallaspoliceall 
+                           WHERE offensestatus NOT IN ('System.Xml.XmlElement', 'C') )      
+                      TEXT_COLUMN('__text_column__') 
+                      DELIMITER('[ \\t\\b\\f\\r]+')
+                      GRAMS(2) 
+                      OVERLAPPING('true')
+                      CASE_INSENSITIVE('false')        
+                      ACCUMULATE('__doc_id__')
+                    ) 
+              WHERE length(ngram) >= 3
+               ) t
+            ) PARTITION BY docid
+         FORMULA('normal')
+     )) t2
+     WHERE rank <= 100"
+  )
+  
+  expect_equal_normalized(
+    computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+              textColumns=c("offensedescription", "offensenarrative"),
+              parser=nGram(2), top=10, 
+              where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')", test=TRUE),
+    "SELECT * FROM (SELECT *, RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
+         ON (SELECT docid, term 
+               FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
+                    FROM nGram (
+                      ON (SELECT COALESCE(CAST(offensestatus AS varchar), '(null)') __doc_id__, 
+                                 offensedescription || ' ' || offensenarrative __text_column__  
+                            FROM public.dallaspoliceall 
+                           WHERE offensestatus NOT IN ('System.Xml.XmlElement', 'C') )      
+                      TEXT_COLUMN('__text_column__') 
+                      DELIMITER('[ \\t\\b\\f\\r]+')
+                      GRAMS(2) 
+                      OVERLAPPING('true')
+                      CASE_INSENSITIVE('false')        
+                      ACCUMULATE('__doc_id__')
+                    ) 
+              WHERE length(ngram) >= 3
+               ) t
+            ) PARTITION BY docid
+         FORMULA('normal')
+     )) t2
+     WHERE rank <= 10"
+  )
+  
+  expect_equal_normalized(
+    computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+              textColumns=c("offensedescription", "offensenarrative"),
+              parser=nGram(2), top=0.10, rankFunction="percentrank",
+              where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')", test=TRUE),
+    "SELECT * FROM (SELECT *, PERCENT_RANK() OVER (PARTITION BY docid ORDER BY tf DESC) rank FROM TF(
+         ON (SELECT docid, term 
+               FROM ( SELECT __doc_id__ docid, ngram as term, frequency 
+                    FROM nGram (
+                      ON (SELECT COALESCE(CAST(offensestatus AS varchar), '(null)') __doc_id__, 
+                                 offensedescription || ' ' || offensenarrative __text_column__  
+                            FROM public.dallaspoliceall 
+                           WHERE offensestatus NOT IN ('System.Xml.XmlElement', 'C') )      
+                      TEXT_COLUMN('__text_column__') 
+                      DELIMITER('[ \\t\\b\\f\\r]+')
+                      GRAMS(2) 
+                      OVERLAPPING('true')
+                      CASE_INSENSITIVE('false')        
+                      ACCUMULATE('__doc_id__')
+                    ) 
+              WHERE length(ngram) >= 3
+               ) t
+            ) PARTITION BY docid
+         FORMULA('normal')
+     )) t2
+     WHERE rank <= 0.1"
+  )
+  
 })

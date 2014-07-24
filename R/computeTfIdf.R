@@ -22,10 +22,10 @@
 #'   \code{'raw'}, \code{'bool'}, \code{'binary'}, \code{'log'}, \code{'augment'}, and
 #'   \code{'normal'} (default). 
 #' @param top specifies threshold to cut off terms ranked below \code{top} value. If value
-#'   is greater than 0 then included top ranking terms only, otherwise all. Ranking is 
-#'   defined with \code{rankFunction}. Terms are always ordered by their term frequency (tf)
-#'   for each document. Filtered out terms are ranked above \code{top} threshold value (see details):
-#'   term is more important the smaller its rank.
+#'   is greater than 0 then included top ranking terms only, otherwise all terms returned 
+#'   (also see paramter \code{rankFunction}). Terms are always ordered by their term frequency (tf)
+#'   within each document. Filtered out terms have their rank ariphmetically greater than 
+#'   threshold \code{top} (see details): term is more important the smaller value of its rank.
 #' @param rankFunction one of \code{rownumber, rank, denserank, percentrank}. Rank computed and
 #'   returned for each term within each document. function determines which SQL window function computes 
 #'   term rank value (default \code{rank} corresponds to SQL \code{RANK()} window function). 
@@ -76,6 +76,7 @@
 #'                  parser=nGram(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
 #'                     
 #' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
+#' # by time of day (4 documents corresponding to 4 parts of day)
 #' tdm2 = computeTf(channel=conn, tableName="public.dallaspoliceall", 
 #'                  docId="(extract('hour' from offensestarttime)/6)::int%4",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
@@ -146,10 +147,11 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'   generates 2-grams (ngrams of length 2), \code{token(2)} parser generates 2-word 
 #'   combinations of terms within documents.
 #' @param top specifies threshold to cut off terms ranked below \code{top} value. If value
-#'   is greater than 0 then included top ranking terms only, otherwise all. Ranking is 
-#'   defined with \code{rankFunction}. Terms are always ordered by their tf-idf value
-#'   for each document. Filtered out terms are ranked above \code{top} threshold value (see details):
-#'   term is more important the smaller its rank.
+#'   is greater than 0 then included top ranking terms only, otherwise all terms returned 
+#'   (also see paramter \code{rankFunction}). Terms are always ordered by their term frequency -
+#'   inverse document frequency (tf-idf) within each document. Filtered out terms have their 
+#'   rank ariphmetically greater than threshold \code{top} (see details): term is more 
+#'   important the smaller value of its rank.
 #' @param rankFunction one of \code{rownumber, rank, denserank, percentrank}. Rank computed and
 #'   returned for each term within each document. function determines which SQL window function computes 
 #'   term rank value (default \code{rank} corresponds to SQL \code{RANK()} window function). 
@@ -208,11 +210,11 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'                     parser=token(2), 
 #'                     where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
 #'                     
-#' # include only top 100 ranked 1-word ngrams for each 4-digit zip into resulting term-document-matrix,
-#' # using dense rank function  
+#' # include only top 100 ranked 2-word ngrams for each 4-digit zip into resulting term-document-matrix,
+#' # using rank function  
 #' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
-#'                     parser=nGram(1), top=100, rankFunction="denserank")
+#'                     parser=nGram(2), top=100)
 #'                     
 #' # same but get top 10% ranked terms using percent rank function                                                        
 #' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 

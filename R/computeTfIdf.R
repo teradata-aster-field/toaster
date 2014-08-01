@@ -57,7 +57,7 @@
 #'       gaps in the rank sequence. The tie-breaker behavior is the same as that of RANK(), in that 
 #'       the sorted-as-equal terms receive the same rank. With \code{denserank}, however, the next term after 
 #'       the set of equally ranked terms gets a rank 1 higher than preceding tied terms.
-#'     \teim \emph{\code{percentrank}} assigns a relative rank to each term, using the formula: 
+#'     \item \emph{\code{percentrank}} assigns a relative rank to each term, using the formula: 
 #'       \code{(rank - 1) / (total rows - 1)}. The tie-breaker behavior is as follows: Terms that compare 
 #'       as equal are sorted arbitrarily within the scope of the tie, and the sorted-as-equal rows 
 #'       get the same percent rank number.
@@ -184,7 +184,7 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'       gaps in the rank sequence. The tie-breaker behavior is the same as that of RANK(), in that 
 #'       the sorted-as-equal terms receive the same rank. With \code{denserank}, however, the next term after 
 #'       the set of equally ranked terms gets a rank 1 higher than preceding tied terms.
-#'     \teim \emph{\code{percentrank}} assigns a relative rank to each term, using the formula: 
+#'     \item \emph{\code{percentrank}} assigns a relative rank to each term, using the formula: 
 #'       \code{(rank - 1) / (total rows - 1)}. The tie-breaker behavior is as follows: Terms that compare 
 #'       as equal are sorted arbitrarily within the scope of the tie, and the sorted-as-equal rows 
 #'       get the same percent rank number.

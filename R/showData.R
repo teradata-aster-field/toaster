@@ -209,7 +209,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   dataChar = getCharacterColumns(summary, names.only=FALSE)
   dataTemp = getTemporalColumns(summary, names.only=FALSE)
   
-  getPalette = colorRampPalette(brewer.pal(brewer.pal.info[paletteName,"maxcolors"], paletteName))
+  getPalette = getDiscretePaletteFactory(paletteName)
   
   if (format=='boxplot') {
     if (type != 'numeric') {

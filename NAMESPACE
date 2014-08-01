@@ -1,4 +1,5 @@
-export(colorDiscretePalette)
+export(getDiscretePaletteFactory)
+export(getGradientPaletteFactory)
 export(computeAggregates)
 export(computeBarchart)
 export(computeCorrelations)

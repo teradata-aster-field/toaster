@@ -195,8 +195,8 @@ using Aster Database’s Correlation (stats correlation) function can help uncov
 Removing co-linear columns should resolve the issue.
 This inconvinience will be addressed in one of future releases of toaster."))
   
-  z = createLm(channel, tableName, cl, result$value, ft, xlevels, predictors, 
-               predictorColumns, predictorNames, predictorNamesSQL, 
+  z = createLm(channel, tableName, as.formula(formula), cl, result$value, ft, xlevels, 
+               predictors, predictorColumns, predictorNames, predictorNamesSQL, 
                responseVar, sampleSize, where)
   
   # for previous version 0.2.5 support (not backward compatible)
@@ -205,8 +205,8 @@ This inconvinience will be addressed in one of future releases of toaster."))
   return(z)
 }
 
-createLm <- function(channel, tableName, cl, coefficients, ft, xlevels, predictors,
-                     predictorColumns, predictorNames, predictorNamesSQL, 
+createLm <- function(channel, tableName, formula, cl, coefficients, ft, xlevels, 
+                     predictors, predictorColumns, predictorNames, predictorNamesSQL, 
                      response, sampleSize, where) {
   
   z <- structure(list(coefficients = coefficients,
@@ -236,7 +236,9 @@ createLm <- function(channel, tableName, cl, coefficients, ft, xlevels, predicto
     
     z$qr = qr(cbind(1, fit[, predictorNames]))
     
-    # z$model = model.frame(formula=formula, data=fit)
+    # for now model.frame is compatible with models without categorical predictors only
+    if (is.null(xlevels) || length(xlevels)==0)
+      z$model = model.frame(formula=formula, data=fit)
   }else
     warning("No sampling performed if sample size is NULL or < 30.")
   

@@ -150,8 +150,8 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
       # case when lgid = 'NL' then 1 else 0 end as "lgid_NL"
       for (value in col_values) {
         categoryExpr = paste0("CASE WHEN ", name, " = '", value, "' THEN 1 ELSE 0 END")
-        categoryName = paste0(tolower(name), "_", value)
-        categoryNameSQL = paste0("\"", tolower(name), "_", value, "\"")
+        categoryName = paste0(tolower(name), value)
+        categoryNameSQL = paste0("\"", tolower(name), value, "\"")
         
         predictorColumns = c(predictorColumns, categoryExpr)
         predictorNames = c(predictorNames, categoryName)

@@ -50,7 +50,14 @@
 #' @examples
 #' \donttest{
 #' 
-#' model1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)
+#' # batting average explained by rbi, bb, so 
+#' lm1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)
+#' summary(lm1)
+#' 
+#' # with category predictor league and explicit sample size
+#' lm2 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so + lgid,
+#'                 , sampleSize=10000, where="lgid in ('AL','NL') and ab > 30") 
+#' summary(lm2)
 #' }
 #' 
 computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories = NULL,

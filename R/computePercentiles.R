@@ -77,6 +77,14 @@
 #' # ipouts percentiles by league
 #' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
 #' 
+#' # percentiles on temporal columns
+#' playerAllDates = computePercentiles(conn, "master_enh", 
+#'                     columns=c('debut','finalgame','birthdate','deathdate'),
+#'                     temporal=TRUE, percentiles=c(0))
+#' createBoxplot(playerAllDates, x='column', value='epoch', useIQR=TRUE, 
+#'               title="Boxplots for Date columns (epoch values)", 
+#'               legendPosition="none")
+#' 
 #' }
 computePercentiles <- function(channel, tableName, columnName = NULL, columns = columnName,
                                temporal = FALSE, percentiles = c(ifelse(temporal, 5, 0),5,10,25,50,75,90,95,100), 

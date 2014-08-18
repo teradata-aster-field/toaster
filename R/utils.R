@@ -75,9 +75,9 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
   if (mock) {
     if (substr(tableName, nchar(tableName)-nchar('pitching')+1, nchar(tableName))=='pitching') {
-      table_info = dget("pitchingInfo.dat")
+      table_info = dget("_pitchingInfo.dat")
     }else if (substr(tableName, nchar(tableName)-nchar('batting')+1, nchar(tableName))=='batting') {
-      table_info = dget("battingInfo.dat")
+      table_info = dget("_battingInfo.dat")
     }else {
       stop("Test sql with 'getTableSummary' only for 'batting' or 'pitching' tables.")
     }
@@ -85,17 +85,12 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
     table_info = sqlColumns(channel, tableName)
   }
   
-  if (nrow(table_info) == 0) stop(paste("No columns of any kind found in the table '", tableName, "'"))
+  if (nrow(table_info) == 0) stop(paste0("No columns of any kind found in the table '", tableName, "'"))
   
   table_info = includeExcludeColumns(table_info, include, except)
   
   # check if at least one column found
-  if (nrow(table_info) == 0) stop(paste("No columns specified found in the table '", tableName, "'"))
-  
-  # no database access if mock is TRUE
-  if (mock) {
-    return (table_info)
-  }
+  if (nrow(table_info) == 0) stop(paste0("No columns specified found in the table '", tableName, "'"))
   
   where_clause = makeWhereClause(where)
   
@@ -106,8 +101,14 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   }else {
     percentiles = union(percentiles, c(25, 50, 75)) 
   }
-  if (any(percentiles < 0 | percentiles > 100)) {
-    stop (paste("Invalid percentile value(s) passed (below 0 or above 100): ", percentiles))
+  out_of_range = percentiles < 0 | percentiles > 100
+  if (any(out_of_range)) {
+    stop(paste("Invalid percentile value(s) passed (below 0 or above 100):", percentiles[out_of_range]))
+  }
+  
+  # no database access if mock is TRUE
+  if (mock) {
+    return (table_info)
   }
   
   percentileNames = paste0(percentiles, "%")

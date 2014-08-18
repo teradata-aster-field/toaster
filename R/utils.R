@@ -584,8 +584,28 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
     
     return (rs[, 'values'])
   }
+}
+
+#' Test if table present in the database.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param names vector of table names. Name may contain SQL wildcard 
+#'   characters but it should not contain schema prefix. All visible schemas 
+#'   will be checked for table name specified.
+#' @return logical vector indicating if corresponding name is table in Aster database.
+#' @seealso \code{\link{getTableSummary}}
+#' @export
+#' @examples 
+#' \donttest{
+#' # on baseball dataset
+#' isTable(conn, "pitching")        # TRUE 
+#' isTable(conn, "pitch%")          # TRUE
+#' isTable(conn, "public.pitching") # FALSE
+#' }
+isTable <- function(channel, names) {
+  if (is.null(names) || length(names) < 1) return(FALSE)
   
-  
+  vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
 }
 
 # TODO: make part of utility convinience set of functions

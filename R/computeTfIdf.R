@@ -331,9 +331,12 @@ removeStopWords <- function(rs, stopwords, ignore.case=TRUE) {
   if (is.null(stopwords) || length(stopwords) == 0)
     return (rs)
   
+  if (!ignore.case) {
+    stopwords = c(tolower(stopwords), toupper(stopwords))
+  }
+  
   result = rs 
-  stopwords = unique(ifelse(ignore.case, stopwords, c(tolower(stopwords), toupper(stopwords))))
-  for(sw in stopwords) {
+  for(sw in unique(stopwords)) {
     idx = grep(paste0("\\b",sw,"\\b"), result$term, ignore.case=ignore.case)
     if (length(idx)>0) result = result[-idx, ]
   }

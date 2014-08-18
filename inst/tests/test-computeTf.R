@@ -265,3 +265,16 @@ test_that("computeTf SQL with top ranking is correct", {
   )
   
 })
+
+test_that("stop words in R works", {
+  rs = data.frame(term=c("a","b","c", "the", "THE"), freq=c(1,2,3,4,5), stringsAsFactors=FALSE)
+  expect_equal(removeStopWords(rs, NULL), rs)
+  
+  expect_equal(removeStopWords(rs, character(0)), rs)
+  
+  expect_equal(removeStopWords(rs, c("a","b","c", "the")), data.frame(term=character(0), freq=numeric(0), stringsAsFactors=FALSE))
+  
+  expect_equal(removeStopWords(rs, c("a","b", "the")), rs[3,])
+  
+  expect_equal(removeStopWords(rs, c("a","b", "the"), ignore.case=FALSE), rs[3,])
+})

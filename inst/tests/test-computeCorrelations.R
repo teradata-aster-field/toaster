@@ -1,6 +1,6 @@
 context("computeCorrelations")
 
-pitching_info = dget("pitchingInfo.dat")
+pitching_info = dget("_pitchingInfo.dat")
 
 test_that("computeCorrelations throws errors", {
   

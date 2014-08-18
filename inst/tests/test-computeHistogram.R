@@ -1,7 +1,7 @@
 context("computeHistogram")
 
-pitching_info = dget("pitchingInfo.dat")
-start_end_test_info = dget("startEndTestInfo.dat")
+pitching_info = dget("_pitchingInfo.dat")
+start_end_test_info = dget("_startEndTestInfo.dat")
 
 test_that("computeHistogram throws errors", {
   

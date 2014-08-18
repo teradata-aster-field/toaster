@@ -1,7 +1,7 @@
 context("showData")
 
-pitching_info = dget("pitchingInfo.dat")
-batting_info = dget("battingInfo.dat")
+pitching_info = dget("_pitchingInfo.dat")
+batting_info = dget("_battingInfo.dat")
 
 test_that("format 'boxplot' works", {
   p = ggplot_build(showData(tableName='pitching', tableInfo=pitching_info, format='boxplot'))

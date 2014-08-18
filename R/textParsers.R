@@ -177,8 +177,6 @@ parseTextSQL.token <- function(x, tableName, docId, textColumns, where) {
     fromTables = paste0(withTable, " ", aliases)
   }
   
-  
-  
   sql = paste0(
     "WITH ", withTable, " AS 
        (", withSelect, ")  
@@ -194,3 +192,4 @@ makeTextSelectList <- function(docId, textColumns, sep) {
   textExpr = paste(textColumns, collapse=collapse)
   selectList = paste0(docId, " __doc_id__, ", textExpr, " __text_column__ ")
 }
+

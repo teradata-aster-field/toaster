@@ -247,6 +247,9 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
                                   PARTITION BY 1
                                   PERCENTILE( ", percentileStr, " ))")
   
+  # non-functional: eliminates NOTE 'no visible binding for global variable'
+  column_name = idx = NULL
+  
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC')) %do% {
@@ -311,6 +314,9 @@ computeCharacterMetrics <- function(channel, tableName, tableInfo, character_col
            "       min((%%%column__name%%%)) as minimum, ",
            "       max((%%%column__name%%%)) as maximum ",
            "  FROM ", tableName, where_clause)
+  
+  # non-functional: eliminates NOTE 'no visible binding for global variable'
+  column_name = idx = NULL 
   
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
@@ -419,6 +425,9 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
           " "),
           "  ORDER BY 1")
   
+  # non-functional: eliminates NOTE 'no visible binding for global variable'
+  column_name = column_type = idx = NULL 
+  
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, column_type = tableInfo$TYPE_NAME,
                      idx = seq_along(tableInfo$COLUMN_NAME), 
@@ -475,6 +484,9 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
     paste0("SELECT CAST((%%%column__name%%%) as varchar) val, count(*) cnt ",
                "  FROM ", tableName, where_clause,
                " GROUP BY 1 ORDER BY 2 DESC LIMIT 1")
+  
+  # non-functional: eliminates NOTE 'no visible binding for global variable' 
+  column_name = idx = NULL 
   
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),

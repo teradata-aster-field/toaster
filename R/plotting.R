@@ -37,7 +37,7 @@
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' 
+#' @return ggplot object
 #' @seealso \code{\link{computeHeatmap}} for computing data for heat map 
 #' 
 #' @export
@@ -149,6 +149,7 @@ createHeatmap <- function(data, x, y, fill,
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @seealso \code{\link{computeHistogram}} and \code{\link{computeBarchart}} to
 #'   compute data for histogram
+#' @return ggplot object
 #' @export
 #' @examples
 #' \donttest{
@@ -349,6 +350,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @export
+#' @return ggplot object
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
 #' @examples
 #' \donttest{
@@ -513,6 +515,7 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
+#' @return ggplot object
 #' @seealso \code{\link{computeAggregates}} computes data for the bubble chart.
 #' @export
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
@@ -592,7 +595,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}}, \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} (default) or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' 
+#' @return ggplot object
 #' @export
 createSlopegraph <- function(data, id, rankFrom, rankTo, 
                              reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
@@ -783,7 +786,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' 
+#' @return ggplot object
 #' @export 
 #' @examples
 #' \donttest{

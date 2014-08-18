@@ -1,20 +1,55 @@
-# Demo compute and create heatmap
-#
-# To install baseball demo dataset in Aster
-# download baseball.zip from
-# https://bitbucket.org/grigory/toaster/downloads/baseball.zip
-# and run
-# sh load_baseball_data.sh -d mydbname -U beehive 
+#' @demoTitle baseball-heatmap
+#' 
+#' Demo heatmaps
+#'
+#' To install and use baseball demo dataset in Aster:
+#'
+#' 1. download baseball.zip from
+#'   https://bitbucket.org/grigory/toaster/downloads/baseball.zip
+#' 2. run script to create data set in Aster
+#'   sh load_baseball_data.sh -d mydbname -U username -w mypassword 
+#' 3. create Aster ODBC DSN on your desktop
+#'   see https://bitbucket.org/grigory/toaster/wiki/Home#markdown-header-odbc-driver-and-dns
 
 library(toaster)
-require(scales)
+library(scales)
 
-# update ODBC data source name
-dsn = "PresalesPartnersDB"
-uid = "beehive"
-pwd = "beehive"
-close(conn)
-conn = odbcConnect(dsn, uid, pwd)
+## utility input function
+readlineDef <- function(prompt, default) {
+  if (!is.null(prompt))
+    prompt = paste0(prompt, "[", default, "]: ")
+  else 
+    prompt = paste0(prompt, ": ")
+  
+  result = readline(prompt)
+  if (result == "") 
+    return (default)
+  else
+    return (result)
+}
+
+## utility connection function
+connectWithDSNToAster <- function(dsn=NULL) {
+  dsn = readlineDef("Enter Aster ODBC DSN: ", dsn)
+  
+  tryCatch(close(conn), error=function(err) {NULL})
+  
+  conn = tryCatch({
+    conn = odbcConnect(dsn)
+    odbcGetInfo(conn)
+    return (conn)
+  }, error=function(err) {
+    stop(paste("Can't connect to Aster - check DSN '", dsn, "'"))
+  })
+}
+
+## connect to Aster first
+conn = connectWithDSNToAster()
+
+## must be connected to baseball dataset
+if(!all(isTable(conn, c('pitching_enh', 'batting_enh', 'teams_enh')))) {
+  stop("Must connect to baseball dataset and tables must exist.")
+}
 
 # Heatmap of Average Wins by Franchise and Decade
 hmFranchWins = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w) w', 

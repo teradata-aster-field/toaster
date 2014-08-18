@@ -1,13 +1,19 @@
-# Demo compute linear regression model
-#
-# To install baseball demo dataset in Aster
-# download baseball.zip from
-# https://bitbucket.org/grigory/toaster/downloads/baseball.zip
-# and run
-# sh load_baseball_data.sh -d mydbname -U beehive 
+#' @demoTitle baseball-lm
+#' 
+#' Demo linear regression model (lm)
+#'
+#' To install and use baseball demo dataset in Aster:
+#'
+#' 1. download baseball.zip from
+#'   https://bitbucket.org/grigory/toaster/downloads/baseball.zip
+#' 2. run script to create data set in Aster
+#'   sh load_baseball_data.sh -d mydbname -U username -w mypassword 
+#' 3. create Aster ODBC DSN on your desktop
+#'   see https://bitbucket.org/grigory/toaster/wiki/Home#markdown-header-odbc-driver-and-dns
 
 library(toaster)
 
+## utility input function
 readlineDef <- function(prompt, default) {
   if (!is.null(prompt))
     prompt = paste0(prompt, "[", default, "]: ")
@@ -21,6 +27,7 @@ readlineDef <- function(prompt, default) {
     return (result)
 }
 
+## utility connection functions
 connectAdHocToAster <- function(uid="beehive", pwd=NULL, server="localhost", port="2406", database="beehive") {
   uid = readlineDef("Enter user id: ", uid)
   pwd = readlineDef("Enter password: ", pwd)
@@ -65,11 +72,23 @@ pause <- function() {
 ### connect first
 conn = connectWithDSNToAster()
 
-pause()
+## must be connected to baseball dataset
+if(!all(isTable(conn, c('pitching_enh', 'batting_enh')))) {
+  stop("Must connect to baseball dataset and tables must exist.")
+}
 
 ### simple model with 3 numerical predictors
-model1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)
+model1 = computeLm(channel=conn, tableName="batting_enh",
+                   formula= ba ~ rbi + bb + so, sampleSize=10000)
 summary(model1)
+plot(model1)
+
+### compare with lm()
+data = computeSample(channel=conn, tableName="batting_enh",
+                     include=c("ba","rbi","bb","so"), sampleSize=10000)
+fit1 = lm(formula= ba ~ rbi + bb + so, data=data)
+summary(fit1)
+plot(fit1)
 
 pause()
 
@@ -77,6 +96,7 @@ pause()
 modelNL = computeLm(channel=conn, tableName="pitching_enh", formula= era ~ er + hr + bb + so, 
                     where = "yearid >= 2000 and lgid = 'NL'")
 summary(modelNL)
+plot(modelNL)
 
 pause()
 

@@ -13,6 +13,21 @@
 
 library(toaster)
 
+## utility input function
+readlineDef <- function(prompt, default) {
+  if (!is.null(prompt))
+    prompt = paste0(prompt, "[", default, "]: ")
+  else 
+    prompt = paste0(prompt, ": ")
+  
+  result = readline(prompt)
+  if (result == "") 
+    return (default)
+  else
+    return (result)
+}
+
+## utility connection function
 connectWithDSNToAster <- function(dsn=NULL) {
   dsn = readlineDef("Enter Aster ODBC DSN: ", dsn)
   
@@ -27,6 +42,7 @@ connectWithDSNToAster <- function(dsn=NULL) {
   })
 }
 
+## utility pause function
 pause <- function() {
   cat("Press ENTER/RETURN/NEWLINE to continue.")
   readLines(n=1)
@@ -35,6 +51,12 @@ pause <- function() {
 
 ## connect to Aster first
 conn = connectWithDSNToAster()
+
+## must be connected to baseball dataset
+if(!all(isTable(conn, c('pitching_enh', 'batting_enh', 'teams_enh', 'master_enh')))) {
+  stop("Must connect to baseball dataset and tables must exist.")
+}
+
 
 ## compute pitching summary statistics 
 pitchingInfoDemo = getTableSummary(channel=conn, 'pitching_enh', 

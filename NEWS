@@ -2,11 +2,22 @@
 toaster 0.2.x
 ----------------------------------------------------------------
 
-* New text analysis functions `computeTf` and `computeTfIdf` 
-  process corpora in Aster and produce results compatible with package tm.
+NEW FEATURES
 
-* Text parsers `nGram` and `token` are pluggable into text analysis functions
+* New text analysis functions `computeTf` and `computeTfIdf` 
+  process corpora in Aster and produce results compatible with package tm,
+  in particular term document matrix.
+
+* Both `computeTf` and `computeTfIdf` rank terms to return top ranked 
+  ones. Ranking and number of terms to return are provided by 
+  parameters `top` and `rankFunction`. Unlimited (all terms) are 
+  returned by default with `top = NULL`.
+
+* Text parsers `nGram` and `token` are pluggable into text functions
   above.
+
+* Text functions support stop words in both Aster (installed stopwords file)
+  and in R (post-processing of results).
 
 * Linear regression now is compatible with R standard lm functions returning
   object of class c('toalm', 'lm'). This means methods `summary`, 
@@ -23,19 +34,23 @@ toaster 0.2.x
   register parallel cluster of your choice with doParallel package and set
   parameter parallel=TRUE. Performance gains may be up to 50% or better 
   depending on size of the table, number of parallel processes, and number 
-  of columns.
+  of columns. Run `demo("baseball-parallel")` for examples.
 
 * `computePercentiles` is enabled for parallel execution. Simply create and
   register parallel cluster of your choice with doParallel package and set
   parameter parallel=TRUE. Performance gains may be up to 50% or better 
   depending on size of the table, number of parallel processes, and number 
-  of columns.
+  of columns. Run `demo("baseball-parallel")` for examples.
 
-* Temporal data types in Aster are supported by both `getTableSummary` and
-  `computePercentiles`. For latter, use parameter temporal=TRUE to 
-  compute percentiles on date, time, timestamp, or interval.
+* Added support of temporal Aster data types in `getTableSummary` and
+  `computePercentiles`. Temporal types are date, time, timestamp, and interval.
+  in `computePercentiles` set parameter temporal=TRUE to calculate 
+  temporal columns and run it separately from numerical ones.
 
-* Added factory function `colorDiscretePalette`. 
+* Added factory functions `getDiscretePaletteFactory` and `getGradientPaletteFactory`
+  to dynamically generate palettes with n number of colors. 
+
+* Added utility function `isTable` checks if tables exist in Aster database.
 
 MINOR FEATURES
 
@@ -43,6 +58,8 @@ MINOR FEATURES
   for consistency with other model-fitting functions.
 
 * `computePercentiles` now computes on multiple columns.
+
+* Reworked ODBC error handling to be more robust and informative.
 
 * Added deprecated warning facility `toa_dep` similar to ggplot2 gg_dep 
   function.
@@ -55,16 +72,20 @@ BUG FIXES
 * `computePercentiles` now returns no rows for the column that contains all NULLs. 
   Before it threw error without completing.
 
+* fixed legend position in plotting functions.
 
-toaster 0.2.5
-----------------------------------------------------------------
+* Added error when histogram start value is greater than end value in (Issue #33)
 
-MINOR FEATURES
+DOCUMENTAION
 
-* `computePercentiles` now computes on multiple columns.
+* Completely reworked demo scripts. Now they contain fully functional examples  
+  running on baseball and openDallas data sets. The data sets are available 
+  from bitbucket download: https://bitbucket.org/grigory/toaster/downloads
+    - baseball.zip
+    - DallasOpenData.zip
 
-* Added deprecated warning facility `toa_dep` similar to ggplot2 gg_dep 
-  function.
+* Baseball data set now includes the latest Lahman data including 2013 season.
+
 
 toaster 0.2.5
 ----------------------------------------------------------------
@@ -152,10 +173,3 @@ ENHANCEMENTS
 * `computeAggregates` is not an alias anymore and it replaced function
   `compute` which is no more.
 
-BUG FIXES
-
-
-
-DOCUMENTAION
-
-* added more examples

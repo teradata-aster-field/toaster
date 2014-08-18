@@ -191,7 +191,7 @@ ERROR: SQL-MR function LINREG failed: The input data results in a singular matri
 Then refer to Aster Analytics Foundation Guide, Linear Regression Function, in particular:
 If two or more input columns are co-linear, or very closely correlated, then no solution to
 linear regression exists, so the function will fail. Looking at correlations between columns
-using Aster Database’s Correlation (stats correlation) function can help uncover sources of colinearity.
+using Aster Database correlation (stats correlation) function can help uncover sources of colinearity.
 Removing co-linear columns should resolve the issue.
 This inconvinience will be addressed in one of future releases of toaster."))
   

@@ -1,6 +1,5 @@
 context("computeTf")
 
-
 test_that("computeTf SQL with nGram parser is correct", {
   
   expect_equal_normalized(

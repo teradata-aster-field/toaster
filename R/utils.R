@@ -75,9 +75,9 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   
   if (mock) {
     if (substr(tableName, nchar(tableName)-nchar('pitching')+1, nchar(tableName))=='pitching') {
-      table_info = dget("pitchingInfo.dat")
+      table_info = dget("_pitchingInfo.dat")
     }else if (substr(tableName, nchar(tableName)-nchar('batting')+1, nchar(tableName))=='batting') {
-      table_info = dget("battingInfo.dat")
+      table_info = dget("_battingInfo.dat")
     }else {
       stop("Test sql with 'getTableSummary' only for 'batting' or 'pitching' tables.")
     }
@@ -85,17 +85,12 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
     table_info = sqlColumns(channel, tableName)
   }
   
-  if (nrow(table_info) == 0) stop(paste("No columns of any kind found in the table '", tableName, "'"))
+  if (nrow(table_info) == 0) stop(paste0("No columns of any kind found in the table '", tableName, "'"))
   
   table_info = includeExcludeColumns(table_info, include, except)
   
   # check if at least one column found
-  if (nrow(table_info) == 0) stop(paste("No columns specified found in the table '", tableName, "'"))
-  
-  # no database access if mock is TRUE
-  if (mock) {
-    return (table_info)
-  }
+  if (nrow(table_info) == 0) stop(paste0("No columns specified found in the table '", tableName, "'"))
   
   where_clause = makeWhereClause(where)
   
@@ -106,8 +101,14 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   }else {
     percentiles = union(percentiles, c(25, 50, 75)) 
   }
-  if (any(percentiles < 0 | percentiles > 100)) {
-    stop (paste("Invalid percentile value(s) passed (below 0 or above 100): ", percentiles))
+  out_of_range = percentiles < 0 | percentiles > 100
+  if (any(out_of_range)) {
+    stop(paste("Invalid percentile value(s) passed (below 0 or above 100):", percentiles[out_of_range]))
+  }
+  
+  # no database access if mock is TRUE
+  if (mock) {
+    return (table_info)
   }
   
   percentileNames = paste0(percentiles, "%")
@@ -246,6 +247,9 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
                                   PARTITION BY 1
                                   PERCENTILE( ", percentileStr, " ))")
   
+  # non-functional: eliminates NOTE 'no visible binding for global variable'
+  column_name = idx = NULL
+  
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC')) %do% {
@@ -310,6 +314,9 @@ computeCharacterMetrics <- function(channel, tableName, tableInfo, character_col
            "       min((%%%column__name%%%)) as minimum, ",
            "       max((%%%column__name%%%)) as maximum ",
            "  FROM ", tableName, where_clause)
+  
+  # non-functional: eliminates NOTE 'no visible binding for global variable'
+  column_name = idx = NULL 
   
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
@@ -418,6 +425,9 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
           " "),
           "  ORDER BY 1")
   
+  # non-functional: eliminates NOTE 'no visible binding for global variable'
+  column_name = column_type = idx = NULL 
+  
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, column_type = tableInfo$TYPE_NAME,
                      idx = seq_along(tableInfo$COLUMN_NAME), 
@@ -474,6 +484,9 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
     paste0("SELECT CAST((%%%column__name%%%) as varchar) val, count(*) cnt ",
                "  FROM ", tableName, where_clause,
                " GROUP BY 1 ORDER BY 2 DESC LIMIT 1")
+  
+  # non-functional: eliminates NOTE 'no visible binding for global variable' 
+  column_name = idx = NULL 
   
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
@@ -584,8 +597,28 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
     
     return (rs[, 'values'])
   }
+}
+
+#' Test if table present in the database.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param names vector of table names. Name may contain SQL wildcard 
+#'   characters but it should not contain schema prefix. All visible schemas 
+#'   will be checked for table name specified.
+#' @return logical vector indicating if corresponding name is table in Aster database.
+#' @seealso \code{\link{getTableSummary}}
+#' @export
+#' @examples 
+#' \donttest{
+#' # on baseball dataset
+#' isTable(conn, "pitching")        # TRUE 
+#' isTable(conn, "pitch%")          # TRUE
+#' isTable(conn, "public.pitching") # FALSE
+#' }
+isTable <- function(channel, names) {
+  if (is.null(names) || length(names) < 1) return(FALSE)
   
-  
+  vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
 }
 
 # TODO: make part of utility convinience set of functions

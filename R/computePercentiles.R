@@ -77,6 +77,14 @@
 #' # ipouts percentiles by league
 #' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
 #' 
+#' # percentiles on temporal columns
+#' playerAllDates = computePercentiles(conn, "master_enh", 
+#'                     columns=c('debut','finalgame','birthdate','deathdate'),
+#'                     temporal=TRUE, percentiles=c(0))
+#' createBoxplot(playerAllDates, x='column', value='epoch', useIQR=TRUE, 
+#'               title="Boxplots for Date columns (epoch values)", 
+#'               legendPosition="none")
+#' 
 #' }
 computePercentiles <- function(channel, tableName, columnName = NULL, columns = columnName,
                                temporal = FALSE, percentiles = c(ifelse(temporal, 5, 0),5,10,25,50,75,90,95,100), 
@@ -149,23 +157,26 @@ computeNumericPercentiles <- function(channel, tableName, columnNames,
     sql = assemblePercentileSql(tableName, where_clause, columnNames[[1]], partitionByList, percentileStr, groupColumnsOpt)
     return(sql)
   }else {
+    # non-functional: eliminates NOTE 'no visible binding for global variable'
+    column_name = NULL
+    
     if (!parallel) {
-      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
-        sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
+      result = foreach(column_name = columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
+        sql = assemblePercentileSql(tableName, where_clause, column_name, partitionByList, percentileStr, groupColumnsOpt)
         rs = toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
         if (!is.null(nameInDataFrame) && nrow(rs) > 0)
-          rs[, nameInDataFrame] = name
+          rs[, nameInDataFrame] = column_name
         rs
       }
     }else {
-      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC'),
+      result = foreach(column_name = columnNames, .combine='rbind', .packages=c('RODBC'),
                        .errorhandling='stop') %dopar% {
-        sql = assemblePercentileSql(tableName, where_clause, name, partitionByList, percentileStr, groupColumnsOpt)
+        sql = assemblePercentileSql(tableName, where_clause, column_name, partitionByList, percentileStr, groupColumnsOpt)
         parChan = odbcReConnect(channel)
         rs = toaSqlQuery(parChan, sql, stringsAsFactors=stringsAsFactors, closeOnError=TRUE)
         close(parChan)
         if (!is.null(nameInDataFrame) && nrow(rs) > 0)
-          rs[, nameInDataFrame] = name
+          rs[, nameInDataFrame] = column_name
         rs
       }
     }
@@ -220,27 +231,30 @@ computeTemporalPercentiles <- function(channel, tableName, columnNames,
                                         groupBy0PercentileList)
     return(gsub('(%%%column__name%%%)', columnNames[[1]], sql, fixed=TRUE))
   }else {
+    # non-functional: eliminates NOTE 'no visible binding for global variable'
+    column_name = NULL
+    
     if (!parallel) {
-      result = foreach(name=columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
+      result = foreach(column_name=columnNames, .combine='rbind', .packages=c('RODBC')) %do% {
         sql = assembleTemporalPercentileSql(tableName, where_clause, percentiles, percentileStr,
                                             selectByList, partitionByList, groupByList,
                                             groupBy0PercentileList)
-        rs = toaSqlQuery(channel, gsub('(%%%column__name%%%)', name, sql, fixed=TRUE), stringsAsFactors=stringsAsFactors)
+        rs = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), stringsAsFactors=stringsAsFactors)
         if (!is.null(nameInDataFrame) && nrow(rs) > 0)
-          rs[, nameInDataFrame] = name
+          rs[, nameInDataFrame] = column_name
         rs
       }
     }else {
-      result = foreach(name = columnNames, .combine='rbind', .packages=c('RODBC'),
+      result = foreach(column_name = columnNames, .combine='rbind', .packages=c('RODBC'),
                        .errorhandling='stop') %dopar% {
         sql = assembleTemporalPercentileSql(tableName, where_clause, percentiles, percentileStr,
                                             selectByList, partitionByList, groupByList,
                                             groupBy0PercentileList)
         parChan = odbcReConnect(channel)
-        rs = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', name, sql, fixed=TRUE), stringsAsFactors=stringsAsFactors)
+        rs = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), stringsAsFactors=stringsAsFactors)
         close(parChan)
         if (!is.null(nameInDataFrame) && nrow(rs) > 0)
-          rs[, nameInDataFrame] = name
+          rs[, nameInDataFrame] = column_name
         rs
       }
     }

@@ -1,7 +1,6 @@
-# Demo showData type of analysis
 #' @demoTitle baseball-showData
 #' 
-#' Demo showData function
+#' Demo showData: 'overview', 'boxplot', 'corr' (correlation table), and 'scatterplot'
 #'
 #' To install and use baseball demo dataset in Aster:
 #'
@@ -15,6 +14,21 @@
 library(toaster)
 library(ggplot2)
 
+## utility input function
+readlineDef <- function(prompt, default) {
+  if (!is.null(prompt))
+    prompt = paste0(prompt, "[", default, "]: ")
+  else 
+    prompt = paste0(prompt, ": ")
+  
+  result = readline(prompt)
+  if (result == "") 
+    return (default)
+  else
+    return (result)
+}
+
+## utility connection function
 connectWithDSNToAster <- function(dsn=NULL) {
   dsn = readlineDef("Enter Aster ODBC DSN: ", dsn)
   
@@ -29,6 +43,7 @@ connectWithDSNToAster <- function(dsn=NULL) {
   })
 }
 
+# utility test function
 isTableInfo <- function(name) {
   return (exists(name) && class(get(name)) == "data.frame" && 
             all(c("TABLE_CAT","TABLE_SCHEM","TABLE_NAME","COLUMN_NAME","COLUMN_NAME", 
@@ -41,6 +56,11 @@ isTableInfo <- function(name) {
 
 ## connect to Aster first
 conn = connectWithDSNToAster()
+
+## must be connected to baseball dataset
+if(!all(isTable(conn, c('pitching_enh', 'batting_enh', 'teams_enh')))) {
+  stop("Must connect to baseball dataset and tables must exist.")
+}
 
 ## compute table statistics as necessary
 if (!isTableInfo("battingInfo"))
@@ -58,64 +78,69 @@ if (!isTableInfo("teamsInfo"))
 showData(channel=NULL, 'pitching_enh', pitchingInfo, type='numeric', format='overview',
          include=c('h','so','r','g','bb','er','hr'), 
          measures = c('average','deviation','IQR','minimum','10%','25%','50%','75%','90%','maximum'),
-         scales="free_y",
-         where='yearid between 2000 and 2013')
+         scales="free_y", where='yearid between 2000 and 2013',
+         title="Overview format: Data Statistics by rows, Data Columns (Pitching Stats) by columns")
 
 
 ## box plots
 showData(channel=NULL, tableName='pitching_enh', tableInfo=pitchingInfo, format='boxplot',
-         except = c('yearid', 'decadeid'),
-         coordFlip=TRUE)
+         except = c('yearid', 'decadeid'), coordFlip=TRUE,
+         title="Boxplots of Pitching Stats")
 
 showData(channel=NULL, tableName='pitching_enh', tableInfo=pitchingInfo, format='boxplot',
          include=c('bfp','er','h','ipouts','r','so'), ncol=3,
-         facet=TRUE, scale="free_x", defaultTheme=theme_grey(),)
+         facet=TRUE, scale="free_x", defaultTheme=theme_grey(),
+         title="Pitching Stats Boxplots in Facets with Grey Theme")
 
 ## histograms
 showData(conn, 'pitching_enh', tableInfo=pitchingInfo, format='histogram', 
          include=c('baopp', 'era', 'whip', 'ktobb', 'fip'), 
-         numBins=50, facet=TRUE,
-         where='yearid between 2000 and 2013')
+         numBins=50, facet=TRUE, where='yearid between 2000 and 2013',
+         title="Histograms of Pitching Stats in Facets")
 
 showData(conn, 'batting_enh', battingInfo,
          include=c('ba','ta','slg'),
          format='histogram', numBins=100, facet=TRUE,
          where='yearid between 2000 and 2013 
-                and ab >= 30')
+                and ab >= 30',
+         title="Histograms of Batting Stats in 2000s with At Least 30 AB")
 
 ## correlation
 showData(conn, tableName='pitching_enh', tableInfo=pitchingInfo, format='corr', 
          include=c('w', 'l', 'g', 'ipouts', 'h', 'er', 'hr', 'bb', 'so', 'bfp', 'r'),
          corrLabel='value', digits=2, shapeSizeRange=c(5,25), 
-         defaultTheme=theme_classic(base_size=12), legendPosition="none")
+         defaultTheme=theme_classic(base_size=12), legendPosition="none",
+         title="Correlation Matrix of Pitching Stats")
 
 showData(conn, tableName='teams_enh', tableInfo=teamsInfo, format='corr', 
          except=c('yearid','decadeid','ghome','g'),
          corrLabel='value', digits=2, shapeSizeRange=c(5,25),
-         defaultTheme=theme_classic(base_size=12), legendPosition="none")
+         defaultTheme=theme_classic(base_size=12), legendPosition="none",
+         title="correlation Matrix of Team Stats")
 
 ## scatterplots
 showData(conn, 'pitching_enh', tableInfo=pitchingInfo, format='scatterplot', 
          include=c('so', 'er'), pointColour="lgid", 
          sampleSize=10000, regressionLine=TRUE,
-         title="SO vs ER 1980-2000",
-         where='yearid between 1980 and 2000', legendPosition="none")
+         where='yearid between 1980 and 2000', legendPosition="none",
+         title="SO vs ER by League (1980-2000, AL: red, NL: grey)")
 
 ## the same with facets
 showData(conn, 'pitching_enh', tableInfo=pitchingInfo, format='scatterplot', 
          include=c('so', 'er'), facetName="lgid", pointColour="lgid", 
          sampleSize=10000, regressionLine=TRUE,
-         title="SO vs ER by League 1980-2000",
-         where='yearid between 1980 and 2000', legendPosition="none")
+         where='yearid between 1980 and 2000', legendPosition="none",
+         title="SO vs ER by League (1980-2000)")
 
 showData(conn, 'pitching_enh', format='scatterplot', tableInfo=pitchingInfo, 
          include=c('so','er'), facetName=c('lgid','decadeid'), pointColour="lgid",
          sampleFraction=0.25, regressionLine=TRUE,
-         title="SO vs ER by League by Decade 1980 - 2013",
-         where='yearid between 1980 and 2013', legendPosition="none")
+         where='yearid between 1980 and 2013', legendPosition="none",
+         title="SO vs ER by League and Decade (1980 - 2013)")
 
 showData(conn, 'pitching_enh', format='scatterplot', tableInfo=pitchingInfo, 
          include=c('ktobb', 'fip', 'teamid','yearid'),
          sampleFraction=0.25, facetName=c('teamid','decadeid'), regressionLine=TRUE,
-         where="yearid between 1970 and 2013 and teamid in ('TEX','NYA')")
+         where="yearid between 1970 and 2013 and teamid in ('TEX','NYA')",
+         title="Pitching KTOBB vs FIP by Decade and Team (Yankees and Rangers)")
 

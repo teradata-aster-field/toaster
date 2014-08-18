@@ -1,11 +1,3 @@
-
-# docs <- c("This is a text.", "This another one.")
-# 
-# corps = Corpus(VectorSource(docs))
-# 
-# tdm = TermDocumentMatrix(corps)
-# dtm = DocumentTermMatrix(corps)
-
 #' Compute term frequencies on a corpus.
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
@@ -36,6 +28,8 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The criteria are expressed in the form of SQL predicates (inside 
 #'   \code{WHERE} clause).
+#' @param stopwords character vector with stop words. Removing stop words takes place in R after 
+#'   results are computed and returned from Aster.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions \link{sqlQuery} and \link{sqlSave}). 
 #'   
@@ -96,7 +90,7 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
                       weighting = "normal",
                       top = NULL, rankFunction = "rank",
                       where = NULL, idSep = '-', idNull = '(null)',
-                      test = FALSE) {
+                      stopwords = NULL, test = FALSE) {
   
   weighting = match.arg(weighting, c('raw','bool','binary','log','augment','normal'))
   rankFunction = match.arg(rankFunction, c('rank', 'rownumber', 'row', 'denserank', 'percentrank'))
@@ -127,8 +121,10 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
   if (test) 
     return (sql)
   else {
-    rs = toaSqlQuery(channel, sql, stringsAsFactors = FALSE)
+    rs = toaSqlQuery(channel, sql, stringsAsFactors = FALSE, na.strings="")
   }
+  
+  rs = removeStopWords(rs, stopwords)
   
   x = makeSimpleTripletMatrix(rs, ifelse(weighting == 'raw', 'count', 'tf'), 'tf')
   return(x)
@@ -163,6 +159,8 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The criteria are expressed in the form of SQL predicates (inside 
 #'   \code{WHERE} clause).
+#' @param stopwords character vector with stop words. Removing stop words takes place in R after 
+#'   results are computed and returned from Aster.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions \link{sqlQuery} and \link{sqlSave}). 
 #'   
@@ -226,7 +224,7 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
                          top = NULL, rankFunction = 'rank',
                          idSep = '-', idNull = '(null)',
                          adjustDocumentCount = FALSE, where = NULL, 
-                         test = FALSE) {
+                         stopwords = NULL, test = FALSE) {
   
   rankFunction = match.arg(rankFunction, c('rank', 'rownumber', 'row', 'denserank', 'percentrank'))
   windowFunction = getWindowFunction(rankFunction)
@@ -264,8 +262,10 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
   if (test) 
     return (sql)
   else {
-    rs = toaSqlQuery(channel, sql, stringsAsFactors = FALSE)
+    rs = toaSqlQuery(channel, sql, stringsAsFactors = FALSE, na.strings="")
   }
+  
+  rs = removeStopWords(rs, stopwords)
   
   x = makeSimpleTripletMatrix(rs, 'tf_idf', "ti")
   return (x)
@@ -324,4 +324,19 @@ makeRankFilter <- function(top) {
   ifelse(!is.null(top) && is.numeric(top) && top > 0, 
          paste0(" WHERE rank <= ", as.character(top)), 
          "")
+}
+
+removeStopWords <- function(rs, stopwords, ignore.case=TRUE) {
+  
+  if (is.null(stopwords) || length(stopwords) == 0)
+    return (rs)
+  
+  result = rs 
+  stopwords = unique(ifelse(ignore.case, stopwords, c(tolower(stopwords), toupper(stopwords))))
+  for(sw in stopwords) {
+    idx = grep(paste0("\\b",sw,"\\b"), result$term, ignore.case=ignore.case)
+    if (length(idx)>0) result = result[-idx, ]
+  }
+  
+  return (result)
 }

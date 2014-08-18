@@ -37,7 +37,7 @@
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' 
+#' @return ggplot object
 #' @seealso \code{\link{computeHeatmap}} for computing data for heat map 
 #' 
 #' @export
@@ -149,6 +149,7 @@ createHeatmap <- function(data, x, y, fill,
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @seealso \code{\link{computeHistogram}} and \code{\link{computeBarchart}} to
 #'   compute data for histogram
+#' @return ggplot object
 #' @export
 #' @examples
 #' \donttest{
@@ -247,8 +248,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
       scaleGradient
      else if(!missing(fill))
        # scale_fill_brewer(palette = palette)
-       # scale_fill_discrete(palette = colorDiscretePalette(palette)) - won't work with legend 
-       scale_fill_manual(values = (colorDiscretePalette(palette))(length(unique(data[,fill]))))
+       # scale_fill_discrete(palette = getDiscretePaletteFactory(palette)) - won't work with legend 
+       scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))))
      else if(!missing(paletteValues)) 
        scale_fill_manual(values = paletteValues)
     ) +
@@ -349,6 +350,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @export
+#' @return ggplot object
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
 #' @examples
 #' \donttest{
@@ -414,7 +416,7 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
       if(!missing(paletteValues))
         scale_fill_manual(values = paletteValues)
      else # if(!missing(palette))
-       scale_fill_manual(values = (colorDiscretePalette(palette))(length(unique(data[,fill]))))
+       scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))))
     ) +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
@@ -513,6 +515,7 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
+#' @return ggplot object
 #' @seealso \code{\link{computeAggregates}} computes data for the bubble chart.
 #' @export
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
@@ -543,7 +546,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
       if(!missing(paletteValues))
         scale_fill_manual(values = paletteValues)
       else if(!missing(palette))
-        scale_fill_manual(values = (colorDiscretePalette(palette))(length(unique(data[,fill]))))
+        scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))))
     ) +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
@@ -592,7 +595,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}}, \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} (default) or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' 
+#' @return ggplot object
 #' @export
 createSlopegraph <- function(data, id, rankFrom, rankTo, 
                              reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
@@ -709,6 +712,12 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @seealso \code{\link{wordcloud}}
 #' 
 #' @export createWordcloud
+#' 
+#' @examples
+#' \donttest{
+#' 
+#' 
+#' }
 createWordcloud <- function(words, freq, title="Wordcloud", 
                             scale=c(8,.2), minFreq=10, maxWords=40,
                             filename, format=c('png','bmp','jpeg','tiff','pdf'), 
@@ -777,7 +786,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
 #'   \code{\link[ggplot2]{theme_classic}} or custom.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' 
+#' @return ggplot object
 #' @export 
 #' @examples
 #' \donttest{
@@ -900,34 +909,40 @@ applyFacet <- function(p, facet=NULL, scales, ncol) {
 }
 
 
-# Generate gradient palette maker
-# 
-# inspired by 
-# http://stackoverflow.com/questions/13353213/gradient-of-n-colors-ranging-from-color-1-and-color-2
-# 
-# @param colors pair of colors for gradient range (min, max): default is \code{c('black','white')}
-# @return function that 
-# @seealso \code{\link{colorRampPalette}}
-#
-# @examples
-# paletteMaker = colorGradientPalette(c("orange","red"))
-# myPalette = paletteMaker(10)
-colorGradientPalette <- function(colors=c("black", "white")) {
+#' Generate gradient palette maker
+#' 
+#' inspired by 
+#' http://stackoverflow.com/questions/13353213/gradient-of-n-colors-ranging-from-color-1-and-color-2
+#' 
+#' @param colors pair of colors for gradient range (min, max): default is \code{c('black','white')}
+#' @return function (factory) that creates linear gradient palette for given number of colors
+#' @seealso \code{\link{getDiscretePaletteFactory}}, \code{\link{colorRampPalette}}
+#' @export
+#'
+#' @examples
+#' paletteMaker = getGradientPaletteFactory(c("yellow","red"))
+#' myPalette = paletteMaker(10)
+getGradientPaletteFactory <- function(colors=c("black", "white")) {
   colfunc = colorRampPalette(colors)
   return(colfunc)
 }
 
-# Generate discrete palette maker
-# 
-# @param paletteName name of palette from \code{brewer.pal.info} in \code{RColorBrewer} package
-# 
-# @export
-# @examples
-# paletteMaker = colorDiscretePalette("PuOr")
-# myPalette = paletteMaker(25)
-colorDiscretePalette <- function(paletteName="Set1") {
-  n = brewer.pal.info[rownames(brewer.pal.info)==paletteName, 'maxcolors']
+#' Generate discrete palette maker
+#' 
+#' @param paletteName name of palette from \code{brewer.pal.info} in \code{RColorBrewer} package
+#' @return function (factory) that creates discrete palette with for number of colors
+#' @seealso \code{\link{getGradientPaletteFactory}}, \code{\link{colorRampPalette}}
+#' @export
+#' 
+#' @examples
+#' paletteMaker = getDiscretePaletteFactory("PuOr")
+#' myPalette = paletteMaker(25)
+getDiscretePaletteFactory <- function(paletteName="Set1") {
+  n = brewer.pal.info[paletteName, 'maxcolors']
   colfunc = colorRampPalette(brewer.pal(n, paletteName))
+  
+  n = brewer.pal.info[paletteName,"maxcolors"]
+  getPalette = colorRampPalette(brewer.pal(n, paletteName))
   return(colfunc)
 }
 

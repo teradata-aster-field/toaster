@@ -80,7 +80,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
     stop("Must provide tableInfo when test==TRUE.")
   }
   
-  if (missing(tableInfo) | !(columnName %in% tableInfo$COLUMN_NAME)) {
+  if (missing(tableInfo) || !all(columnName %in% tableInfo$COLUMN_NAME)) {
     column_stats = getTableSummary(channel, tableName, include=columnName, 
                                    where=where, mock=test)
   }else {

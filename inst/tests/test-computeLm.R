@@ -1,6 +1,6 @@
 context("computeLm")
 
-batting_info = dget("battingInfo.dat")
+batting_info = dget("_battingInfo.dat")
 non_compliant_row = batting_info[1,]
 non_compliant_row[1,c('COLUMN_NAME', 'TYPE_NAME')] = c('non_compliant', 'varchar')
 batting_info2 = rbind(batting_info, non_compliant_row)

@@ -50,7 +50,14 @@
 #' @examples
 #' \donttest{
 #' 
-#' model1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)
+#' # batting average explained by rbi, bb, so 
+#' lm1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)
+#' summary(lm1)
+#' 
+#' # with category predictor league and explicit sample size
+#' lm2 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so + lgid,
+#'                 , sampleSize=10000, where="lgid in ('AL','NL') and ab > 30") 
+#' summary(lm2)
 #' }
 #' 
 computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories = NULL,
@@ -143,8 +150,8 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
       # case when lgid = 'NL' then 1 else 0 end as "lgid_NL"
       for (value in col_values) {
         categoryExpr = paste0("CASE WHEN ", name, " = '", value, "' THEN 1 ELSE 0 END")
-        categoryName = paste0(tolower(name), "_", value)
-        categoryNameSQL = paste0("\"", tolower(name), "_", value, "\"")
+        categoryName = paste0(tolower(name), value)
+        categoryNameSQL = paste0("\"", tolower(name), value, "\"")
         
         predictorColumns = c(predictorColumns, categoryExpr)
         predictorNames = c(predictorNames, categoryName)
@@ -184,12 +191,12 @@ ERROR: SQL-MR function LINREG failed: The input data results in a singular matri
 Then refer to Aster Analytics Foundation Guide, Linear Regression Function, in particular:
 If two or more input columns are co-linear, or very closely correlated, then no solution to
 linear regression exists, so the function will fail. Looking at correlations between columns
-using Aster Database’s Correlation (stats correlation) function can help uncover sources of colinearity.
+using Aster Database correlation (stats correlation) function can help uncover sources of colinearity.
 Removing co-linear columns should resolve the issue.
 This inconvinience will be addressed in one of future releases of toaster."))
   
-  z = createLm(channel, tableName, cl, result$value, ft, xlevels, predictors, 
-               predictorColumns, predictorNames, predictorNamesSQL, 
+  z = createLm(channel, tableName, as.formula(formula), cl, result$value, ft, xlevels, 
+               predictors, predictorColumns, predictorNames, predictorNamesSQL, 
                responseVar, sampleSize, where)
   
   # for previous version 0.2.5 support (not backward compatible)
@@ -198,8 +205,8 @@ This inconvinience will be addressed in one of future releases of toaster."))
   return(z)
 }
 
-createLm <- function(channel, tableName, cl, coefficients, ft, xlevels, predictors,
-                     predictorColumns, predictorNames, predictorNamesSQL, 
+createLm <- function(channel, tableName, formula, cl, coefficients, ft, xlevels, 
+                     predictors, predictorColumns, predictorNames, predictorNamesSQL, 
                      response, sampleSize, where) {
   
   z <- structure(list(coefficients = coefficients,
@@ -229,7 +236,9 @@ createLm <- function(channel, tableName, cl, coefficients, ft, xlevels, predicto
     
     z$qr = qr(cbind(1, fit[, predictorNames]))
     
-    # z$model = model.frame(formula=formula, data=fit)
+    # for now model.frame is compatible with models without categorical predictors only
+    if (is.null(xlevels) || length(xlevels)==0)
+      z$model = model.frame(formula=formula, data=fit)
   }else
     warning("No sampling performed if sample size is NULL or < 30.")
   

@@ -9,7 +9,8 @@
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name
 #' @param tableInfo pre-built summary of data to use (must have with \code{test=TRUE})
-#' @param include a vector of column names to include. Output never contains attributes other than in the list.
+#' @param include a vector of column names to include. Output never contains attributes other than in the list. 
+#'   When missing all columns from \code{tableInfo} included. 
 #' @param except a vector of column names to exclude. Output never contains attributes from the list.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
@@ -40,7 +41,7 @@
 #' # remove duplicate correlation values (no symmetry)
 #' cormat = cormat[cormat$metric1 < cormat$metric2, ]
 #' }
-computeCorrelations <- function(channel, tableName, tableInfo, include, except=NULL, where=NULL, test=FALSE) {
+computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, except=NULL, where=NULL, test=FALSE) {
   
   if (test & missing(tableInfo)) {
     stop("Must provide tableInfo when test==TRUE.")

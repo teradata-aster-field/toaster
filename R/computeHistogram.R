@@ -73,7 +73,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   if (columnFrequency) {
     return (computeHistogramOfFrequencies(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, byClause, byPartition, bySelect, test))
+                                                where_clause, by, byClause, byPartition, bySelect, test))
   }
   
   if (missing(tableInfo) && test) {
@@ -181,7 +181,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
 
 computeHistogramOfFrequencies <- function(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, byClause, byPartition, bySelect, test) {
+                                                where_clause, by, byClause, byPartition, bySelect, test) {
   
   if (is.null(by)) {
      sql = paste0("SELECT * 

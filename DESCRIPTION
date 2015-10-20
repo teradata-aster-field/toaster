@@ -1,6 +1,6 @@
 Package: toaster
 Type: Package
-Title: analytics and visualization with Aster Big Data Discovery Platform
+Title: analytics and visualization with Aster parallel database
 Version: 0.3.1-1
 Author: Gregory Kanevsky <gregory.kanevsky@teradata.com>
 Maintainer: Gregory Kanevsky <gregory.kanevsky@teradata.com>

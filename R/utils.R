@@ -73,6 +73,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   if (parallel && !getDoParRegistered())
     stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
   
+  tableName = normalizeTableName(tableName)
+  
   if (mock) {
     if (substr(tableName, nchar(tableName)-nchar('pitching')+1, nchar(tableName))=='pitching') {
       table_info = dget("_pitchingInfo.dat")

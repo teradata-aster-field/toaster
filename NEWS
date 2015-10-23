@@ -1,5 +1,5 @@
 
-toaster 0.2.x
+toaster 0.3.1
 ----------------------------------------------------------------
 
 NEW FEATURES
@@ -47,12 +47,12 @@ NEW FEATURES
   in `computePercentiles` set parameter temporal=TRUE to calculate 
   temporal columns and run it separately from numerical ones.
 
+MINOR FEATURES
+
 * Added factory functions `getDiscretePaletteFactory` and `getGradientPaletteFactory`
   to dynamically generate palettes with n number of colors. 
 
 * Added utility function `isTable` checks if tables exist in Aster database.
-
-MINOR FEATURES
 
 * Parameter `formula` replaced defunct `expr` in the function `computeLm` 
   for consistency with other model-fitting functions.

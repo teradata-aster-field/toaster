@@ -188,6 +188,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   if (missing(tableInfo) && test) {
     stop("Must provide tableInfo when test==TRUE.")
   }
+  
+  tableName = normalizeTableName(tableName)
       
   if (missing(tableInfo)) {
     summary = getTableSummary(channel, tableName, include=include, except=except, where=where)

@@ -246,3 +246,8 @@ makeLimitClause <- function (top) {
   
   return (limit_clause)
 }
+
+normalizeTableName <- function (name) {
+  
+  tolower(name)
+}

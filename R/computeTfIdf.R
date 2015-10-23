@@ -43,7 +43,7 @@
 #'     \item \emph{\code{rownumber}} applies a sequential row number, starting at 1, to each term in a document.
 #'       The tie-breaker behavior is as follows: Rows that compare as equal in the sort order will be
 #'       sorted arbitrarily within the scope of the tie, and all terms will be given unique row numbers.
-#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms’s rank, provided the 
+#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms's rank, provided the 
 #'       term does not sort as equal (tie) with another term. The tie-breaker behavior is as follows: 
 #'       terms that compare as equal in the sort order are sorted arbitrarily within the scope of the tie, 
 #'       and the sorted-as-equal terms get the same rank number.
@@ -174,7 +174,7 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'     \item \emph{\code{rownumber}} applies a sequential row number, starting at 1, to each term in a document.
 #'       The tie-breaker behavior is as follows: Rows that compare as equal in the sort order will be
 #'       sorted arbitrarily within the scope of the tie, and all terms will be given unique row numbers.
-#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms’s rank, provided the 
+#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms's rank, provided the 
 #'       term does not sort as equal (tie) with another term. The tie-breaker behavior is as follows: 
 #'       terms that compare as equal in the sort order are sorted arbitrarily within the scope of the tie, 
 #'       and the sorted-as-equal terms get the same rank number.

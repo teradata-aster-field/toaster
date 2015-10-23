@@ -152,7 +152,7 @@ createHeatmap <- function(data, x, y, fill,
 #' @return ggplot object
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # AL teams pitching stats by decade
 #' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid", 
 #'                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
@@ -353,7 +353,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @return ggplot object
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # boxplot of pitching ipouts for AL in 2000s
 #' ipop = computePercentiles(conn, "pitching", "ipouts")
 #' createBoxplot(ipop)
@@ -608,8 +608,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
                              lineSize = 0.15, textSize = 3.75, 
                              panelGridColour = "black", panelGridSize = 0.1,
                              defaultTheme = theme_classic(base_size = baseSize, base_family = baseFamily),
-                             themeExtra = NULL
-) {
+                             themeExtra = NULL) {
   
   if (na.rm) {
     data = data[complete.cases(data),]
@@ -714,8 +713,9 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @export createWordcloud
 #' 
 #' @examples
-#' \donttest{
-#' 
+#' \dontrun{
+#'
+#' createDallasWordcloud(daypart_tfidf_2gram, 'tf_idf', 0, n=2, maxWords=200, size=1300)
 #' 
 #' }
 createWordcloud <- function(words, freq, title="Wordcloud", 
@@ -789,7 +789,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @return ggplot object
 #' @export 
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' pitchingInfo = getTableSummary(asterConn, tableName='pitching', 
 #'                                where='yearid between 2000 and 2013')
 #' battingInfo = getTableSummary(asterConn, tableName='batting', 

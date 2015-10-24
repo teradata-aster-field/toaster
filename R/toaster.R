@@ -3,5 +3,5 @@
 #' 
 #' @name toaster
 #' @docType package
-#' @import RODBC plyr reshape2 ggplot2 scales RColorBrewer grid wordcloud ggmap slam foreach
+#' @import RODBC plyr reshape2 ggplot2 scales RColorBrewer grid wordcloud ggmap memoise slam foreach
 NULL

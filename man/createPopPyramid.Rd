@@ -72,7 +72,7 @@ and female), baseball leagues (AL and NL), or customer types (new customers and
 established customers).
 }
 \examples{
-\donttest{
+\dontrun{
 pitchingInfo = getTableSummary(asterConn, tableName='pitching',
                                where='yearid between 2000 and 2013')
 battingInfo = getTableSummary(asterConn, tableName='batting',

@@ -1,4 +1,4 @@
-library(testthat)
-library(toaster)
+library("testthat")
+library("toaster")
 
-test_package("toaster")
+test_check("toaster")

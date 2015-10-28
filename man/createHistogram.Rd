@@ -108,7 +108,7 @@ Create histogram plot from the pre-computed distribution of data. Parameter
 using \code{\link{computeHistogram}} or \code{\link{computeBarchart}}).
 }
 \examples{
-\dontrun{
+if(interactive()){
 # AL teams pitching stats by decade
 bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid",
                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),

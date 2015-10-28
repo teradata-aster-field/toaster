@@ -61,7 +61,7 @@ Given these two conditions we can use Word Clouds to visualize top, bottom or al
 word cloud visual.
 }
 \examples{
-\dontrun{
+if(interactive()){
 
 createDallasWordcloud(daypart_tfidf_2gram, 'tf_idf', 0, n=2, maxWords=200, size=1300)
 

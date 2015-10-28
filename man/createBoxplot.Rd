@@ -96,7 +96,7 @@ boxplot. Then omit parameter \code{x} and use
 \code{facet} with \code{facetScales='free_y'}.
 }
 \examples{
-\dontrun{
+if(interactive()){
 # boxplot of pitching ipouts for AL in 2000s
 ipop = computePercentiles(conn, "pitching", "ipouts")
 createBoxplot(ipop)

@@ -152,7 +152,7 @@ createHeatmap <- function(data, x, y, fill,
 #' @return ggplot object
 #' @export
 #' @examples
-#' \dontrun{
+#' if(interactive()){
 #' # AL teams pitching stats by decade
 #' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid", 
 #'                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
@@ -353,7 +353,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @return ggplot object
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
 #' @examples
-#' \dontrun{
+#' if(interactive()){
 #' # boxplot of pitching ipouts for AL in 2000s
 #' ipop = computePercentiles(conn, "pitching", "ipouts")
 #' createBoxplot(ipop)
@@ -713,7 +713,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @export createWordcloud
 #' 
 #' @examples
-#' \dontrun{
+#' if(interactive()){
 #'
 #' createDallasWordcloud(daypart_tfidf_2gram, 'tf_idf', 0, n=2, maxWords=200, size=1300)
 #' 
@@ -789,7 +789,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @return ggplot object
 #' @export 
 #' @examples
-#' \dontrun{
+#' if(interactive()){
 #' pitchingInfo = getTableSummary(asterConn, tableName='pitching', 
 #'                                where='yearid between 2000 and 2013')
 #' battingInfo = getTableSummary(asterConn, tableName='batting', 

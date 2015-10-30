@@ -2,6 +2,7 @@
 #' 
 #' @return character vector with names of Aster numeric data types
 #' @export
+#' @seealso \code{\link{getCharacterTypes}}, \code{\link{getTemporalTypes}}, \code{\link{getTableSummary}}
 #' @examples
 #' getNumericTypes()
 #' 
@@ -23,6 +24,7 @@ getNumericTypes <- function () {
 #'
 #' @return character vector with names of Aster character data types
 #' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getTemporalTypes}}, \code{\link{getTableSummary}}
 #' @examples 
 #' getCharacterTypes()
 #' 
@@ -38,6 +40,7 @@ getCharacterTypes <- function() {
 #' 
 #' @return character vector with names of Aster temporal data types
 #' @export
+#' @seealso \code{\link{getCharacterTypes}}, \code{\link{getCharacterTypes}}, \code{\link{getTableSummary}}
 #' @examples
 #' getTemporalTypes()
 #' 
@@ -78,10 +81,13 @@ getTypes <- function(types) {
 #' @param include a vector of column names to include. Output is restricted to this list.
 #' @param except a vector of column names to exclude. Output never contains names from this list.
 #' 
-#' @seealso \code{\link{getTableSummary}}
+#' @seealso \code{\link{getCharacterColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getNumericColumns(pitchingInfo)
 #' num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
@@ -103,10 +109,13 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 #' @param include a vector of column names to include. Output is restricted to this list.
 #' @param except a vector of column names to exclude. Output never contains names from this list.
 #' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
-#' @seealso \code{\link{getTableSummary}}
+#' @seealso \code{\link{getNumericColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getCharacterColumns(pitchingInfo)
 #' char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
@@ -127,15 +136,18 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 #' @param include a vector of column names to include. Output is restricted to this list.
 #' @param except a vector of column names to exclude. Output never contains names from this list.
 #' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
-#' @seealso \code{\link{getTableSummary}}
+#' @seealso \code{\link{getCharacterColumns}}, \code{\link{getNumericColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' masterInfo = getTableSummary(channel=conn, 'master')
-#' getDateTimeColumns(masterInfo)
-#' date_cols_df = getDateTimeColumns(masterInfo, names.only=FALSE)
+#' getTemporalColumns(masterInfo)
+#' date_cols_df = getTemporalColumns(masterInfo, names.only=FALSE)
 #' }
-getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
+getTemporalColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=NULL) {
   datetime_types = getTemporalTypes()
   
   return(getColumns(tableInfo, datetime_types, names.only, include, except))
@@ -153,7 +165,7 @@ getDateTimeColumns <- function (tableInfo, names.only=TRUE, include=NULL, except
 #' @param names.only logical: if TRUE returns column names only, otherwise full rows of \code{tableInfo}.
 #' @param ignore.case if TRUE case is ignored during matching, otherwise matching is case sensitive.
 #' @param invert logical. if TRUE return columns that do not match.
-#' @seealso \code{\link{grep}}
+#' @seealso \code{\link{grep}}, \code{\link{getTableSummary}}
 #' @export
 #' 
 getMatchingColumns <- function (pattern, channel, tableName, tableInfo, names.only = TRUE, 
@@ -183,8 +195,8 @@ isNumericColumn <- function (tableInfo, columnName) {
 }
 
 
-isDateTimeColumn <- function (tableInfo, columnName) {
-  is_column_datetime = getDateTimeColumns(tableInfo, names.only=TRUE, include=columnName)
+isTemporalColumn <- function (tableInfo, columnName) {
+  is_column_datetime = getTemporalColumns(tableInfo, names.only=TRUE, include=columnName)
   return (ifelse(length(is_column_datetime) == 1, TRUE, FALSE))
 }
 
@@ -242,4 +254,9 @@ makeLimitClause <- function (top) {
     limit_clause = paste(" LIMIT", top)
   
   return (limit_clause)
+}
+
+normalizeTableName <- function (name) {
+  
+  tolower(name)
 }

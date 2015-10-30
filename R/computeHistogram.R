@@ -35,7 +35,10 @@
 #' @seealso \link{computeBarchart} and \link{createHistogram}
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' # Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
 #' h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',
 #'                           binsize=0.2, startvalue=0, endvalue=10, by='teamid',
@@ -73,14 +76,14 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   if (columnFrequency) {
     return (computeHistogramOfFrequencies(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, byClause, byPartition, bySelect, test))
+                                                where_clause, by, byClause, byPartition, bySelect, test))
   }
   
   if (missing(tableInfo) && test) {
     stop("Must provide tableInfo when test==TRUE.")
   }
   
-  if (missing(tableInfo) | !(columnName %in% tableInfo$COLUMN_NAME)) {
+  if (missing(tableInfo) || !all(columnName %in% tableInfo$COLUMN_NAME)) {
     column_stats = getTableSummary(channel, tableName, include=columnName, 
                                    where=where, mock=test)
   }else {
@@ -101,7 +104,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   
   # check if histogram is for date/time column
   # if so use EXTRACT function and SQL/MR
-  if (isDateTimeColumn(column_stats, columnName)) {
+  if (isTemporalColumn(column_stats, columnName)) {
     return (computeDateHistogram(channel, tableName, columnName, 
                                  binsize, startvalue, endvalue, numbins,
                                  useIQR,
@@ -138,6 +141,10 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
       }
     }
     
+    if (startvalue >= endvalue) {
+      stop("Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
+    }
+    
     histPrep = paste0(" binsize('", binsize, "')
                         startvalue('", startvalue, "')
                         endvalue('", endvalue, "') ")
@@ -169,7 +176,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   if (test) {
     return (sql)
   }else {
-    return (sqlQuery(channel, sql))
+    return (toaSqlQuery(channel, sql))
   }
   
 }
@@ -177,7 +184,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
 
 computeHistogramOfFrequencies <- function(channel, tableName, columnName, 
                                                 binsize, startvalue, endvalue, numbins,
-                                                where_clause, byClause, byPartition, bySelect, test) {
+                                                where_clause, by, byClause, byPartition, bySelect, test) {
   
   if (is.null(by)) {
      sql = paste0("SELECT * 
@@ -216,7 +223,7 @@ computeHistogramOfFrequencies <- function(channel, tableName, columnName,
   if (test) {
     return (sql)
   }else {
-    return (histogram = sqlQuery(channel,sql))
+    return (histogram = toaSqlQuery(channel,sql))
   }
   
 }
@@ -234,7 +241,7 @@ computeDateHistogram <- function(channel, tableName, columnName,
     }
     
     # compute percentiles first
-    percentiles = sqlQuery(channel,
+    percentiles = toaSqlQuery(channel,
                            paste0("SELECT * FROM approxPercentileReduce(
                                     ON (
                                       SELECT * FROM approxPercentileMap(
@@ -292,7 +299,7 @@ computeDateHistogram <- function(channel, tableName, columnName,
   if (test) {
     return(sql)
   }else {
-    return (sqlQuery(channel, sql))
+    return (toaSqlQuery(channel, sql))
   }
   
 }

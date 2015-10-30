@@ -4,16 +4,20 @@
 #' Result includes all pairwise combinations of numeric columns in the table, with 
 #' optionally limiting columns to those in the parameter \code{include} or/and
 #' excluding columns defined by parameter \code{except}. Limit computation 
-#' on the table subset defined with \code{where}.
+#' on the table subset defined with \code{where}. Use \code{output='matrix'} to produce
+#' results in matrix format (compatible with function \code{\link{cor}}).
 #'
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName database table name
 #' @param tableInfo pre-built summary of data to use (must have with \code{test=TRUE})
-#' @param include a vector of column names to include. Output never contains attributes other than in the list.
+#' @param include a vector of column names to include. Output never contains attributes other than in the list. 
+#'   When missing all columns from \code{tableInfo} included. 
 #' @param except a vector of column names to exclude. Output never contains attributes from the list.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
+#' @param output Default output is a data frame of column pairs with correlation coefficient (melt format). 
+#'   To return correlation matrix compatible with function \code{\link{cor}} use \code{'matrix'} .
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @return data frame with columns:
@@ -32,7 +36,10 @@
 #' @seealso \code{\link{createBubblechart}} and \code{\link{showData}}.
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pitching_enh"), 
 #'                              include = c('w','l','cg','sho','sv','ipouts','h','er','hr','bb',
 #'                                          'so','baopp','era','whip','ktobb','fip'),
@@ -40,7 +47,11 @@
 #' # remove duplicate correlation values (no symmetry)
 #' cormat = cormat[cormat$metric1 < cormat$metric2, ]
 #' }
-computeCorrelations <- function(channel, tableName, tableInfo, include, except=NULL, where=NULL, test=FALSE) {
+computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, except=NULL, where=NULL, 
+                                output=c('data.frame','matrix'), test=FALSE) {
+  
+  # match argument values
+  output = match.arg(output, c('data.frame','matrix'))
   
   if (test & missing(tableInfo)) {
     stop("Must provide tableInfo when test==TRUE.")
@@ -65,21 +76,21 @@ computeCorrelations <- function(channel, tableName, tableInfo, include, except=N
   
   where_clause = makeWhereClause(where)
   
-   
+  
   sql = paste0("SELECT * FROM corr_reduce(
-                  ON corr_map(
-                    ON ( SELECT ", sql_corr_columns, " FROM ", tableName, where_clause, 
-                    " )
-                    columnpairs( '", sqlmr_correlations, "')
-                    key_name('key')
-                  )
-                  partition by key
-                )")
+               ON corr_map(
+               ON ( SELECT ", sql_corr_columns, " FROM ", tableName, where_clause, 
+               " )
+               columnpairs( '", sqlmr_correlations, "')
+               key_name('key')
+               )
+               partition by key
+  )")
   
   if (test) {
     return (sql)
   }else {
-    rs_corrs = sqlQuery(channel, sql)
+    rs_corrs = toaSqlQuery(channel, sql)
   }
   
   rs_corrs = cbind(rs_corrs, t(sapply(rs_corrs$corr, 
@@ -100,5 +111,10 @@ computeCorrelations <- function(channel, tableName, tableInfo, include, except=N
   rs_corrs$metric1 = factor(rs_corrs$metric1, levels=unique(rs_corrs$metric1), ordered=TRUE)
   rs_corrs$metric2 = factor(rs_corrs$metric2, levels=unique(rs_corrs$metric1), ordered=TRUE)
   
-  return(rs_corrs)
+  if (output == 'matrix') {
+    corrm = acast(rs_corrs[!is.nan(rs_corrs$value),], metric1~metric2, value.var='value')
+    corrm = apply(corrm, c(1,2), function(x) {if(is.na(x)) 1. else x})
+    return(corrm)
+  }else 
+    return(rs_corrs)
 }

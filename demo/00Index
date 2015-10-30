@@ -1,14 +1,19 @@
-baseball-createBubblechart      Demo create bubble chart
-baseball-computeAggregates      Demo compute aggregates
-baseball-computeBarchart        Demo compute bar chart
-baseball-computeCorrelations    Demo compute correlations and create correlation matrix
-baseball-computeHistogram       Demo compute and create histogram
-baseball-computeLm              Demo compute linear regression model
-baseball-computePercentiles     Demo compute percentile and create box plot
-baseball-computeSample          Demo compute sample
-baseball-createHeatmap          Demo compute and create heatmap
-baseball-createPopPyramid       Demo create population pyramid
-baseball-getTableSummary        Demo table summary
-baseball-maps                   Demo create map
-baseball-showData               Demo showData type of analysis
-baseball-createBubblechart      Demo create bubble chart
+baseball-summary      Demo table summary statistics
+baseball-boxplot      Demo percentiles with box plot visuals
+baseball-showData     Demo showData 'overview', 'boxplot', 'corr' (correlation table), and 'scatterplot' formats
+baseball-sample       Demo sampling data from Aster tables
+baseball-barchart     Demo bar charts
+baseball-aggregate    Demo aggregates
+baseball-bubble       Demo bubble charts
+baseball-correlation  Demo correlation matrix
+baseball-histogram    Demo histograms
+baseball-heatmap      Demo heatmaps
+baseball-pyramid      Demo population pyramids
+baseball-maps         Demo geo maps
+baseball-lm           Demo linear regression model
+dallas-text           Demo text tf and tf-idf functions
+baseball-parallel     Demo dual parallel summary and percentile functions: parallelizing computations in both Aster and R
+
+
+
+

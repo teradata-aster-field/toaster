@@ -1,6 +1,7 @@
 context("computeHistogram")
 
-pitching_info = dget("pitchingInfo.dat")
+pitching_info = dget("_pitchingInfo.dat")
+start_end_test_info = dget("_startEndTestInfo.dat")
 
 test_that("computeHistogram throws errors", {
   
@@ -16,6 +17,15 @@ test_that("computeHistogram throws errors", {
   expect_error(computeHistogram(channel=NULL, tableName="pitching", columnName="nocolumn", tableInfo=pitching_info, test=TRUE),
                "No columns specified found in the table")
   
+  expect_error(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
+                                tableInfo=start_end_test_info),
+               "Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
+  
+  expect_error(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
+                                tableInfo=start_end_test_info, useIQR=TRUE),
+               "Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
+  
+  
 })
 
 
@@ -27,9 +37,9 @@ test_that("computeHistogram SQL is correct", {
                           "SELECT * FROM hist_reduce(
                                       ON hist_map(
                                            ON (SELECT   cast(h as numeric) h FROM pitching ) as data_input PARTITION BY ANY  
-                                           binsize('6.3')
+                                           binsize('6.1')
                                            startvalue('0')
-                                           endvalue('189')    
+                                           endvalue('183')    
                                            VALUE_COLUMN('h')     
                                       ) 
                                       partition by  1 )"
@@ -41,9 +51,9 @@ test_that("computeHistogram SQL is correct", {
                           "SELECT * FROM hist_reduce(
                                       ON hist_map(
                                            ON (SELECT lgid, cast(h as numeric) h FROM pitching ) as data_input PARTITION BY ANY  
-                                           binsize('6.3')
+                                           binsize('6.1')
                                            startvalue('0')
-                                           endvalue('189')    
+                                           endvalue('183')    
                                            VALUE_COLUMN('h')     
                                            GROUP_COLUMNS('lgid')
                                       ) 
@@ -56,9 +66,9 @@ test_that("computeHistogram SQL is correct", {
                           "SELECT * FROM hist_reduce(
                                       ON hist_map(
                                            ON (SELECT lgid, teamid, cast(h as numeric) h FROM pitching ) as data_input PARTITION BY ANY  
-                                           binsize('6.3')
+                                           binsize('6.1')
                                            startvalue('0')
-                                           endvalue('189')    
+                                           endvalue('183')    
                                            VALUE_COLUMN('h')     
                                            GROUP_COLUMNS('lgid', 'teamid')
                                       ) 
@@ -106,6 +116,18 @@ test_that("computeHistogram SQL is correct", {
                                       )
                                       partition by lgid, teamid)"
   )
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
+                                           tableInfo=start_end_test_info, useIQR=FALSE, test=TRUE),
+                          "SELECT * FROM hist_reduce(
+                             ON hist_map(
+                               ON (SELECT   cast(missentcount as numeric) missentcount FROM texts.containertrailerplanpaths   ) as data_input PARTITION BY ANY  
+                               binsize('1.6')
+                               startvalue('0')
+                               endvalue('48')    
+                               VALUE_COLUMN('missentcount')     
+                             ) 
+                             partition by  1 )")
   
 })
 

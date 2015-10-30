@@ -1,22 +1,57 @@
-# Demo create population pyramid
-#
-# To install baseball demo dataset in Aster
-# download baseball.zip from
-# https://bitbucket.org/grigory/toaster/downloads/baseball.zip
-# and run
-# sh load_baseball_data.sh -d mydbname -U beehive 
+#' @demoTitle baseball-pyramid
+#' 
+#' Demo population pyramids
+#'
+#' To install and use baseball demo dataset in Aster:
+#'
+#' 1. download baseball.zip from
+#'   https://bitbucket.org/grigory/toaster/downloads/baseball.zip
+#' 2. run script to create data set in Aster
+#'   sh load_baseball_data.sh -d mydbname -U username -w mypassword 
+#' 3. create Aster ODBC DSN on your desktop
+#'   see https://bitbucket.org/grigory/toaster/wiki/Home#markdown-header-odbc-driver-and-dns
 
 library(toaster)
 
-# update ODBC data source name
-dsn = "PresalesPartnersDB"
-uid = "beehive"
-pwd = "beehive"
-close(conn)
-conn = odbcConnect(dsn, uid, pwd)
+## utility input function
+readlineDef <- function(prompt, default) {
+  if (!is.null(prompt))
+    prompt = paste0(prompt, "[", default, "]: ")
+  else 
+    prompt = paste0(prompt, ": ")
+  
+  result = readline(prompt)
+  if (result == "") 
+    return (default)
+  else
+    return (result)
+}
+
+## utility connection function
+connectWithDSNToAster <- function(dsn=NULL) {
+  dsn = readlineDef("Enter Aster ODBC DSN: ", dsn)
+  
+  tryCatch(close(conn), error=function(err) {NULL})
+  
+  conn = tryCatch({
+    conn = odbcConnect(dsn)
+    odbcGetInfo(conn)
+    return (conn)
+  }, error=function(err) {
+    stop(paste("Can't connect to Aster - check DSN '", dsn, "'"))
+  })
+}
+
+## connect to Aster first
+conn = connectWithDSNToAster()
+
+## must be connected to baseball dataset
+if(!all(isTable(conn, c('salaries', 'pitching_enh', 'pitching', 'batting_enh')))) {
+  stop("Must connect to baseball dataset and tables must exist.")
+}
 
 # Compare salaries by league
-salaryHistAll = computeHistogram(conn, tableName='public.salaries', columnName='salary', 
+salaryHistAll = computeHistogram(conn, tableName='salaries', columnName='salary', 
                                  binsize=200000, startvalue=0, 
                                  by='lgid', where='yearID between 2000 and 2013')
 createPopPyramid(data=salaryHistAll, bin='bin_start', count='bin_count', divideBy='lgid', 
@@ -38,8 +73,7 @@ createPopPyramid(data=eraHist, divideBy='lgid', values=c('NL','AL'),
                  title="ERA Pyramid by MLB Leagues", xlab='ERA', ylab='Player Count')
 
 # Log ERA 
-# you have to alter table in Aster to add column era_log = log(era)
-eraLogHist = computeHistogram(conn, tableName='pitching', columnName='era_log', 
+eraLogHist = computeHistogram(conn, tableName='pitching_enh', columnName='era_log', 
                               binsize=.02, startvalue=-0.42021640338318984325, 
                               endvalue=2.2764618041732441,
                               by='lgid', where='yearid between 2000 and 2013 and era > 0')

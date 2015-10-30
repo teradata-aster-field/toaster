@@ -1,13 +1,15 @@
 context("showData")
 
-pitching_info = dget("pitchingInfo.dat")
-batting_info = dget("battingInfo.dat")
+pitching_info = dget("_pitchingInfo.dat")
+batting_info = dget("_battingInfo.dat")
 
 test_that("format 'boxplot' works", {
   p = ggplot_build(showData(tableName='pitching', tableInfo=pitching_info, format='boxplot'))
   
-  expect_equal(nrow(p$data[[1]]), length(getNumericColumns(pitching_info)))
-  expect_equal(setdiff(p$panel$ranges[[1]]$x.labels, getNumericColumns(pitching_info)),
+  notNullNumData = pitching_info[pitching_info$not_null_count > 0 & 
+                                   pitching_info$COLUMN_NAME %in% getNumericColumns(pitching_info),]
+  expect_equal(nrow(p$data[[1]]), length(getNumericColumns(notNullNumData)))
+  expect_equal(setdiff(p$panel$ranges[[1]]$x.labels, getNumericColumns(notNullNumData)),
                character(0))
 })
 
@@ -126,6 +128,23 @@ test_that("showData format 'scatterplot' works", {
        FROM sample(
          ON (SELECT so, ba FROM batting  )
          SampleFraction('0.1'))")
+  
+  expect_equal_normalized(
+    showData(tableInfo=pitching_info, format='scatterplot', tableName="pitching_enh",
+             include=c('ktobb', 'fip', 'teamid','yearid'),
+             sampleSize=100, facetName=c('teamid','yearid'), regressionLine=TRUE,
+             where="yearid in (2010,2011,2012) and teamid in ('TEX','NYA')",
+             test=TRUE),
+    "SELECT * 
+       FROM sample(
+         ON (SELECT teamid, yearid, ktobb, fip FROM pitching_enh
+              WHERE yearid in (2010,2011,2012) and teamid in ('TEX','NYA') 
+            ) AS DATA PARTITION BY ANY
+         ON (SELECT COUNT(*) as stratum_count FROM pitching_enh 
+              WHERE yearid in (2010,2011,2012) and teamid in ('TEX','NYA') 
+            ) AS SUMMARY DIMENSION
+         ApproximateSampleSize('100'))"
+    )
 })
   
 

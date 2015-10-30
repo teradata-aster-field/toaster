@@ -28,7 +28,10 @@
 #' @export
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' batters = computeSample(conn, "batting", sampleFraction=0.01)
 #' dim(batters)
 #'
@@ -82,13 +85,13 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize,
                              AS DATA PARTITION BY ANY
                            ON (SELECT COUNT(*) as stratum_count FROM ", tableName, where_clause, ") 
                              AS SUMMARY DIMENSION
-                           ApproximateSampleSize('", as.character(sampleSize), "'))")
+                           ApproximateSampleSize('", format(sampleSize, scientific=FALSE), "'))")
   }
   
   if(test) {
     return(sql)
   }else {
-    return(sqlQuery(channel, sql, as.is=as.is, stringsAsFactors=stringsAsFactors))
+    return(toaSqlQuery(channel, sql, as.is=as.is, stringsAsFactors=stringsAsFactors))
   }
   
 }

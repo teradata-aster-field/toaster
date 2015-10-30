@@ -52,7 +52,7 @@ MINOR FEATURES
 * Added factory functions `getDiscretePaletteFactory` and `getGradientPaletteFactory`
   to dynamically generate palettes with n number of colors. 
 
-* Added utility function `isTable` checks if tables exist in Aster database.
+* Added utility function `isTable` that checks if tables exist in Aster database.
 
 * Parameter `formula` replaced defunct `expr` in the function `computeLm` 
   for consistency with other model-fitting functions.

@@ -98,7 +98,8 @@ boxplot. Then omit parameter \code{x} and use
 \examples{
 if(interactive()){
 # initialize connection to Lahman baseball database in Aster
-conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 # boxplot of pitching ipouts for AL in 2000s
 ipop = computePercentiles(conn, "pitching", "ipouts")

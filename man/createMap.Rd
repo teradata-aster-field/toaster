@@ -166,7 +166,8 @@ labels to place on the map (using the same locations as for the shapes).
 \examples{
 if(interactive()){
 # initialize connection to Lahman baseball database in Aster
-conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 data = computeAggregates(asterConn, "pitching",
                columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),

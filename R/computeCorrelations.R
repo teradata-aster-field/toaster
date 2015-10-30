@@ -38,7 +38,8 @@
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pitching_enh"), 
 #'                              include = c('w','l','cg','sho','sv','ipouts','h','er','hr','bb',

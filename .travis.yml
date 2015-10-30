@@ -36,7 +36,7 @@ install:
   - ./travis-tool.sh r_binary_install testthat
   - ./travis-tool.sh install_deps
   
-r_github_packages:
-  - jimhester/covr
+r_packages:
+  - covr
 after_success:
-  - Rscript -e 'library(covr);codecov()'
+  - Rscript -e 'library(covr); codecov()'

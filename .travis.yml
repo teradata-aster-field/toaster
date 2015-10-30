@@ -27,6 +27,7 @@ install:
   - ./travis-tool.sh r_binary_install scales
   - ./travis-tool.sh r_binary_install slam
   - ./travis-tool.sh r_binary_install testthat
+  - ./travis-tool.sh install_deps
   
 warnings_are_errors: true
 sudo: required

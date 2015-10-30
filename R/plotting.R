@@ -154,7 +154,8 @@ createHeatmap <- function(data, x, y, fill,
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # AL teams pitching stats by decade
 #' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid", 
@@ -358,7 +359,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # boxplot of pitching ipouts for AL in 2000s
 #' ipop = computePercentiles(conn, "pitching", "ipouts")
@@ -721,7 +723,8 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Dallas database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' stopwords = c("a", "an", "the", "with")
 #' 
@@ -831,7 +834,8 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' pitchingInfo = getTableSummary(asterConn, tableName='pitching', 
 #'                                where='yearid between 2000 and 2013')

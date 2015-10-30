@@ -30,7 +30,8 @@ When both parameters \code{basic} and \code{percentiles} are FALSE view displays
 \examples{
 if(interactive()){
 # initialize connection to Lahman baseball database in Aster
-conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 viewTableSummary(pitchingInfo, percentiles=TRUE)

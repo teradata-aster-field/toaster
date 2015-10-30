@@ -57,7 +57,8 @@ function. Result is a data frame to visualize as bar charts or heatmaps
 \examples{
 if(interactive()){
 # initialize connection to Lahman baseball database in Aster
-conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 # Compute average team season era, walks, and hits for each decade starting with 1980
 computeBarchart(channel=conn, "teams_enh", "teamid team",

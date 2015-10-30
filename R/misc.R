@@ -86,7 +86,8 @@ getTypes <- function(types) {
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getNumericColumns(pitchingInfo)
@@ -114,7 +115,8 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getCharacterColumns(pitchingInfo)
@@ -141,7 +143,8 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' masterInfo = getTableSummary(channel=conn, 'master')
 #' getTemporalColumns(masterInfo)

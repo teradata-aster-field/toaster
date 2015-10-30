@@ -61,7 +61,8 @@ values. When column is categorical (character data types) it defers to
 \examples{
 if(interactive()){
 # initialize connection to Lahman baseball database in Aster
-conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 # Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
 h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',

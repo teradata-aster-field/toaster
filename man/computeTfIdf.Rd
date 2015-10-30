@@ -85,7 +85,8 @@ The ordering of the rows is always by their tf-idf value within each document.
 \examples{
 if(interactive()){
 # initialize connection to Dallas database in Aster
-conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 # compute term-document-matrix of all 2-word Ngrams of Dallas police crime reports
 # for each 4-digit zip

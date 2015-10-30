@@ -45,7 +45,8 @@
 #' @examples 
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' # list all table columns
@@ -538,7 +539,8 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
 #' @examples 
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' viewTableSummary(pitchingInfo, percentiles=TRUE)
@@ -619,7 +621,8 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 #' @examples 
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
-#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' isTable(conn, "pitching")        # TRUE 
 #' isTable(conn, "pitch%")          # TRUE

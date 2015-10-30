@@ -4,9 +4,9 @@ pitching_info = dget("_pitchingInfo.dat")
 
 test_that("exceptions are properly handled by utility functions", {
   
-  expect_false(isTable(NULL, NULL))
+  expect_equal(isTable(NULL, NULL), logical(0))
   
-  expect_false(isTable(NULL, character(0)))
+  expect_equal(isTable(NULL, character(0)), logical(0))
   
   expect_null(viewTableSummary())
   

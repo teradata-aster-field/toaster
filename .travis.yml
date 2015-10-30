@@ -1,6 +1,13 @@
 language: r
+warnings_are_errors: true
+sudo: required
+
+env:
+  global:
+    - NOT_CRAN=true
 
 before_install:
+  - echo "options(repos = c(CRAN='http://cran.rstudio.com'))" > ~/.Rprofile
   - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
   - chmod 755 ./travis-tool.sh
   - ./travis-tool.sh bootstrap
@@ -29,5 +36,7 @@ install:
   - ./travis-tool.sh r_binary_install testthat
   - ./travis-tool.sh install_deps
   
-warnings_are_errors: true
-sudo: required
+r_github_packages:
+  - jimhester/covr
+after_success:
+  - Rscript -e 'library(covr);codecov()'

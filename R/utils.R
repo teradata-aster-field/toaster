@@ -629,7 +629,7 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 #' isTable(conn, "public.pitching") # FALSE
 #' }
 isTable <- function(channel, names) {
-  if (is.null(names) || length(names) < 1) return(FALSE)
+  if (is.null(names) || length(names) < 1) return(logical(0))
   
   vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
 }

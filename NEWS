@@ -13,14 +13,14 @@ NEW FEATURES
   parameters `top` and `rankFunction`. Unlimited (all terms) are 
   returned by default with `top = NULL`.
 
-* Text parsers `nGram` and `token` are pluggable into text functions
-  above.
+* S3 classes `nGram` and `token` provide pluggable parsers to extract text
+  tokens to use in the functions 'computeTf' and 'computeTfIdf'.
 
 * Text functions support stop words in both Aster (installed stopwords file)
-  and in R (post-processing of results).
+  and R (post-processing of results).
 
 * Linear regression now is compatible with R standard lm functions returning
-  object of class c('toalm', 'lm'). This means methods `summary`, 
+  object of both classes c('toalm', 'lm'). This means methods `summary`, 
   `coefficients`, etc. work with the object returned by `computeLm`.
   This change is not backward compatible: to obtain result returned in 0.2.5 
   list contains element `old.result`.
@@ -57,17 +57,18 @@ MINOR FEATURES
 * Parameter `formula` replaced defunct `expr` in the function `computeLm` 
   for consistency with other model-fitting functions.
 
-* `computePercentiles` now computes on multiple columns.
+* `computePercentiles` now operates on multiple columns at once.
 
-* Reworked ODBC error handling to be more robust and informative.
+* Improved database error handling to be more robust and informative. Error messages
+  now include both ODBC and Aster error message and information (when applicable).
 
 * Added deprecated warning facility `toa_dep` similar to ggplot2 gg_dep 
   function.
 
 BUG FIXES
 
-* Legend position in `showData` histogram format is completely removed now
-  when legendPosition="none".
+* Legend position in `showData` histogram format is completely removed if 
+  legendPosition="none".
 
 * `computePercentiles` now returns no rows for the column that contains all NULLs. 
   Before it threw error without completing.
@@ -76,15 +77,16 @@ BUG FIXES
 
 * Added error when histogram start value is greater than end value in (Issue #33)
 
+
 DOCUMENTAION
 
 * Completely reworked demo scripts. Now they contain fully functional examples  
   running on baseball and openDallas data sets. The data sets are available 
-  from bitbucket download: https://bitbucket.org/grigory/toaster/downloads
-    - baseball.zip
-    - DallasOpenData.zip
+  from github: https://bitbucket.org/grigory/toaster/downloads
+    - baseball demo: https://raw.githubusercontent.com/wiki/teradata-aster-field/toaster/downloads/baseball.zip
+    - Dallas demo: https://raw.githubusercontent.com/wiki/teradata-aster-field/toaster/downloads/dallasopendata.zip
 
-* Baseball data set now includes the latest Lahman data including 2013 season.
+* Baseball Lahman data set now includes 2013 season.
 
 
 toaster 0.2.5

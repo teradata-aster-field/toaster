@@ -84,7 +84,10 @@ getTypes <- function(types) {
 #' @seealso \code{\link{getCharacterColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getNumericColumns(pitchingInfo)
 #' num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
@@ -109,7 +112,10 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 #' @seealso \code{\link{getNumericColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getCharacterColumns(pitchingInfo)
 #' char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
@@ -133,7 +139,10 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 #' @seealso \code{\link{getCharacterColumns}}, \code{\link{getNumericColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' masterInfo = getTableSummary(channel=conn, 'master')
 #' getTemporalColumns(masterInfo)
 #' date_cols_df = getTemporalColumns(masterInfo, names.only=FALSE)

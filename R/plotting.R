@@ -153,6 +153,9 @@ createHeatmap <- function(data, x, y, fill,
 #' @export
 #' @examples
 #' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' # AL teams pitching stats by decade
 #' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid", 
 #'                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
@@ -354,6 +357,9 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
 #' @examples
 #' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' # boxplot of pitching ipouts for AL in 2000s
 #' ipop = computePercentiles(conn, "pitching", "ipouts")
 #' createBoxplot(ipop)
@@ -714,7 +720,41 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' 
 #' @examples
 #' if(interactive()){
-#'
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
+#' stopwords = c("a", "an", "the", "with")
+#' 
+#' # 2-gram tf-idf on offense table
+#' daypart_tfidf_2gram = computeTfIdf(conn, "public.dallaspoliceall", docId="extract('hour' from offensestarttime)::int/6",  
+#'                                    textColumns=c('offensedescription','offensenarrative'),
+#'                                    parser=nGram(2, delimiter='[  \\t\\b\\f\\r:\"]+'),
+#'                                    stopwords=stopwords)
+#' 
+#' toRace <- function(ch) {
+#'   switch(as.character(ch),
+#'          "M" = "Male",
+#'          "F" = "Female",
+#'          "0" = "Night",
+#'          "1" = "Morning",
+#'          "2" = "Day",
+#'          "3" = "Evening",
+#'          "C" = "C",
+#'          "Unknown")
+#' }
+#'                                   
+#' createDallasWordcloud <- function(tf_df, metric, slice, n, maxWords=25, size=750) {
+#'   words=with(tf_df$rs, tf_df$rs[docid==slice,])
+#'   
+#'   ## palette 
+#'   pal = rev(brewer.pal(8, "Set1"))[c(-3,-1)]
+#'   
+#'   createWordcloud(words$term, words[, metric], maxWords=maxWords, scale=c(4, 0.5), palette=pal, 
+#'                   title=paste("Top ", toupper(metric), "Offense", n, "- grams for", toRace(race)),
+#'                   file=paste0('wordclouds/',metric,'_offense_',n,'gram_',toRace(slice),'.png'), 
+#'                   width=size, height=size)
+#' }
+#' 
 #' createDallasWordcloud(daypart_tfidf_2gram, 'tf_idf', 0, n=2, maxWords=200, size=1300)
 #' 
 #' }
@@ -790,6 +830,9 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @export 
 #' @examples
 #' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' pitchingInfo = getTableSummary(asterConn, tableName='pitching', 
 #'                                where='yearid between 2000 and 2013')
 #' battingInfo = getTableSummary(asterConn, tableName='batting', 

@@ -116,7 +116,10 @@
 #' @export  
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' data = computeAggregates(asterConn, "pitching",
 #'                columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
 #'                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 

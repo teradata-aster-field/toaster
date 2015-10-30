@@ -48,7 +48,9 @@
 #' }
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
 #' 
 #' # batting average explained by rbi, bb, so 
 #' lm1 = computeLm(channel=conn, tableName="batting_enh", formula= ba ~ rbi + bb + so)

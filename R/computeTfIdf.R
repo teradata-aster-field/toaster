@@ -62,7 +62,9 @@
 #' @export 
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
 #' 
 #' # compute term-document-matrix of all 2-word Ngrams of Dallas police open crime reports
 #' tdm1 = computeTf(channel=conn, tableName="public.dallaspoliceall", docId="offensestatus", 
@@ -193,7 +195,9 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #' @export 
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
 #' 
 #' # compute term-document-matrix of all 2-word Ngrams of Dallas police crime reports
 #' # for each 4-digit zip

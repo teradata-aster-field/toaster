@@ -35,7 +35,10 @@
 #' @seealso \code{\link{computeHistogram}}, \code{\link{createHistogram}}
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' # Compute average team season era, walks, and hits for each decade starting with 1980
 #' computeBarchart(channel=conn, "teams_enh", "teamid team", 
 #'                 aggregates=c("avg(era) era", "avg(bb) bb", "avg(h) h"), 

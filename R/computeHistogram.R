@@ -35,7 +35,10 @@
 #' @seealso \link{computeBarchart} and \link{createHistogram}
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' # Histogram of team ERA distribution: Rangers vs. Yankees in 2000s
 #' h2000s = computeHistogram(channel=conn, tableName='pitching_enh', columnName='era',
 #'                           binsize=0.2, startvalue=0, endvalue=10, by='teamid',

@@ -47,7 +47,10 @@
 #'   replaces all aggregate columns with two: \code{variable} and \code{value}.
 #' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w) w', 
 #'                     where="decadeid >= 1950")
 #' hm$decadeid = factor(hm$decadeid)

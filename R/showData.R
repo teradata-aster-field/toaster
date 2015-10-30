@@ -81,7 +81,10 @@
 #' @return A ggplot visual object.
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' # get summaries to save time
 #' pitchingInfo = getTableSummary(conn, 'pitching_enh')
 #' battingInfo = getTableSummary(conn, 'batting_enh')

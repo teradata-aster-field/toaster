@@ -36,7 +36,10 @@
 #' @seealso \code{\link{createBubblechart}} and \code{\link{showData}}.
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};server=<your_host>;port=2406;database=<your_db>;uid=<user>;pwd=<pswd>")
+#' 
 #' cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pitching_enh"), 
 #'                              include = c('w','l','cg','sho','sv','ipouts','h','er','hr','bb',
 #'                                          'so','baopp','era','whip','ktobb','fip'),

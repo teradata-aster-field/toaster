@@ -1,5 +1,7 @@
 # toaster
 
+[![Travis-CI Build Status](https://travis-ci.org/teradata-aster-field/toaster.svg?branch=master)](https://travis-ci.org/teradata-aster-field/toaster)
+
 toaster (to Aster) is a set of tools for computing and analyzing data with [Teradata Aster](http://www.teradata.com/Teradata-Aster/overview/) Big Data database. It brings the power of Teradata Aster's distributed SQL and MapReduce (SQL-MR) to R on desktop and complements analysis of results with a convenient set of plotting functions.
 
 toaster acheives most tasks in 2 distinct steps:

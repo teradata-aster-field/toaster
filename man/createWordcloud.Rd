@@ -69,7 +69,8 @@ conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
 stopwords = c("a", "an", "the", "with")
 
 # 2-gram tf-idf on offense table
-daypart_tfidf_2gram = computeTfIdf(conn, "public.dallaspoliceall", docId="extract('hour' from offensestarttime)::int/6",
+daypart_tfidf_2gram = computeTfIdf(conn, "public.dallaspoliceall",
+                                   docId="extract('hour' from offensestarttime)::int/6",
                                    textColumns=c('offensedescription','offensenarrative'),
                                    parser=nGram(2, delimiter='[  \\\\t\\\\b\\\\f\\\\r:\\"]+'),
                                    stopwords=stopwords)
@@ -93,7 +94,7 @@ createDallasWordcloud <- function(tf_df, metric, slice, n, maxWords=25, size=750
   pal = rev(brewer.pal(8, "Set1"))[c(-3,-1)]
 
   createWordcloud(words$term, words[, metric], maxWords=maxWords, scale=c(4, 0.5), palette=pal,
-                  title=paste("Top ", toupper(metric), "Offense", n, "- grams for", toRace(race)),
+                  title=paste("Top ", metric, "Offense", n, "- grams for", toRace(race)),
                   file=paste0('wordclouds/',metric,'_offense_',n,'gram_',toRace(slice),'.png'),
                   width=size, height=size)
 }

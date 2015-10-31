@@ -203,9 +203,11 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #' 
 #' # compute term-document-matrix of all 2-word Ngrams of Dallas police crime reports
 #' # for each 4-digit zip
-#' tdm1 = computeTfIdf(channel=conn, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#' tdm1 = computeTfIdf(channel=conn, tableName="public.dallaspoliceall", 
+#'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
-#'                     parser=nGram(2, ignoreCase=TRUE, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+"))
+#'                     parser=nGram(2, ignoreCase=TRUE, 
+#'                                  punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+"))
 #'                     
 #' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
 #' # for each type of offense status
@@ -214,14 +216,16 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'                     parser=token(2), 
 #'                     where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
 #'                     
-#' # include only top 100 ranked 2-word ngrams for each 4-digit zip into resulting term-document-matrix,
-#' # using rank function  
-#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#' # include only top 100 ranked 2-word ngrams for each 4-digit zip into resulting 
+#' # term-document-matrix using rank function  
+#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", 
+#'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
 #'                     parser=nGram(2), top=100)
 #'                     
 #' # same but get top 10% ranked terms using percent rank function                                                        
-#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#' tdm4 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", 
+#'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
 #'                     parser=nGram(1), top=0.10, rankFunction="percentrank") 
 #' 

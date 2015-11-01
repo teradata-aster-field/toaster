@@ -39,4 +39,4 @@ install:
 r_packages:
   - covr
 after_success:
-  - Rscript -e 'library(covr); codecov()'
+  - Rscript -e 'library(covr); codecov(token="3ca242db-ca18-4c99-a62c-adee107b583d")'

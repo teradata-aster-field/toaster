@@ -2,7 +2,7 @@
 % Please edit documentation in R/textParsers.R
 \name{nGram}
 \alias{nGram}
-\title{Tokenize (or split) text and emit n multi-grams.}
+\title{Tokenize (or split) text and emit multi-grams.}
 \usage{
 nGram(n, ignoreCase = FALSE, delimiter = "[ \\\\t\\\\b\\\\f\\\\r]+",
   punctuation = NULL, overlapping = TRUE, reset = NULL, sep = " ",
@@ -39,6 +39,6 @@ ngram is below n*minLength + (n-1).}
 pluggable n-gram parser
 }
 \description{
-Tokenize (or split) text and emit n multi-grams.
+Tokenize (or split) text and emit multi-grams.
 }
 

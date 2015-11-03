@@ -45,7 +45,7 @@ token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\
   z
 }
 
-#' Tokenize (or split) text and emit n multi-grams.
+#' Tokenize (or split) text and emit multi-grams.
 #' 
 #' 
 #' @param n length, in words, of each n-gram

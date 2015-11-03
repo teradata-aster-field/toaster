@@ -3,24 +3,23 @@ Type: Package
 Title: Big Data in-Database Analytics with Teradata Aster
 Version: 0.3.1
 Authors@R: c(
-    person("Kanevsky", "Gregory", , "gregory.kanevsky@teradata.com", c("aut","cre")),
-    person("Switanek", "Nick", , "nicholas.switanek@teradata.com", "aut")
+    person("Gregory", "Kanevsky", , "gregory.kanevsky@teradata.com", c("aut","cre")),
+    person("Nick", "Switanek", , "nicholas.switanek@teradata.com", "aut")
     )
-Description: A consistent set of tools to perform in-database analytics 
-    on Teradata Aster Big Data Discovery Platform. toaster (a.k.a 'to Aster') 
-    embraces simple approach by performing tasks in 2 steps:
-    compute in Aster - visualize and analyze in R. Its `compute` functions
-    use distributed, highly scalable, and parallel SQL and map-reduce SQL/MR 
-    functions on large data sets stored in Aster database. Then
-    `create` functions visualize results with boxplots, scatterplots,
-    histograms, heatmaps, word clouds, maps, or slope graphs. Advanced options
-    such as faceting, coloring, labeling, and others are supported
-    with most plots.
-SystemRequirements: Teradata Aster Database 5.10 (AD5.10) or higher, 
-    Teradata Aster Analytical Foundation 5.10 (AA5.10) or higher 
+Description: A consistent set of tools to perform in-database analytics
+    on Teradata Aster Big Data Discovery Platform. toaster (a.k.a 'to Aster')
+    embraces simple 2-step approach: compute in Aster - visualize and analyze 
+    in R. Its `compute` functions use combination of SQL and 
+    SQL/MR functions running in Aster database - highly scalable parallel 
+    and distributed analytical platform. Then `create` functions visualize 
+    results with boxplots, scatterplots, histograms, heatmaps, word clouds, 
+    maps, or slope graphs. Advanced options such as faceting, coloring, 
+    labeling, and others are supported with most functions.
+SystemRequirements: Teradata Aster Database 5.10 (AD5.10) or higher,
+    Teradata Aster Analytical Foundation 5.10 (AA5.10) or higher
     (5.11 or higher is recommended)
 Depends:
-    R (>= 3.2.2),
+    R (>= 3.0),
     RODBC (>= 1.3-12)
 Imports:
     plyr (>= 1.8.3),
@@ -33,7 +32,8 @@ Imports:
     ggmap (>= 2.5.2),
     memoise,
     slam (>= 0.1-32),
-    foreach (>= 1.4.3)
+    foreach (>= 1.4.3),
+    stats
 Suggests:
     testthat (>= 0.11.0),
     tm,
@@ -59,3 +59,4 @@ Collate:
     'computeLm.R'
     'computeTfIdf.R'
     'textParsers.R'
+RoxygenNote: 5.0.0

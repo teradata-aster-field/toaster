@@ -65,8 +65,8 @@
 #'                              
 #' # compute statitics on all numeric columns except certain columns
 #' teamInfo = getTableSummary(channel=conn, 'teams_enh', 
-#'                            include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
-#'                            except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))                                                                                              
+#'                    include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
+#'                    except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))
 #' }
 getTableSummary <- function (channel, tableName, include = NULL, except = NULL, 
                              modeValue = FALSE,

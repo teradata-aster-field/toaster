@@ -67,24 +67,25 @@
 #'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # compute term-document-matrix of all 2-word Ngrams of Dallas police open crime reports
-#' tdm1 = computeTf(channel=conn, tableName="public.dallaspoliceall", docId="offensestatus", 
+#' tdm1 = computeTf(channel=conn, tableName="public.dallaspoliceall", docId="offensestatus",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
-#'                  parser=nGram(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
-#'                     
+#'                  parser=nGram(2),
+#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
+#'
 #' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
 #' # by time of day (4 documents corresponding to 4 parts of day)
-#' tdm2 = computeTf(channel=conn, tableName="public.dallaspoliceall", 
+#' tdm2 = computeTf(channel=conn, tableName="public.dallaspoliceall",
 #'                  docId="(extract('hour' from offensestarttime)/6)::int%4",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
-#'                  parser=token(2, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+", stopWords=TRUE),
+#'                  parser=token(2, punctuation="[-.,?\\!:;~()]+", stopWords=TRUE),
 #'                  where="offensenarrative IS NOT NULL")
-#'                     
+#'
 #' # include only top 100 ranked 2-word ngrams for each offense status
-#' # into resulting term-document-matrix using dense rank function  
-#' tdm3 = computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+#' # into resulting term-document-matrix using dense rank function
+#' tdm3 = computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
 #'                  parser=nGram(2), top=100, rankFunction="denserank",
-#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")                                                         
+#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
 #' 
 #' }
 #' 
@@ -205,7 +206,7 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
 #'                     parser=nGram(2, ignoreCase=TRUE, 
-#'                                  punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+"))
+#'                                  punctuation="[-.,?\\!:;~()]+"))
 #'                     
 #' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
 #' # for each type of offense status
@@ -221,11 +222,11 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'                     textColumns=c("offensedescription", "offensenarrative"),
 #'                     parser=nGram(2), top=100)
 #'                     
-#' # same but get top 10% ranked terms using percent rank function                                                        
+#' # same but get top 10% ranked terms using percent rank function
 #' tdm4 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", 
 #'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
-#'                     parser=nGram(1), top=0.10, rankFunction="percentrank") 
+#'                     parser=nGram(1), top=0.10, rankFunction="percentrank")
 #' 
 #' }
 computeTfIdf <- function(channel, tableName, docId, textColumns, parser, 

@@ -14,7 +14,8 @@ test_that("computeHeatmap throws errors", {
   expect_error(computeHeatmap(channel=NULL, table='fake', dimension1='dim1', dimension2='dim2',
                               aggregateFun=c("COUNT(*)", "COUNT(*)/(sum(count(*)) over ())"), 
                               aggregateAlias="alias"),
-               "Lengths of parameters 'aggregateFun' and 'aggregateAlias' must be the same.")
+               '(Defunct; last used in version 0.2.4)')
+               
   
   expect_error(computeHeatmap(channel=NULL, table='fake', dimension1='dim1', dimension2='dim2',
                               aggregates=vector()),

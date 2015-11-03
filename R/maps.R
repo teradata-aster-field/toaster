@@ -114,7 +114,6 @@
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add.
 #' 
 #' @export  
-#' 
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 

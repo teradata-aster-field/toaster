@@ -40,7 +40,6 @@
 #' }
 #'   
 #' @export
-#' 
 computeAggregates <- function(channel, tableName, 
                               aggregates = c("COUNT(*) cnt"), 
                               by = vector(), where = NULL, 

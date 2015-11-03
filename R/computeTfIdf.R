@@ -60,7 +60,6 @@
 #'  
 #' @seealso \code{computeTfIdf}, \code{\link{nGram}}, \code{\link{token}}
 #' @export 
-#' 
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Dallas database in Aster 
@@ -194,7 +193,6 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'   
 #' @seealso \code{computeTf}, \code{\link{nGram}}, \code{\link{token}}
 #' @export 
-#' 
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Dallas database in Aster 

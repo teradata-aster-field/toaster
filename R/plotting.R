@@ -719,7 +719,6 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @seealso \code{\link{wordcloud}}
 #' 
 #' @export createWordcloud
-#' 
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Dallas database in Aster 
@@ -966,7 +965,6 @@ applyFacet <- function(p, facet=NULL, scales, ncol) {
 #' @return function (factory) that creates linear gradient palette for given number of colors
 #' @seealso \code{\link{getDiscretePaletteFactory}}, \code{\link{colorRampPalette}}
 #' @export
-#'
 #' @examples
 #' paletteMaker = getGradientPaletteFactory(c("yellow","red"))
 #' myPalette = paletteMaker(10)
@@ -981,16 +979,15 @@ getGradientPaletteFactory <- function(colors=c("black", "white")) {
 #' @return function (factory) that creates discrete palette with for number of colors
 #' @seealso \code{\link{getGradientPaletteFactory}}, \code{\link{colorRampPalette}}
 #' @export
-#' 
 #' @examples
 #' paletteMaker = getDiscretePaletteFactory("PuOr")
 #' myPalette = paletteMaker(25)
 getDiscretePaletteFactory <- function(paletteName="Set1") {
   n = brewer.pal.info[paletteName, 'maxcolors']
-  colfunc = colorRampPalette(brewer.pal(n, paletteName))
+  colfunc = grDevices::colorRampPalette(brewer.pal(n, paletteName))
   
   n = brewer.pal.info[paletteName,"maxcolors"]
-  getPalette = colorRampPalette(brewer.pal(n, paletteName))
+  getPalette = grDevices::colorRampPalette(brewer.pal(n, paletteName))
   return(colfunc)
 }
 

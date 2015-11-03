@@ -68,7 +68,6 @@ token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\
 #'   ngram is below n*minLength + (n-1).
 #' @return pluggable n-gram parser
 #' @export
-#' 
 nGram <- function(n, ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+',
                   punctuation = NULL, overlapping = TRUE, reset = NULL,
                   sep = " ", minLength = 1) {

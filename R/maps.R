@@ -114,7 +114,6 @@
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add.
 #' 
 #' @export  
-#' 
 #' @examples
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
@@ -150,7 +149,7 @@ createMap <- function(data,
                       shapeColour = "red",
                       textColour = "black", textFamily='mono' , textFace="plain", textSize=4,
                       facet = NULL, ncol = 1, facetScales = "fixed",
-                      geocodeFun = memoise(geocode), getmapFun = get_map,
+                      geocodeFun = memoise::memoise(geocode), getmapFun = get_map,
                       urlonly = FALSE, api_key = NULL,  
                       baseSize = 12, baseFamily = "sans", 
                       title = NULL,
@@ -222,7 +221,7 @@ createMap <- function(data,
     data[, lonName] = geocodes$lon
     data[, latName] = geocodes$lat
     # remove data that didn't get geocoded successfully
-    data = data[complete.cases(data[,c(lonName,latName)]),]
+    data = data[stats::complete.cases(data[,c(lonName,latName)]),]
   }
   
   # Create map with data

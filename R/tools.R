@@ -26,7 +26,7 @@
 #' @export
 toa_dep <- function(version, msg) {
   v <- as.package_version(version)
-  cv <- packageVersion("toaster")
+  cv <- utils::packageVersion("toaster")
   
   # If current major number is greater than last-good major number, or if
   #  current minor number is more than 1 greater than last-good minor number,

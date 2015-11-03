@@ -170,7 +170,6 @@ getTemporalColumns <- function (tableInfo, names.only=TRUE, include=NULL, except
 #' @param invert logical. if TRUE return columns that do not match.
 #' @seealso \code{\link{grep}}, \code{\link{getTableSummary}}
 #' @export
-#' 
 getMatchingColumns <- function (pattern, channel, tableName, tableInfo, names.only = TRUE, 
                                 ignore.case = TRUE, invert = FALSE) {
   

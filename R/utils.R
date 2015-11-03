@@ -65,8 +65,8 @@
 #'                              
 #' # compute statitics on all numeric columns except certain columns
 #' teamInfo = getTableSummary(channel=conn, 'teams_enh', 
-#'                            include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
-#'                            except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))                                                                                              
+#'                    include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
+#'                    except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))
 #' }
 getTableSummary <- function (channel, tableName, include = NULL, except = NULL, 
                              modeValue = FALSE,
@@ -550,6 +550,8 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
 viewTableSummary <- function(tableInfo, types=NULL,
                              include=NULL, except=NULL, basic=FALSE, 
                              percentiles=FALSE) {
+  
+  if (!interactive()) return()
     
   if (missing(tableInfo)) return()
   
@@ -580,7 +582,7 @@ viewTableSummary <- function(tableInfo, types=NULL,
   }else 
     row_indices = !is.na(tableInfo$TYPE_NAME)
     
-  View(tableInfo[row_indices, col_indices])
+  utils::View(tableInfo[row_indices, col_indices])
   
   return(1.0)
 }

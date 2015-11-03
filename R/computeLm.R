@@ -80,7 +80,7 @@ computeLm <- function(channel, tableName, formula, tableInfo = NULL, categories 
   }
     
   cl <- match.call()
-  ft = terms(formula)
+  ft = stats::terms(formula)
   #fvars = all.vars(formula)
   vars = as.character(attr(ft, "variables"))[-1]
   if (length(vars) < 2) {
@@ -198,7 +198,7 @@ using Aster Database correlation (stats correlation) function can help uncover s
 Removing co-linear columns should resolve the issue.
 This inconvinience will be addressed in one of future releases of toaster."))
   
-  z = createLm(channel, tableName, as.formula(formula), cl, result$value, ft, xlevels, 
+  z = createLm(channel, tableName, stats::as.formula(formula), cl, result$value, ft, xlevels, 
                predictors, predictorColumns, predictorNames, predictorNamesSQL, 
                responseVar, sampleSize, where)
   
@@ -241,7 +241,7 @@ createLm <- function(channel, tableName, formula, cl, coefficients, ft, xlevels,
     
     # for now model.frame is compatible with models without categorical predictors only
     if (is.null(xlevels) || length(xlevels)==0)
-      z$model = model.frame(formula=formula, data=fit)
+      z$model = stats::model.frame(formula=formula, data=fit)
   }else
     warning("No sampling performed if sample size is NULL or < 30.")
   

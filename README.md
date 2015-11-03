@@ -1,14 +1,19 @@
 # toaster
 
-toaster (to Aster) is set of tools for computing and analyzing data with [Teradata Aster](http://www.asterdata.com/) Big Data database. It brings power of Aster database with its distributed SQL and map-reduce functions to R on desktop and let analyze results with convinient set of visualizations based on ggplot2.
+[![Travis-CI Build Status](https://travis-ci.org/teradata-aster-field/toaster.svg?branch=master)](https://travis-ci.org/teradata-aster-field/toaster)
+[![Coverage Status](https://img.shields.io/codecov/c/github/teradata-aster-field/toaster/master.svg)](https://codecov.io/github/teradata-aster-field/toaster?branch=master)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/toaster)](http://cran.r-project.org/package=toaster)
+
+
+toaster (to Aster) is a set of tools for computing and analyzing data with [Teradata Aster](http://www.teradata.com/Teradata-Aster/overview/) Big Data database. It brings the power of Teradata Aster's distributed SQL and MapReduce (SQL-MR) to R on desktop and complements analysis of results with a convenient set of plotting functions.
 
 toaster acheives most tasks in 2 distinct steps:
 
-* Compute in Aster using rich set of analyical functions and SQL transparently running in distributed and parallel environement.
+* Compute in Aster using Aster's rich, fully scalable set of analyical functions, transparently running in distributed and parallel environement.
 
 * Deliver and visualize results in R for further exploration and analysis.
  
-Thus toaster performs all data heavy computations in Aster with results available in R. Summary statistics, aggregates, histograms, heatmaps, linear regression models are among results available from Aster. Most of the results have toaster visualization functions for further analysis.
+toaster performs all big data, processing intensive computations in Aster, making results and visualizations available in R. Summary statistics, aggregates, histograms, heatmaps, and coefficients from linear regression models are among results available in R after processing in Aster. Most results have toaster visualization functions to aid further analysis.
 
 You can install:
 
@@ -19,17 +24,17 @@ You can install:
     ````
 
 
-* the latest development version from bitbucket with
+* the latest development version from github with
 
     ```R
-    devtools::install_bitbucket("toaster", "grigory")
+    devtools::install_github("toaster", "teradata-aster-field")
     ````
 
+* evaluation version of Aster analytic platform - Aster Express - to run on your PC [here](https://aster-community.teradata.com/community/download) and get started with this [Tutorial Series](https://aster-community.teradata.com/community/learn-aster).
 
-If you encounter a clear bug, please file a minimal reproducible example on [bitbucket](https://bitbucket.org/grigory/toaster/issues).
+
+If you encounter a clear bug, please file a minimal reproducible example on [github](https://github.com/teradata-aster-field/toaster/issues).
 
 Attribution:
 
-* Icon: [Toaster Icon by Greg Barnes](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes/Toaster-icon.html), [Vintage Kitchen](http://www.iconarchive.com/show/vintage-kitchen-icons-by-greg-barnes.html)
-* Icon: [Toaster by Luiza Peixe from The Noun Project](http://thenounproject.com/term/toaster/10764/)
-
+* Icon: [toAster](http://maytitan.deviantart.com/art/ToAster-468393069) by [Madison Clarke](http://maytitan.deviantart.com/)

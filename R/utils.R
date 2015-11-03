@@ -43,7 +43,11 @@
 #' @seealso \link{sqlColumns}
 #' @export
 #' @examples 
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' # list all table columns
 #' pitchingInfo$COLUMN_NAME
@@ -61,8 +65,8 @@
 #'                              
 #' # compute statitics on all numeric columns except certain columns
 #' teamInfo = getTableSummary(channel=conn, 'teams_enh', 
-#'                            include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
-#'                            except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))                                                                                              
+#'                    include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
+#'                    except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))
 #' }
 getTableSummary <- function (channel, tableName, include = NULL, except = NULL, 
                              modeValue = FALSE,
@@ -72,6 +76,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   # check if parallel option is valid
   if (parallel && !getDoParRegistered())
     stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
+  
+  tableName = normalizeTableName(tableName)
   
   if (mock) {
     if (substr(tableName, nchar(tableName)-nchar('pitching')+1, nchar(tableName))=='pitching') {
@@ -531,7 +537,11 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
 #' @seealso \code{\link{getTableSummary}}
 #' @export
 #' @examples 
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' viewTableSummary(pitchingInfo, percentiles=TRUE)
 #' 
@@ -540,6 +550,8 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
 viewTableSummary <- function(tableInfo, types=NULL,
                              include=NULL, except=NULL, basic=FALSE, 
                              percentiles=FALSE) {
+  
+  if (!interactive()) return()
     
   if (missing(tableInfo)) return()
   
@@ -570,7 +582,7 @@ viewTableSummary <- function(tableInfo, types=NULL,
   }else 
     row_indices = !is.na(tableInfo$TYPE_NAME)
     
-  View(tableInfo[row_indices, col_indices])
+  utils::View(tableInfo[row_indices, col_indices])
   
   return(1.0)
 }
@@ -609,14 +621,17 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 #' @seealso \code{\link{getTableSummary}}
 #' @export
 #' @examples 
-#' \donttest{
-#' # on baseball dataset
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' isTable(conn, "pitching")        # TRUE 
 #' isTable(conn, "pitch%")          # TRUE
 #' isTable(conn, "public.pitching") # FALSE
 #' }
 isTable <- function(channel, names) {
-  if (is.null(names) || length(names) < 1) return(FALSE)
+  if (is.null(names) || length(names) < 1) return(logical(0))
   
   vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
 }

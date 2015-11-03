@@ -21,7 +21,7 @@
 #'   be ignored when parsing text. Each stop word is specified on a separate line.
 #' @param sep a character string to separate multiple text columns.
 #' @param minLength exclude tokens shorter than minLength characters.
-#'   
+#' @return pluggable token parser  
 #' @export
 token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+', 
                   punctuation = NULL, stemming = FALSE, stopWords = FALSE, 
@@ -45,7 +45,7 @@ token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\
   z
 }
 
-#' Tokenize (or split) text and emit n multi-grams.
+#' Tokenize (or split) text and emit multi-grams.
 #' 
 #' 
 #' @param n length, in words, of each n-gram
@@ -66,7 +66,7 @@ token <- function(n, tokenSep = '+', ignoreCase = FALSE, delimiter = '[ \\t\\b\\
 #'   shorter than the limit are omitted. Current implementation is not complete: it
 #'   filters out ngrams where each word is below the minimum length, i.e. total length of 
 #'   ngram is below n*minLength + (n-1).
-#' 
+#' @return pluggable n-gram parser
 #' @export
 nGram <- function(n, ignoreCase = FALSE, delimiter = '[ \\t\\b\\f\\r]+',
                   punctuation = NULL, overlapping = TRUE, reset = NULL,

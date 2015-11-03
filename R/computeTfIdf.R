@@ -43,7 +43,7 @@
 #'     \item \emph{\code{rownumber}} applies a sequential row number, starting at 1, to each term in a document.
 #'       The tie-breaker behavior is as follows: Rows that compare as equal in the sort order will be
 #'       sorted arbitrarily within the scope of the tie, and all terms will be given unique row numbers.
-#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms’s rank, provided the 
+#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms's rank, provided the 
 #'       term does not sort as equal (tie) with another term. The tie-breaker behavior is as follows: 
 #'       terms that compare as equal in the sort order are sorted arbitrarily within the scope of the tie, 
 #'       and the sorted-as-equal terms get the same rank number.
@@ -60,29 +60,32 @@
 #'  
 #' @seealso \code{computeTfIdf}, \code{\link{nGram}}, \code{\link{token}}
 #' @export 
-#' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # compute term-document-matrix of all 2-word Ngrams of Dallas police open crime reports
-#' tdm1 = computeTf(channel=conn, tableName="public.dallaspoliceall", docId="offensestatus", 
+#' tdm1 = computeTf(channel=conn, tableName="public.dallaspoliceall", docId="offensestatus",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
-#'                  parser=nGram(2), where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
-#'                     
+#'                  parser=nGram(2),
+#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
+#'
 #' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
 #' # by time of day (4 documents corresponding to 4 parts of day)
-#' tdm2 = computeTf(channel=conn, tableName="public.dallaspoliceall", 
+#' tdm2 = computeTf(channel=conn, tableName="public.dallaspoliceall",
 #'                  docId="(extract('hour' from offensestarttime)/6)::int%4",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
-#'                  parser=token(2, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+", stopWords=TRUE),
+#'                  parser=token(2, punctuation="[-.,?\\!:;~()]+", stopWords=TRUE),
 #'                  where="offensenarrative IS NOT NULL")
-#'                     
+#'
 #' # include only top 100 ranked 2-word ngrams for each offense status
-#' # into resulting term-document-matrix using dense rank function  
-#' tdm3 = computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus", 
+#' # into resulting term-document-matrix using dense rank function
+#' tdm3 = computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offensestatus",
 #'                  textColumns=c("offensedescription", "offensenarrative"),
 #'                  parser=nGram(2), top=100, rankFunction="denserank",
-#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")                                                         
+#'                  where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
 #' 
 #' }
 #' 
@@ -174,7 +177,7 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'     \item \emph{\code{rownumber}} applies a sequential row number, starting at 1, to each term in a document.
 #'       The tie-breaker behavior is as follows: Rows that compare as equal in the sort order will be
 #'       sorted arbitrarily within the scope of the tie, and all terms will be given unique row numbers.
-#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms’s rank, provided the 
+#'     \item \emph{\code{rank}} function assigns the current row-count number as the terms's rank, provided the 
 #'       term does not sort as equal (tie) with another term. The tie-breaker behavior is as follows: 
 #'       terms that compare as equal in the sort order are sorted arbitrarily within the scope of the tie, 
 #'       and the sorted-as-equal terms get the same rank number.
@@ -191,15 +194,19 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'   
 #' @seealso \code{computeTf}, \code{\link{nGram}}, \code{\link{token}}
 #' @export 
-#' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # compute term-document-matrix of all 2-word Ngrams of Dallas police crime reports
 #' # for each 4-digit zip
-#' tdm1 = computeTfIdf(channel=conn, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#' tdm1 = computeTfIdf(channel=conn, tableName="public.dallaspoliceall", 
+#'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
-#'                     parser=nGram(2, ignoreCase=TRUE, punctuation="[-\\\\\\[.,?\\!:;~()\\\\\\]]+"))
+#'                     parser=nGram(2, ignoreCase=TRUE, 
+#'                                  punctuation="[-.,?\\!:;~()]+"))
 #'                     
 #' # compute term-document-matrix of all 2-word combinations of Dallas police crime reports
 #' # for each type of offense status
@@ -208,16 +215,18 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
 #'                     parser=token(2), 
 #'                     where="offensestatus NOT IN ('System.Xml.XmlElement', 'C')")
 #'                     
-#' # include only top 100 ranked 2-word ngrams for each 4-digit zip into resulting term-document-matrix,
-#' # using rank function  
-#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#' # include only top 100 ranked 2-word ngrams for each 4-digit zip into resulting 
+#' # term-document-matrix using rank function  
+#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", 
+#'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
 #'                     parser=nGram(2), top=100)
 #'                     
-#' # same but get top 10% ranked terms using percent rank function                                                        
-#' tdm3 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", docId="substr(offensezip, 1, 4)", 
+#' # same but get top 10% ranked terms using percent rank function
+#' tdm4 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall", 
+#'                     docId="substr(offensezip, 1, 4)", 
 #'                     textColumns=c("offensedescription", "offensenarrative"),
-#'                     parser=nGram(1), top=0.10, rankFunction="percentrank") 
+#'                     parser=nGram(1), top=0.10, rankFunction="percentrank")
 #' 
 #' }
 computeTfIdf <- function(channel, tableName, docId, textColumns, parser, 
@@ -293,7 +302,7 @@ makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
   i = match(terms, allTerms)
   j = match(docs, allDocs)
   
-  m = simple_triplet_matrix(i = i, j = j, v = as.numeric(weights),
+  m = slam::simple_triplet_matrix(i = i, j = j, v = as.numeric(weights),
                             nrow = length(allTerms),
                             ncol = length(allDocs),
                             dimnames =

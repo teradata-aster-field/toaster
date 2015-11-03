@@ -84,7 +84,11 @@ getTypes <- function(types) {
 #' @seealso \code{\link{getCharacterColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getNumericColumns(pitchingInfo)
 #' num_cols_df = getNumericColumns(pitchingInfo, names.only=FALSE)
@@ -109,7 +113,11 @@ getNumericColumns <- function (tableInfo, names.only=TRUE, include=NULL, except=
 #' @seealso \code{\link{getNumericColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 #' getCharacterColumns(pitchingInfo)
 #' char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
@@ -133,7 +141,11 @@ getCharacterColumns <- function (tableInfo, names.only=TRUE, include=NULL, excep
 #' @seealso \code{\link{getCharacterColumns}}, \code{\link{getNumericColumns}}, \code{\link{getTableSummary}}
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' masterInfo = getTableSummary(channel=conn, 'master')
 #' getTemporalColumns(masterInfo)
 #' date_cols_df = getTemporalColumns(masterInfo, names.only=FALSE)
@@ -158,7 +170,6 @@ getTemporalColumns <- function (tableInfo, names.only=TRUE, include=NULL, except
 #' @param invert logical. if TRUE return columns that do not match.
 #' @seealso \code{\link{grep}}, \code{\link{getTableSummary}}
 #' @export
-#' 
 getMatchingColumns <- function (pattern, channel, tableName, tableInfo, names.only = TRUE, 
                                 ignore.case = TRUE, invert = FALSE) {
   
@@ -245,4 +256,9 @@ makeLimitClause <- function (top) {
     limit_clause = paste(" LIMIT", top)
   
   return (limit_clause)
+}
+
+normalizeTableName <- function (name) {
+  
+  tolower(name)
 }

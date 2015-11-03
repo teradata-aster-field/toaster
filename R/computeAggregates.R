@@ -19,7 +19,12 @@
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
+#' # compute average team rank and attendance by decade
 #' data = computeAggregates(channel = conn, tableName = "teams_enh",
 #'                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
 #'                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
@@ -35,7 +40,6 @@
 #' }
 #'   
 #' @export
-#' 
 computeAggregates <- function(channel, tableName, 
                               aggregates = c("COUNT(*) cnt"), 
                               by = vector(), where = NULL, 

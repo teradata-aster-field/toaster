@@ -14,7 +14,7 @@ test_that("computePercentiles throws errros", {
   expect_error(computePercentiles(channel=NULL, tableName="fake_table"),
                "Must provide at least one column name.")
   
-  expect_error(computePercentiles(channel=NULL, tableName="fake_table", columnName=NULL),
+  expect_error(computePercentiles(channel=NULL, tableName="fake_table", columns=NULL),
                "Must provide at least one column name.")
   
   expect_error(computePercentiles(channel=NULL, tableName="fake_table", columns=NULL),
@@ -27,7 +27,7 @@ test_that("computePercentiles throws errros", {
 test_that("computePercentiles numerical SQL is correct", {
   
   expect_equal_normalized(
-    computePercentiles(channel=NULL, tableName="pitching", columnName="ipouts",
+    computePercentiles(channel=NULL, tableName="pitching", columns="ipouts",
                        test=TRUE),
     "SELECT * FROM approxPercentileReduce(
        ON (
@@ -121,7 +121,7 @@ test_that("computePercentiles numerical SQL is correct", {
 test_that("computePercentiles temporal SQL is correct", {
   
   expect_equal_normalized(
-    computePercentiles(channel=NULL, tableName="public.master_enh", columnName="birthdate",
+    computePercentiles(channel=NULL, tableName="public.master_enh", columns="birthdate",
                        temporal=TRUE, test=TRUE),
     "SELECT percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT birthdate, ntile(100) OVER ( ORDER BY birthdate) percentile
@@ -141,7 +141,7 @@ test_that("computePercentiles temporal SQL is correct", {
       ORDER BY 1, 2, 3")
   
   expect_equal_normalized(
-    computePercentiles(channel=NULL, tableName="public.master_enh", columnName="birthdate",
+    computePercentiles(channel=NULL, tableName="public.master_enh", columns="birthdate",
                        temporal=TRUE, percentiles=c(0,5,10,25,50,75,90,95,100), test=TRUE),
     "SELECT percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 
        (SELECT birthdate, ntile(100) OVER ( ORDER BY birthdate) percentile
@@ -168,7 +168,7 @@ test_that("computePercentiles temporal SQL is correct", {
       ORDER BY 1, 2, 3")
   
   expect_equal_normalized(
-    computePercentiles(channel=NULL, tableName="public.master_enh", columnName="birthdate",
+    computePercentiles(channel=NULL, tableName="public.master_enh", columns="birthdate",
                        temporal=TRUE, percentiles=c(0,5,10,25,50,75,90,95,100), 
                        where="birthcountry = 'USA'", test=TRUE),
     "SELECT percentile, MAX(birthdate)::varchar value, MAX(EXTRACT('EPOCH' FROM birthdate)) epoch FROM 

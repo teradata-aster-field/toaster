@@ -68,7 +68,10 @@
 #' 
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # ipouts percentiles for pitching ipouts for AL in 2000s
 #' ipop = computePercentiles(conn, "pitching", "ipouts",

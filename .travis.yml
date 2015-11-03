@@ -1,0 +1,42 @@
+language: r
+warnings_are_errors: true
+sudo: required
+
+# env:
+#  global:
+#    - NOT_CRAN=true
+
+before_install:
+  - echo "options(repos = c(CRAN='http://cran.rstudio.com'))" > ~/.Rprofile
+  - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
+  - chmod 755 ./travis-tool.sh
+  - ./travis-tool.sh bootstrap
+install:
+  - mkdir ~/.R
+  - ./travis-tool.sh r_binary_install colorspace
+  - ./travis-tool.sh r_binary_install crayon
+  - ./travis-tool.sh r_binary_install dichromat
+  - ./travis-tool.sh r_binary_install knitr
+  - ./travis-tool.sh r_binary_install doParallel
+  - ./travis-tool.sh r_binary_install foreach
+  - ./travis-tool.sh r_binary_install ggplot2
+  - ./travis-tool.sh r_binary_install gtable
+  - ./travis-tool.sh r_binary_install iterators
+  - ./travis-tool.sh r_binary_install labeling
+  - ./travis-tool.sh r_binary_install mapproj
+  - ./travis-tool.sh r_binary_install maps
+  - ./travis-tool.sh r_binary_install munsell
+  - ./travis-tool.sh r_binary_install plyr
+  - ./travis-tool.sh r_binary_install RColorBrewer
+  - ./travis-tool.sh r_binary_install reshape2
+  - ./travis-tool.sh r_binary_install rjson
+  - ./travis-tool.sh r_binary_install RODBC
+  - ./travis-tool.sh r_binary_install scales
+  - ./travis-tool.sh r_binary_install slam
+  - ./travis-tool.sh r_binary_install testthat
+  - ./travis-tool.sh install_deps
+  
+r_packages:
+  - covr
+after_success:
+  - Rscript -e 'library(covr); codecov(token="3ca242db-ca18-4c99-a62c-adee107b583d")'

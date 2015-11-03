@@ -81,7 +81,11 @@
 #' @return A ggplot visual object.
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' # get summaries to save time
 #' pitchingInfo = getTableSummary(conn, 'pitching_enh')
 #' battingInfo = getTableSummary(conn, 'batting_enh')
@@ -188,6 +192,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   if (missing(tableInfo) && test) {
     stop("Must provide tableInfo when test==TRUE.")
   }
+  
+  tableName = normalizeTableName(tableName)
       
   if (missing(tableInfo)) {
     summary = getTableSummary(channel, tableName, include=include, except=except, where=where)
@@ -345,14 +351,14 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
       theme(legend.position=legendPosition) 
     
     if (regressionLine) {
-      p = p + geom_smooth(method=lm)
+      p = p + geom_smooth(method="lm")
     }
     
     if (!missing(facetName) & length(facetName)>0) {
       if (length(facetName)==1) {
-        p = p + facet_wrap(as.formula(paste("~", facetName)), ncol=ncol, scales=scales)
+        p = p + facet_wrap(stats::as.formula(paste("~", facetName)), ncol=ncol, scales=scales)
       }else {
-        p = p + facet_grid(as.formula(paste(facetName[[1]],"~",facetName[[2]])), scales=scales)
+        p = p + facet_grid(stats::as.formula(paste(facetName[[1]],"~",facetName[[2]])), scales=scales)
       }
       
     }

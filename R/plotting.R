@@ -152,7 +152,11 @@ createHeatmap <- function(data, x, y, fill,
 #' @return ggplot object
 #' @export
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' # AL teams pitching stats by decade
 #' bc = computeBarchart(channel=conn, tableName="pitching_enh", category="teamid", 
 #'                      aggregates=c("AVG(era) era", "AVG(whip) whip", "AVG(ktobb) ktobb"),
@@ -353,7 +357,11 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @return ggplot object
 #' @seealso \code{\link{computePercentiles}} for computing boxplot quartiles
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' # boxplot of pitching ipouts for AL in 2000s
 #' ipop = computePercentiles(conn, "pitching", "ipouts")
 #' createBoxplot(ipop)
@@ -392,9 +400,9 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
   }
   
   if (is.null(facet)) {
-    formu = as.formula(paste(x, '~', 'percentile'))
+    formu = (paste(x, '~', 'percentile'))
   }else {
-    formu = as.formula(paste(x, '+', paste(facet, collapse='+'), '~', 'percentile'))
+    formu = stats::as.formula(paste(x, '+', paste(facet, collapse='+'), '~', 'percentile'))
   }
   ndata = dcast(data, formu, value.var=value)
   
@@ -608,14 +616,13 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
                              lineSize = 0.15, textSize = 3.75, 
                              panelGridColour = "black", panelGridSize = 0.1,
                              defaultTheme = theme_classic(base_size = baseSize, base_family = baseFamily),
-                             themeExtra = NULL
-) {
+                             themeExtra = NULL) {
   
   if (na.rm) {
-    data = data[complete.cases(data),]
+    data = data[stats::complete.cases(data),]
   }
   
-  data[, id] = reorder(data[, id], data[, rankTo])
+  data[, id] = stats::reorder(data[, id], data[, rankTo])
   data$up_or_down = sign(data[,rankTo] - data[,rankFrom])
   datam = melt(data, id=c(id, fromLabel, toLabel, "up_or_down"), measure=c(rankFrom, rankTo))
   
@@ -712,10 +719,46 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
 #' @seealso \code{\link{wordcloud}}
 #' 
 #' @export createWordcloud
-#' 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
+#' stopwords = c("a", "an", "the", "with")
+#' 
+#' # 2-gram tf-idf on offense table
+#' daypart_tfidf_2gram = computeTfIdf(conn, "public.dallaspoliceall", 
+#'                                    docId="extract('hour' from offensestarttime)::int/6",  
+#'                                    textColumns=c('offensedescription','offensenarrative'),
+#'                                    parser=nGram(2, delimiter='[  \\t\\b\\f\\r:\"]+'),
+#'                                    stopwords=stopwords)
+#' 
+#' toRace <- function(ch) {
+#'   switch(as.character(ch),
+#'          "M" = "Male",
+#'          "F" = "Female",
+#'          "0" = "Night",
+#'          "1" = "Morning",
+#'          "2" = "Day",
+#'          "3" = "Evening",
+#'          "C" = "C",
+#'          "Unknown")
+#' }
+#'                                   
+#' createDallasWordcloud <- function(tf_df, metric, slice, n, maxWords=25, size=750) {
+#'   words=with(tf_df$rs, tf_df$rs[docid==slice,])
+#'   
+#'   ## palette 
+#'   pal = rev(brewer.pal(8, "Set1"))[c(-3,-1)]
+#'   
+#'   createWordcloud(words$term, words[, metric], maxWords=maxWords, scale=c(4, 0.5), palette=pal, 
+#'                   title=paste("Top ", metric, "Offense", n, "- grams for", toRace(race)),
+#'                   file=paste0('wordclouds/',metric,'_offense_',n,'gram_',toRace(slice),'.png'), 
+#'                   width=size, height=size)
+#' }
+#' 
+#' createDallasWordcloud(daypart_tfidf_2gram, 'tf_idf', 0, n=2, maxWords=200, size=1300)
 #' 
 #' }
 createWordcloud <- function(words, freq, title="Wordcloud", 
@@ -734,15 +777,15 @@ createWordcloud <- function(words, freq, title="Wordcloud",
     gdev(filename, width=width, height=height, units=units, res=NULL)
   }
   
-  layout(matrix(c(1,2), nrow=2), heights=c(1,7))
-  par(mar=rep(0,4))
-  plot.new()
-  text(x=.5, y=.5, title, cex=titleFactor)
+  graphics::layout(matrix(c(1,2), nrow=2), heights=c(1,7))
+  graphics::par(mar=rep(0,4))
+  graphics::plot.new()
+  graphics::text(x=.5, y=.5, title, cex=titleFactor)
   wordcloud(words, freq, scale=scale, min.freq=minFreq,
             max.words=maxWords, random.order=FALSE, rot.per=.15, colors=palette, bg='transparent')
   
   if (!missing(filename)) {
-    dev.off()
+    grDevices::dev.off()
   }
   
 }
@@ -789,7 +832,11 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @return ggplot object
 #' @export 
 #' @examples
-#' \donttest{
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
 #' pitchingInfo = getTableSummary(asterConn, tableName='pitching', 
 #'                                where='yearid between 2000 and 2013')
 #' battingInfo = getTableSummary(asterConn, tableName='batting', 
@@ -899,9 +946,9 @@ setTextLayerBin <- function(text, data, x, y, value, fill=NULL, position="dodge"
 applyFacet <- function(p, facet=NULL, scales, ncol) {
   if (!missing(facet) & length(facet) > 0) {
     if (length(facet) == 1) {
-      p = p + facet_wrap(as.formula(paste("~", facet)), ncol=ncol, scales=scales)
+      p = p + facet_wrap(stats::as.formula(paste("~", facet)), ncol=ncol, scales=scales)
     }else {
-      p = p + facet_grid(as.formula(paste(facet[[1]], "~", facet[[2]])), scales=scales)
+      p = p + facet_grid(stats::as.formula(paste(facet[[1]], "~", facet[[2]])), scales=scales)
     }   
   }
   
@@ -918,12 +965,11 @@ applyFacet <- function(p, facet=NULL, scales, ncol) {
 #' @return function (factory) that creates linear gradient palette for given number of colors
 #' @seealso \code{\link{getDiscretePaletteFactory}}, \code{\link{colorRampPalette}}
 #' @export
-#'
 #' @examples
 #' paletteMaker = getGradientPaletteFactory(c("yellow","red"))
 #' myPalette = paletteMaker(10)
 getGradientPaletteFactory <- function(colors=c("black", "white")) {
-  colfunc = colorRampPalette(colors)
+  colfunc = grDevices::colorRampPalette(colors)
   return(colfunc)
 }
 
@@ -933,16 +979,15 @@ getGradientPaletteFactory <- function(colors=c("black", "white")) {
 #' @return function (factory) that creates discrete palette with for number of colors
 #' @seealso \code{\link{getGradientPaletteFactory}}, \code{\link{colorRampPalette}}
 #' @export
-#' 
 #' @examples
 #' paletteMaker = getDiscretePaletteFactory("PuOr")
 #' myPalette = paletteMaker(25)
 getDiscretePaletteFactory <- function(paletteName="Set1") {
   n = brewer.pal.info[paletteName, 'maxcolors']
-  colfunc = colorRampPalette(brewer.pal(n, paletteName))
+  colfunc = grDevices::colorRampPalette(brewer.pal(n, paletteName))
   
   n = brewer.pal.info[paletteName,"maxcolors"]
-  getPalette = colorRampPalette(brewer.pal(n, paletteName))
+  getPalette = grDevices::colorRampPalette(brewer.pal(n, paletteName))
   return(colfunc)
 }
 
@@ -964,13 +1009,13 @@ theme_empty <- function (baseSize = 12, baseFamily = "")
           axis.ticks = element_blank(),
           axis.title.x = element_blank(),
           axis.title.y = element_blank(),
-          axis.ticks.length = unit(0, "lines"),
-          axis.ticks.margin = unit(0, "lines"), 
+          axis.ticks.length = grid::unit(0, "lines"),
+          axis.ticks.margin = grid::unit(0, "lines"), 
           legend.background = element_rect(colour = NA),
           legend.key = element_rect(colour = "grey80"), 
-          legend.key.size = unit(1.2, "lines"),
-          legend.key.height = unit(NA, "cm"), 
-          legend.key.width = unit(NA, "cm"),
+          legend.key.size = grid::unit(1.2, "lines"),
+          legend.key.height = grid::unit(NA, "cm"), 
+          legend.key.width = grid::unit(NA, "cm"),
           legend.text = element_text(family = baseFamily, 
                                      size = baseSize * 0.8),
           legend.text.align = 0, 
@@ -984,7 +1029,7 @@ theme_empty <- function (baseSize = 12, baseFamily = "")
           panel.border = element_blank(),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          panel.margin = unit(0.25, "lines"), 
+          panel.margin = grid::unit(0.25, "lines"), 
           strip.background = element_blank(),
           strip.text.x = element_text(family = baseFamily,
                                       size = baseSize * 0.8),
@@ -992,6 +1037,6 @@ theme_empty <- function (baseSize = 12, baseFamily = "")
           plot.background = element_blank(),
           plot.title = element_text(family = baseFamily,
                                     size = baseSize * 1.2),
-          plot.margin = unit(c(1, 0.5, 0.5, 0.5), "lines"))
+          plot.margin = grid::unit(c(1, 0.5, 0.5, 0.5), "lines"))
   
 }

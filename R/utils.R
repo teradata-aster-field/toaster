@@ -582,7 +582,7 @@ viewTableSummary <- function(tableInfo, types=NULL,
   }else 
     row_indices = !is.na(tableInfo$TYPE_NAME)
     
-  View(tableInfo[row_indices, col_indices])
+  utils::View(tableInfo[row_indices, col_indices])
   
   return(1.0)
 }

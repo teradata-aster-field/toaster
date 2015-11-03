@@ -351,14 +351,14 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
       theme(legend.position=legendPosition) 
     
     if (regressionLine) {
-      p = p + geom_smooth(method=lm)
+      p = p + geom_smooth(method="lm")
     }
     
     if (!missing(facetName) & length(facetName)>0) {
       if (length(facetName)==1) {
-        p = p + facet_wrap(as.formula(paste("~", facetName)), ncol=ncol, scales=scales)
+        p = p + facet_wrap(stats::as.formula(paste("~", facetName)), ncol=ncol, scales=scales)
       }else {
-        p = p + facet_grid(as.formula(paste(facetName[[1]],"~",facetName[[2]])), scales=scales)
+        p = p + facet_grid(stats::as.formula(paste(facetName[[1]],"~",facetName[[2]])), scales=scales)
       }
       
     }

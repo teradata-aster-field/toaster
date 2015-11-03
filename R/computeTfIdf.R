@@ -302,7 +302,7 @@ makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
   i = match(terms, allTerms)
   j = match(docs, allDocs)
   
-  m = simple_triplet_matrix(i = i, j = j, v = as.numeric(weights),
+  m = slam::simple_triplet_matrix(i = i, j = j, v = as.numeric(weights),
                             nrow = length(allTerms),
                             ncol = length(allDocs),
                             dimnames =

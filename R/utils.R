@@ -550,6 +550,8 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
 viewTableSummary <- function(tableInfo, types=NULL,
                              include=NULL, except=NULL, basic=FALSE, 
                              percentiles=FALSE) {
+  
+  if (!interactive()) return()
     
   if (missing(tableInfo)) return()
   

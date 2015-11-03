@@ -4,10 +4,12 @@
 \name{toaster}
 \alias{toaster}
 \alias{toaster-package}
-\title{toaster: analytical and visualization toolbox with Teradata Aster big data
-platform.}
+\title{toaster: analytical and visualization toolbox for Teradata Aster}
 \description{
-toaster: analytical and visualization toolbox with Teradata Aster big data
-platform.
+toaster provides simple 2-step approach: compute in Aster - visualize and analyze in R.
+Its `compute` functions use powerful in-database SQL statements and SQL/MR functions
+running inside Aster's highly scalable parallel and distributed analytical platform. 
+Then `create` functions visualize results with boxplots, scatterplots, histograms, 
+heatmaps, word clouds, maps, or slope graphs.
 }
 

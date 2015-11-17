@@ -1,15 +1,15 @@
 ## function to count nulls per variable in dataset
-count_column_nulls <- function(conn, tableName, schemaName){
+getNullCounts <- function(channel, tableName, include=NULL, except=NULL, where=NULL, test=FALSE){
     require(RODBC)
 
-    ## get variable names
-    variableNames <- names(sqlQuery(conn, paste0('select * from ', schemaName,'.',tableName,' limit 0;')))
+    ## get column names
+    columnNames <- sqlColumns(ac, sqtable = tableName)$COLUMN_NAME
 
     ## per variable, collect number of null values
     nullCounts <- list()
     for (v in variableNames) {
-        nullCounts[[v]] <- sqlQuery(conn,
-                                    count_nulls_sql_query(v, tableName, schemaName))
+        nullCounts[[v]] <- sqlQuery(channel,
+                                    count_nulls_sql_query(v, tableName))
     }
 
     ## rbind all null count data frames together
@@ -22,13 +22,13 @@ count_column_nulls <- function(conn, tableName, schemaName){
 
 
 ## function to construct null count SQL query
-count_nulls_sql_query <- function(variableName, tableName, schemaName){
+count_nulls_sql_query <- function(variableName, tableName){
     qry <- paste0("select
 '", variableName, "' as variable_name,
 (case when ", variableName, " is null then 1 else 0 end) as is_null,
 count(1) as cnt
 from
-", schemaName, ".", tableName,
+", tableName,
 " group by (case when ", variableName, " is null then 1 else 0 end);")
     return(qry)
 }
@@ -36,7 +36,9 @@ from
 
 ## test functions
 library(RODBC)
-ac <- odbcConnect('dsn', pwd = 'mypassword')
+ac <- odbcConnect('aster20.7W')
+channel <- ac
+columnNames <- sqlColumns(ac, sqtable = 'baseball.appearances')$COLUMN_NAME
 
 sqlQuery(ac, count_nulls_sql_query('var1', 'tbl1', 'schema1'))
 

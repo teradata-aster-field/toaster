@@ -3,44 +3,40 @@ getNullCounts <- function(channel, tableName, include=NULL, except=NULL, where=N
     require(RODBC)
 
     ## get column names
-    columnNames <- sqlColumns(ac, sqtable = tableName)$COLUMN_NAME
+    columnNames <- sqlColumns(channel, sqtable = tableName)$COLUMN_NAME
 
-    ## per variable, collect number of null values
-    nullCounts <- list()
-    for (v in variableNames) {
-        nullCounts[[v]] <- sqlQuery(channel,
-                                    count_nulls_sql_query(v, tableName))
-    }
+    ## per column name, construct count nulls SQL
+    columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL)
 
-    ## rbind all null count data frames together
-    nullCountsDF <- do.call('rbind', nullCounts)
+    ## assemble full SQL query
+    nullCountsSQL <- paste('select',
+                          paste(columnNameNullSQL, collapse = ', '),
+                          'from', tableName)
 
-    ## order by missingness, descending
-    nullCountsDF <- nullCountsDF[with(nullCountsDF, order(is_null, cnt, decreasing = TRUE)),]
-    return(nullCountsDF)
+    ## execute SQL to collect counts
+    nullCountsWide <- sqlQuery(channel, nullCountsSQL)
+
+    ## transpose results
+    nullCountsLongMatrix <- t(nullCountsWide)
+    nullCountsLong <- data.frame(variable = row.names(nullCountsLongMatrix),
+                                 nullcount = as.integer(nullCountsLongMatrix))
+
+    return(nullCountsLong)
 }
 
-
-## function to construct null count SQL query
-count_nulls_sql_query <- function(variableName, tableName){
-    qry <- paste0("select
-'", variableName, "' as variable_name,
-(case when ", variableName, " is null then 1 else 0 end) as is_null,
-count(1) as cnt
-from
-", tableName,
-" group by (case when ", variableName, " is null then 1 else 0 end);")
-    return(qry)
+## construct count nulls string
+constructCountNullsSQL <- function(variableName){
+    sqlString <- paste0('count(1) - count(',variableName,') as ', variableName)
+    return(sqlString)
 }
 
 
 ## test functions
 library(RODBC)
-ac <- odbcConnect('aster20.7W')
-channel <- ac
-columnNames <- sqlColumns(ac, sqtable = 'baseball.appearances')$COLUMN_NAME
+channel <- odbcConnect('aster20.7W')
 
-sqlQuery(ac, count_nulls_sql_query('var1', 'tbl1', 'schema1'))
+system.time(
+    nc <- getNullCounts(channel, tableName = 'baseball.appearances')
+    )
 
-nullCounts <- count_column_nulls(ac, 'tbl1', 'schema1')
-nullCounts
+print(nc)

@@ -262,3 +262,36 @@ normalizeTableName <- function (name) {
   
   tolower(name)
 }
+
+#' Make Aster temporary table name.
+#'
+#' @param prefix Table name will always start with toa_temp_ followed by prefix (if exists).
+#' @param n non-negative integer giving number of random characters to include in the name.
+#' @param schema Aster database schema table should belong to. 
+#' 
+#' Table name generated will always begin with 'toa_temp_' followed by prefix (if not NULL) 
+#' and n random alpha-numeric characters. Beware that total length can not exceed than 63 (Aster 
+#' limit on table name length).
+#' 
+#' @return character string suitable for Aster temporary table name
+#' @export
+#' @seealso \code{\link{getTableSummary}}
+#' @examples 
+#' tempTableName = makeTempTableName("centroids", 20)
+#' 
+#'
+makeTempTableName <- function(prefix=NULL, n=20, schema=NULL) {
+  
+  if(!is.null(prefix) && !grepl("^[a-z0-9]+$", prefix, ignore.case=TRUE))
+    stop("Prefix may contain alpha-numeric characters only")
+  
+  prefix = paste0("toa_temp_", prefix, ifelse(is.null(prefix), "", "_"))
+  if (nchar(prefix) + n > 63)
+    stop("Too long prefix: 63 characters is Aster limit on table name length")
+  
+  if(!is.null(schema) && !grepl("^[a-z0-9]+$", schema, ignore.case=TRUE))
+    stop("Schema may contain alpha-numeric characters only")
+  
+  schema = ifelse(is.null(schema), "", paste0(schema,"."))
+  return(paste0(schema, prefix, paste0(sample(c(letters,0:9), n-length(prefix), replace=TRUE), collapse="")))
+}

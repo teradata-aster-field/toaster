@@ -661,15 +661,33 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 }
 
 
-## function to count nulls per variable in dataset
-getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, where=NULL, test=FALSE){
+#' Counts nulls per column in the table.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param tableName name of the table in Aster.
+#' @param tableInfo pre-built summary of columns to use (require when \code{test=TRUE}). 
+#'   See \code{\link{sqlColumns}} or \code{\link{getTableSummary}}.
+#' @param include a vector of column names to include. Output never contains attributes other than in the list.
+#' @param except a vector of column names to exclude. Output never contains attributes from the list.
+#' @param where specifies criteria to satisfy by the table rows before applying computation. 
+#'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
+#' @param output Default output is a data frame in \code{'long'} format. Other options include 
+#'   \code{'wide'} format and \code{'matrix'}.
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).
+#' @export
+getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, 
+                          output='long', where=NULL, test=FALSE){
+  
+  # match argument values
+  output = match.arg(output, c('long', 'wide', 'matrix'))
     
     ## table name is required
     if (missing(tableName)) {
       stop("Table name must be specified.")
     }
     
-    tableName = normalizeTableName(tableName)
+    tableName <- normalizeTableName(tableName)
     
     if (is.null(tableInfo) && test) {
       stop("Must provide tableInfo when test==TRUE.")
@@ -697,12 +715,17 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
     else
       nullCountsWide <- sqlQuery(channel, nullCountsSQL)
 
-    ## transpose results
-    nullCountsLongMatrix <- t(nullCountsWide)
-    nullCountsLong <- data.frame(variable = row.names(nullCountsLongMatrix),
-                                 nullcount = as.integer(nullCountsLongMatrix))
-
-    return(nullCountsLong)
+    if (output == 'wide') 
+      return (nullCountsWide)
+    else if(output == 'long') {
+      ## transpose results
+      nullCountsLongMatrix <- t(nullCountsWide)
+      nullCountsLong <- data.frame(variable = row.names(nullCountsLongMatrix),
+                                   nullcount = as.integer(nullCountsLongMatrix))
+      return (nullCountsLong)
+    }else
+      return (as.matrix(t(nullCountsWide)))
+    
 }
 
 ## construct count nulls string -- used in getNullCounts

@@ -21,4 +21,31 @@ test_that("exceptions are properly handled by utility functions", {
   
   expect_error(getTableSummary(NULL, tableName="pitching", percentiles=-1, mock=TRUE),
                "Invalid percentile value\\(s\\) passed \\(below 0 or above 100\\): -1")
+  
+})
+
+
+test_that("getNullCounts throws errors", {
+  
+  expect_error(getNullCounts(NULL, output='not-an-option'),
+               ".*'arg' should be one of \"long\", \"wide\", \"matrix\".*")
+  
+  expect_error(getNullCounts(NULL),
+               "Table name must be specified.")
+  
+  expect_error(getNullCounts(NULL, NULL, test=TRUE),
+               "Must provide tableInfo when test==TRUE.")
+  
+  expect_error(getNullCounts(NULL, NULL),
+               "first argument is not an open RODBC channel")
+  
+})
+
+
+test_that("getNullCounts sql is correct", {
+  
+  expect_equal_normalized(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info, test=TRUE),
+                          "select count(1) - count(lgid) as lgid, count(1) - count(yearid) as yearid from pitching  ")
+  
+  
 })

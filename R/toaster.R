@@ -8,6 +8,9 @@
 #' 
 #' @name toaster
 #' @docType package
-#' @import RODBC plyr reshape2 ggplot2 scales RColorBrewer wordcloud ggmap foreach
+#' @import RODBC plyr reshape2 ggplot2 RColorBrewer wordcloud foreach
+#' @importFrom scales muted 
 #' @importFrom memoise memoise
+#' @importFrom ggmap get_map geocode ggmap
+#' @importFrom GGally ggpairs
 NULL

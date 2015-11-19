@@ -24,14 +24,19 @@
 #' 
 #' @export
 #' @examples 
-#' computeKmeans(NULL, "batting", battingInfo, 
-#'   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", include=c('g','g_batting','ab','r','h','hr','rbi'),
-#'   scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', schema='baseball',
-#'   test=TRUE)
-#'   
-#' if(interactive()) {
-#'   computeKmeans(NULL, "batting", battingInfo, 
-#'   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", include=c('g','g_batting','ab','r','h','hr','rbi'))
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'                          
+#' km = computeKmeans(conn, "batting", 
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+#'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
+#'                    where="yearid > 2000", test=FALSE)
+#' kms = computeClusterSample(conn, km, 0.01, test=FALSE)
+#' createClusterPairsPlot(kms)
 #' }
 computeKmeans <- function(channel, tableName, tableInfo, id, include=NULL, except=NULL, 
                           centers=6, aggregates="COUNT(*) cnt", scale=TRUE, idAlias="id", 
@@ -250,8 +255,20 @@ makeKmeansResult <- function(data, centers, tableName, columns, scaledTableName,
 #' 
 #' @export
 #' @examples 
-#' 
-#' computeClusterSample(NULL, km, 0.01, test=TRUE)
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'                          
+#' km = computeKmeans(conn, "batting", 
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+#'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
+#'                    where="yearid > 2000", test=FALSE)
+#' kms = computeClusterSample(conn, km, 0.01, test=FALSE)
+#' createClusterPairsPlot(kms)
+#' }
 computeClusterSample <- function(channel, km, sampleFraction, sampleSize, scaled=FALSE, includeId=FALSE, test=FALSE) {
   
   if (missing(km)) {

@@ -20,6 +20,22 @@
 #' 
 #' @return ggplot object
 #' @export
+#' @examples 
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'                          
+#' km = computeKmeans(conn, "batting", 
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+#'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
+#'                    where="yearid > 2000", test=FALSE)
+#' createCentroidPlot(km$centroids)
+#' createCentroidPlot(km$centroids, format="bar_dodge")
+#' createCentroidPlot(km$centroids, format="bar")
+#' }
 createCentroidPlot <- function(centroids, format=c('line'), clusterId="clusterid",
                                baseSize = 12, baseFamily = "serif",
                                title = paste("Cluster Centroids", format, "Plot"), 
@@ -116,6 +132,21 @@ plotHeatmapCentroids <- function(data, id) {
 #' 
 #' @return ggplot object
 #' @export
+#' @examples 
+#' @examples 
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'                          
+#' km = computeKmeans(conn, "batting", 
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+#'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
+#'                    where="yearid > 2000", test=FALSE)
+#' createClusterPlot(km$aggregates)
+#' }
 createClusterPlot <- function(aggregates, clusterId="clusterid",
                               baseSize = 12, baseFamily = "serif",
                               title = paste("Cluster Properties Plot"), xlab = "cluster", ylab = "value", 
@@ -159,6 +190,20 @@ agg_labeller <- function(value) {
 #' 
 #' @return ggplot object
 #' @export
+#' @examples 
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'                          
+#' km = computeKmeans(conn, "batting", 
+#'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
+#'                    where="yearid > 2000", test=FALSE)
+#' kms = computeClusterSample(conn, km, 0.01, test=FALSE)
+#' createClusterPairsPlot(kms, "Batters Clustered by G, R, H", ticks=FALSE)
+#' }
 createClusterPairsPlot <- function(kms, clusterId="clusterid", 
                                    title="Cluster Variable Pairs", 
                                    baseSize = 12, baseFamily = "serif", ticks=TRUE,

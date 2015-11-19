@@ -662,22 +662,40 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 
 
 ## function to count nulls per variable in dataset
-getNullCounts <- function(channel, tableName, include=NULL, except=NULL, where=NULL, test=FALSE){
-    require(RODBC)
-
+getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, where=NULL, test=FALSE){
+    
+    ## table name is required
+    if (missing(tableName)) {
+      stop("Table name must be specified.")
+    }
+    
+    tableName = normalizeTableName(tableName)
+    
+    if (is.null(tableInfo) && test) {
+      stop("Must provide tableInfo when test==TRUE.")
+    }
+    
     ## get column names
-    columnNames <- sqlColumns(channel, sqtable = tableName)$COLUMN_NAME
-
+    if (is.null(tableInfo)) {
+      tableInfo <- sqlColumns(channel, sqtable = tableName)
+    }
+    columnNames <- includeExcludeColumns(tableInfo, include, except)$COLUMN_NAME
+    
     ## per column name, construct count nulls SQL
     columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL)
+    
+    where_clause <- makeWhereClause(where)
 
     ## assemble full SQL query
     nullCountsSQL <- paste('select',
                           paste(columnNameNullSQL, collapse = ', '),
-                          'from', tableName)
+                          'from', tableName, where_clause)
 
     ## execute SQL to collect counts
-    nullCountsWide <- sqlQuery(channel, nullCountsSQL)
+    if (test) 
+      return(nullCountsSQL)
+    else
+      nullCountsWide <- sqlQuery(channel, nullCountsSQL)
 
     ## transpose results
     nullCountsLongMatrix <- t(nullCountsWide)

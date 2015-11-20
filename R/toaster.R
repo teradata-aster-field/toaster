@@ -12,5 +12,4 @@
 #' @importFrom scales muted 
 #' @importFrom memoise memoise
 #' @importFrom ggmap get_map geocode ggmap
-#' @importFrom GGally ggpairs
 NULL

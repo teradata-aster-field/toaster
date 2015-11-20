@@ -80,7 +80,9 @@ plotBarCentroids <- function(data, id) {
   
   ggplot(data) +
     geom_bar(aes_string("variable", "value", fill=id), stat="identity", position="dodge") +
-    facet_wrap(facet_formula, scales="fixed", dir="h", labeller=labeller(.default=cluster_labeller)) +
+    # ggplol2 version post 1.0.1
+    # facet_wrap(facet_formula, scales="fixed", dir="h", labeller=labeller(.default=cluster_labeller)) +
+    facet_wrap(facet_formula, scales="fixed") +
     coord_flip() 
 }
 
@@ -133,7 +135,6 @@ plotHeatmapCentroids <- function(data, id) {
 #' @return ggplot object
 #' @export
 #' @examples 
-#' @examples 
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
 #' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
@@ -161,7 +162,9 @@ createClusterPlot <- function(aggregates, clusterId="clusterid",
   
   p = ggplot(data) +
     geom_bar(aes_string(clusterId, "value", fill="variable"), stat="identity", position="dodge") +
-    facet_wrap(facet_formula, scales="free", dir="h", labeller=labeller(.default=agg_labeller)) +
+    facet_wrap(facet_formula, scales="free") +
+    # post ggplot2 1.0.1 version
+    # facet_wrap(facet_formula, scales="free", dir="h", labeller=labeller(.default=agg_labeller)) +
     labs(title=title, x=xlab, y=ylab) +
     defaultTheme + 
     theme(legend.position="none",

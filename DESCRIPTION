@@ -24,7 +24,7 @@ Depends:
 Imports:
     plyr (>= 1.8.3),
     reshape2 (>= 1.4.1),
-    ggplot2 (>= 1.0.1.9003),
+    ggplot2 (>= 1.0.1),
     scales,
     RColorBrewer (>= 1.1-2),
     grid,
@@ -36,7 +36,7 @@ Imports:
     foreach (>= 1.4.3),
     stats
 Suggests:
-    testthat (>= 0.11.0),
+    testthat (>= 0.9.1-1),
     tm,
     doParallel
 License: GPL-2

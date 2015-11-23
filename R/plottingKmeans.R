@@ -1,9 +1,9 @@
 
-#' Create centroid plot
+#' Create plot of cluster centroids
 #' 
-#' Create plot of cluster centroids produced by clustering function like k-means.
-#' Plot types available are line plot, bar plot, or heatmap. Use parameter \code{format}
-#' to specify which plot to use.
+#' Visualize centroids produced by clustering function like k-means.
+#' Plots available are line plot, bar plot, or heatmap. Parameter \code{format}
+#' specifies which one to create.
 #' 
 #' @param centroids Kmeans centroids returned by \code{computeKmeans}.
 #' @param format type of plot to use: line, bar, bar_dodge, bar_facet (same as bar) or heatmap.

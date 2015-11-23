@@ -228,6 +228,18 @@ getColumns <- function (tableInfo, types, names.only, include, except) {
 }
 
 
+makeSqlColumnList <- function(columns) {
+  
+  paste(columns, collapse=", ")
+}
+
+
+makeSqlMrColumnList <- function(columns) {
+  
+  paste0("'", paste(columns, collapse="', '"), "'")
+}
+
+
 makeWhereClause <- function (where) {
   
   if(is.null(where))

@@ -7,8 +7,9 @@
 #' @param idAlias SQL alias for table id. This is required when SQL expression is given for \code{id}.
 #' @param include a vector of column names with variables (must be numeric). Model never contains variables other than in the list.
 #' @param except a vector of column names to exclude from variables. Model never contains variables from the list.
-#' @param centers either the number of clusters, say k, or a set of initial (distinct) cluster centres (not supported yet). 
-#'   If a number, a random set of (distinct) rows in x is chosen as the initial centres.
+#' @param centers either the number of clusters, say \code{k}, or a matrix of initial (distinct) cluster centres. 
+#'   If a number, a random set of (distinct) rows in x is chosen as the initial centres. If a matrix then number 
+#'   of rows determines the number of clusters as each row determines initial center.
 #' @param aggregates vector with SQL aggregates to compute for each cluster identified by this function. Aggregate may have 
 #'   optional aliases like in \code{"AVG(era) avg_era"}. Subsequently, use in \code{createClusterPlot} as cluster properties.
 #' @param scale logical if TRUE then scale each variable in-database before clustering. Currently scaling to 0 mean and unit
@@ -38,13 +39,18 @@
 #' kms = computeClusterSample(conn, km, 0.01, test=FALSE)
 #' createClusterPairsPlot(kms)
 #' }
-computeKmeans <- function(channel, tableName, tableInfo, id, include=NULL, except=NULL, 
-                          centers=6, aggregates="COUNT(*) cnt", scale=TRUE, idAlias="id", 
+computeKmeans <- function(channel, tableName, centers, iterMax=10, 
+                          tableInfo, id, include=NULL, except=NULL, 
+                          aggregates="COUNT(*) cnt", scale=TRUE, idAlias="id", 
                           where=NULL, scaledTableName=NULL, centroidTableName=NULL, schema=NULL,
                           test=FALSE) {
   
   if (test & missing(tableInfo)) {
     stop("Must provide tableInfo when test==TRUE")
+  }
+  
+  if (!is.numeric(centers)) {
+    stop("Parameter centers must be numeric.")
   }
   
   tableName = normalizeTableName(tableName)
@@ -94,18 +100,25 @@ computeKmeans <- function(channel, tableName, tableInfo, id, include=NULL, excep
   
   # run kmeans
   sqlDrop = paste("DROP TABLE IF EXISTS", centroidTableName)
-  sql = getKmeansSql(scaledTableName, centroidTableName, centers)
+  sql = getKmeansSql(scaledTableName, centroidTableName, centers, iterMax)
   if(test) {
     sqlSave = paste(sqlSave, sqlDrop, sep=';\n')
     sqlSave = paste(sqlSave, sql, sep=';\n')
   }else {
     toaSqlQuery(channel, sqlDrop)
-    toaSqlQuery(channel, sql)
+    kmeansResultStr = toaSqlQuery(channel, sql, stringsAsFactors=FALSE)
+    if (kmeansResultStr[1,'message'] == "Successful!" &&
+        kmeansResultStr[2,'message'] == "Algorithm converged.") {
+      iter = as.integer(gsub("[^0-9]", "", ts[3,'message']))
+    }else {
+      msg = paste(kmeansResultStr[,'message'], collapse="\n")
+      stop(msg)
+    }
   }
   
   
   # compute cluster stats
-  sql = getKmeansPlotSql(tableName, scaledTableName, centroidTableName, columns, 
+  sql = getKmeansStatsSql(tableName, scaledTableName, centroidTableName, columns, 
                          id, idAlias, aggregates, where_clause)
   if(test)
     sqlSave = paste0(paste(sqlSave, sql, sep=';\n'), ';')
@@ -117,7 +130,7 @@ computeKmeans <- function(channel, tableName, tableInfo, id, include=NULL, excep
     return(sqlSave)
   }
   
-  result = makeKmeansResult(data, centers, tableName, columns, scaledTableName, centroidTableName, id, idAlias, where_clause)
+  result = makeKmeansResult(data, centers, iter, tableName, columns, scaledTableName, centroidTableName, id, idAlias, where_clause)
   
   return(result)
 }
@@ -126,7 +139,7 @@ computeKmeans <- function(channel, tableName, tableInfo, id, include=NULL, excep
 # Phase 1: Data Prep
 getDataPrepSql <- function(tableName, tempTableName, columns, id, idAlias, whereClause) {
   
-  sqlmr_column_list = paste0("'", paste(columns, collapse="', '"), "'")
+  sqlmr_column_list = makeSqlMrColumnList(columns)
   query_as_table = getDataSql(tableName, columns, id, idAlias, whereClause)
   
   scaleMapSql = paste0(
@@ -155,7 +168,12 @@ getDataPrepSql <- function(tableName, tempTableName, columns, id, idAlias, where
 }
 
 # Phase: kmeans 
-getKmeansSql <- function(scaledTableName, centroidTableName, centers, threshold, maxiternum) {
+getKmeansSql <- function(scaledTableName, centroidTableName, centers, maxiternum, threshold='0.0395') {
+  
+  if (is.matrix(centers)) {
+    initCenters = paste0("MEANS(", paste0("'", paste0(apply(centers, 1, paste0, collapse='_'), collapse="', '"), "'"), ")")
+  }else
+    initCenters = paste0("NUMBERK('", centers, "')")
   
   kmeansSql = paste0(
     "SELECT * FROM kmeans(
@@ -163,13 +181,13 @@ getKmeansSql <- function(scaledTableName, centroidTableName, centers, threshold,
       PARTITION BY 1
       INPUTTABLE('", scaledTableName, "')
       OUTPUTTABLE('", centroidTableName, "')
-      NUMBERK('", centers, "')
-      THRESHOLD('0.001')
-      MAXITERNUM('100')
+   ", initCenters, "
+      THRESHOLD('", threshold, "')
+      MAXITERNUM('", maxiternum, "')
     )")
 }
 
-getKmeansPlotSql <- function(tableName, scaledTableName, centroidTableName, columns, id, idAlias, aggregates, whereClause) {
+getKmeansStatsSql <- function(tableName, scaledTableName, centroidTableName, columns, id, idAlias, aggregates, whereClause) {
   
   clustersWithValuesSql = paste0(
     "SELECT clusterid, means, ", paste(aggregates, collapse=", "), 
@@ -182,8 +200,7 @@ getKmeansPlotSql <- function(tableName, scaledTableName, centroidTableName, colu
 
 getDataSql <- function(tableName, columns, id, idAlias, whereClause) {
   
-  sql_column_list = paste(columns, collapse=", ")
-  paste0("SELECT ", id, " ", idAlias, ", ", sql_column_list, " FROM ", tableName, whereClause)
+  paste0("SELECT ", id, " ", idAlias, ", ", makeSqlColumnList(columns), " FROM ", tableName, whereClause)
 }
 
 
@@ -204,15 +221,7 @@ getClusteredDataSql <- function(tableName, scaledTableName, centroidTableName, c
 }
 
 
-getLocationAndScaleSql <- function(tableName, columns, whereClause) {
-  
-  stats = paste0(paste0("AVG(", columns, ") ", columns, "_avg", collapse = ", "), ", ",
-                 paste0("STDDEV(", columns, ") ", columns, "_stddev", collapse = ", "))
-  
-  paste0("SELECT ", stats, " FROM ", tableName, whereClause)
-}
-
-makeKmeansResult <- function(data, centers, tableName, columns, scaledTableName, centroidTableName, id, idAlias, whereClause) {
+makeKmeansResult <- function(data, centers, iter, tableName, columns, scaledTableName, centroidTableName, id, idAlias, whereClause) {
   
   # parse data (kmeansplot) and form kmeans object
   centroids = data.frame(factor(data$clusterid),
@@ -226,6 +235,7 @@ makeKmeansResult <- function(data, centers, tableName, columns, scaledTableName,
   z <- structure(list(centroids=centroids,
                       aggregates=aggregates,
                       centers=centers,
+                      iter=iter,
                       tableName=tableName,
                       columns=columns,
                       scaledTableName=scaledTableName,
@@ -234,7 +244,7 @@ makeKmeansResult <- function(data, centers, tableName, columns, scaledTableName,
                       idAlias=idAlias,
                       whereClause=whereClause
   ),
-  class = c("kmeans", "toaresult"))
+  class = c("toakmeans"))
   
   z
 }

@@ -7,13 +7,16 @@ test_that("computeKmeans throws errors", {
   expect_error(computeKmeans(NULL, tableName="fielding", test=TRUE),
                "Must provide tableInfo when test==TRUE")
   
-  expect_error(computeKmeans(NULL, tableName="batting", tableInfo=batting_info, id="id", include=c('lgid','playerid')),
+  expect_error(computeKmeans(NULL, tableName='XXXXX', centers="a"),
+               "Parameter centers must be numeric.")
+  
+  expect_error(computeKmeans(NULL, tableName="batting", centers=4, tableInfo=batting_info, id="id", include=c('lgid','playerid')),
                "Kmeans operates on one or more numeric variables.")
   
-  expect_error(computeKmeans(NULL, tableName="batting", tableInfo=batting_info, id="id", idAlias="g"),
+  expect_error(computeKmeans(NULL, tableName="batting", centers=4, tableInfo=batting_info, id="id", idAlias="g"),
                "Id alias 'g' can't be one of variable names")
   
-  expect_error(computeKmeans(NULL, tableName="batting", tableInfo=batting_info, id="id", include=c('g','h','r'),
+  expect_error(computeKmeans(NULL, tableName="batting", centers=4, tableInfo=batting_info, id="id", include=c('g','h','r'),
                              idAlias="g"), "Id alias 'g' can't be one of variable names")
   
 })
@@ -31,9 +34,10 @@ test_that("computeClusterSample throws errors", {
 
 test_that("computeKmeans SQL is correct", {
   
-  expect_equal_normalized(computeKmeans(NULL, "batting", batting_info, 
-                                        "playerid || '-' || stint || '-' || teamid || '-' || yearid", c('g','ab','r','h'),
-                                        aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(ab) ab", "AVG(r) avg_r", "AVG(h) avg_h"),
+  expect_equal_normalized(computeKmeans(NULL, "batting", centers=6, iterMax = 25,
+                                        tableInfo=batting_info, include=c('g','ab','r','h'),
+                                        id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                                        aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(ab) avg_ab", "AVG(r) avg_r", "AVG(h) avg_h"),
                                         scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', 
                                         schema='baseball', test=TRUE),
                           "DROP TABLE IF EXISTS baseball.kmeans_test_scaled;
@@ -57,10 +61,10 @@ test_that("computeKmeans SQL is correct", {
                              INPUTTABLE('baseball.kmeans_test_scaled')
                              OUTPUTTABLE('baseball.kmeans_test_centroids')
                              NUMBERK('6')
-                             THRESHOLD('0.001')
-                             MAXITERNUM('100')
+                             THRESHOLD('0.0395')
+                             MAXITERNUM('25')
                           );
-                          SELECT clusterid, means, COUNT(*) cnt, AVG(g) avg_g, AVG(ab) ab, AVG(r) avg_r, AVG(h) avg_h  
+                          SELECT clusterid, means, COUNT(*) cnt, AVG(g) avg_g, AVG(ab) avg_ab, AVG(r) avg_r, AVG(h) avg_h  
                             FROM (SELECT c.clusterid, c.means, d.* 
                                     FROM baseball.kmeans_test_centroids c JOIN 
                                          kmeansplot (
@@ -70,7 +74,55 @@ test_that("computeKmeans SQL is correct", {
                                          ) kmp ON (c.clusterid = kmp.clusterid) JOIN 
                                          (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, g, ab, r, h FROM batting ) d on (kmp.id = d.id)
                           ) clustered_data
-                          GROUP BY clusterid, means;")
+                          GROUP BY clusterid, means;",
+                          info="kmeans with 6 centers")
+  
+  
+  expect_equal_normalized(computeKmeans(NULL, "batting", centers=matrix(c(1,2,3,4,5,6,7,8), nrow=2, byrow=TRUE), 
+                                        iterMax = 25, tableInfo=batting_info, include=c('g','ab','r','h'),
+                                        id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                                        aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(ab) avg_ab", "AVG(r) avg_r", "AVG(h) avg_h"),
+                                        scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', 
+                                        schema='baseball', test=TRUE),
+                          "DROP TABLE IF EXISTS baseball.kmeans_test_scaled;
+                           CREATE FACT TABLE baseball.kmeans_test_scaled DISTRIBUTE BY HASH(id) AS 
+                           SELECT * FROM Scale(
+                             ON (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, g, ab, r, h FROM batting ) AS input PARTITION BY ANY
+                             ON (SELECT * FROM ScaleMap (
+                                   ON (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, g, ab, r, h FROM batting )
+                                   InputColumns ('g', 'ab', 'r', 'h')
+                                   -- MissValue ('OMIT')
+                                )) AS STATISTIC DIMENSION
+                             Method ('STD')
+                             Accumulate('id')
+                             GlobalScale ('false')
+                             InputColumns ('g', 'ab', 'r', 'h')
+                           );
+                           DROP TABLE IF EXISTS baseball.kmeans_test_centroids;
+                           SELECT * FROM kmeans(
+                             ON (SELECT 1)
+                             PARTITION BY 1
+                             INPUTTABLE('baseball.kmeans_test_scaled')
+                             OUTPUTTABLE('baseball.kmeans_test_centroids')
+                             MEANS('1_2_3_4', '5_6_7_8')
+                             THRESHOLD('0.0395')
+                             MAXITERNUM('25')
+                          );
+                          SELECT clusterid, means, COUNT(*) cnt, AVG(g) avg_g, AVG(ab) avg_ab, AVG(r) avg_r, AVG(h) avg_h  
+                            FROM (SELECT c.clusterid, c.means, d.* 
+                                    FROM baseball.kmeans_test_centroids c JOIN 
+                                         kmeansplot (
+                                           ON baseball.kmeans_test_scaled PARTITION BY ANY
+                                           ON baseball.kmeans_test_centroids DIMENSION
+                                           centroidsTable('baseball.kmeans_test_centroids')
+                                         ) kmp ON (c.clusterid = kmp.clusterid) JOIN 
+                                         (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, g, ab, r, h FROM batting ) d on (kmp.id = d.id)
+                          ) clustered_data
+                          GROUP BY clusterid, means;",
+                          info="kmeans with 2 centroids")
+  
+  
+  
 })
 
 

@@ -5,7 +5,8 @@
 \title{Counts nulls per column in the table.}
 \usage{
 getNullCounts(channel, tableName, tableInfo = NULL, include = NULL,
-  except = NULL, output = "long", where = NULL, test = FALSE)
+  except = NULL, schema = NULL, output = "long", where = NULL,
+  test = FALSE)
 }
 \arguments{
 \item{channel}{object as returned by \code{\link{odbcConnect}}.}
@@ -19,6 +20,10 @@ See \code{\link{sqlColumns}} or \code{\link{getTableSummary}}.}
 
 \item{except}{a vector of column names to exclude. Output never contains attributes from the list.}
 
+\item{schema}{NULL or character: optional schema to restric table search to signle schema. In general,
+table search performed across whole database. Including \code{schema} restricts it to this single 
+schema only.}
+
 \item{output}{Default output is a data frame in \code{'long'} format. Other options include 
 \code{'wide'} format and \code{'matrix'}.}
 
@@ -30,5 +35,17 @@ functions like \link{sqlQuery} and \link{sqlSave}).}
 }
 \description{
 Counts nulls per column in the table.
+}
+\examples{
+if (interactive()) {
+# initialize connection to Dallas database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+
+null_counts = getNullCounts(conn, "baseball.batting", 
+                            include=c('g','ab','r','h','so','bb','cs'), 
+                            where='yearid > 2000')
+
+}
 }
 

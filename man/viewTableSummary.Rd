@@ -10,7 +10,7 @@ viewTableSummary(tableInfo, types = NULL, include = NULL, except = NULL,
 \arguments{
 \item{tableInfo}{data frame with columns statistics to display.}
 
-\item{types}{vector with types of columns to include: numerical (\code{"numeric"}), character (\code{"character"} or 
+\item{types}{vector with types of columns to include: numerical (\code{"numeric"}), character (\code{"character"} or
 date/time (\code{"temporal"})}
 
 \item{include}{a vector of column names to include. Output never contains attributes other than in the list.}
@@ -29,7 +29,7 @@ When both parameters \code{basic} and \code{percentiles} are FALSE view displays
 }
 \examples{
 if(interactive()){
-# initialize connection to Lahman baseball database in Aster 
+# initialize connection to Lahman baseball database in Aster
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 

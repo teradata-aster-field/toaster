@@ -2,6 +2,9 @@ context("utils-failures")
 
 pitching_info = dget("_pitchingInfo.dat")
 
+pitching_info2 = duplicateSchema(pitching_info)
+
+
 test_that("exceptions are properly handled by utility functions", {
   
   expect_equal(isTable(NULL, NULL), logical(0))
@@ -39,13 +42,24 @@ test_that("getNullCounts throws errors", {
   expect_error(getNullCounts(NULL, NULL),
                "first argument is not an open RODBC channel")
   
+  expect_error(getNullCounts(NULL, 'pitching', pitching_info2),
+               "Table name is not uqique - must provide schema using either parameter 'schema' or 'tableName'.")
+  
+  expect_error(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info2, test=TRUE),
+               "Table name is not uqique - must provide schema using either parameter 'schema' or 'tableName'.")
+  
 })
 
 
 test_that("getNullCounts sql is correct", {
   
   expect_equal_normalized(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info, test=TRUE),
-                          "select count(1) - count(lgid) as lgid, count(1) - count(yearid) as yearid from pitching  ")
+                          "SELECT COUNT(1) - COUNT(lgid) AS lgid, COUNT(1) - COUNT(yearid) AS yearid FROM pitching  ")
   
+  expect_equal_normalized(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info, 
+                                        where='yearid > 2000', test=TRUE),
+                          "SELECT COUNT(1) - COUNT(lgid) AS lgid, COUNT(1) - COUNT(yearid) AS yearid FROM pitching 
+                             WHERE yearid > 2000 ")
+
   
 })

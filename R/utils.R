@@ -665,6 +665,9 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 #' 
 #' @param channel object as returned by \code{\link{odbcConnect}}.
 #' @param tableName name of the table in Aster.
+#' @param schema NULL or character: optional schema to restric table search to signle schema. In general,
+#'   table search performed across whole database. Including \code{schema} restricts it to this single 
+#'   schema only.
 #' @param tableInfo pre-built summary of columns to use (require when \code{test=TRUE}). 
 #'   See \code{\link{sqlColumns}} or \code{\link{getTableSummary}}.
 #' @param include a vector of column names to include. Output never contains attributes other than in the list.
@@ -676,8 +679,19 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @export
+#' @examples 
+#' if (interactive()) {
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'
+#' null_counts = getNullCounts(conn, "baseball.batting", 
+#'                             include=c('g','ab','r','h','so','bb','cs'), 
+#'                             where='yearid > 2000')
+#' 
+#' }
 getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, 
-                          output='long', where=NULL, test=FALSE){
+                          schema=NULL, output='long', where=NULL, test=FALSE){
   
   # match argument values
   output = match.arg(output, c('long', 'wide', 'matrix'))
@@ -695,8 +709,13 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
     
     ## get column names
     if (is.null(tableInfo)) {
-      tableInfo <- sqlColumns(channel, sqtable = tableName)
+      tableInfo <- sqlColumns(channel, sqtable = tableName, schema = schema)
     }
+    
+    if (length(unique(tableInfo$TABLE_SCHEM)) > 1) 
+      stop("Table name is not uqique - must provide schema using either parameter 'schema' or 'tableName'.")
+    
+    
     columnNames <- includeExcludeColumns(tableInfo, include, except)$COLUMN_NAME
     
     ## per column name, construct count nulls SQL
@@ -705,9 +724,9 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
     where_clause <- makeWhereClause(where)
 
     ## assemble full SQL query
-    nullCountsSQL <- paste('select',
+    nullCountsSQL <- paste('SELECT',
                           paste(columnNameNullSQL, collapse = ', '),
-                          'from', tableName, where_clause)
+                          'FROM', tableName, where_clause)
 
     ## execute SQL to collect counts
     if (test) 
@@ -730,6 +749,6 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
 
 ## construct count nulls string -- used in getNullCounts
 constructCountNullsSQL <- function(variableName){
-    sqlString <- paste0('count(1) - count(',variableName,') as ', variableName)
+    sqlString <- paste0('COUNT(1) - COUNT(',variableName,') AS ', variableName)
     return(sqlString)
 }

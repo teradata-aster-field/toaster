@@ -665,9 +665,10 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 ## download packages and their dependencies from CRAN to a directory
 ## and zip the dir
 getPkgDependenciesZip <- function(packageNames){
+    require(tools)
     allPackageDependencies <- sort(unique(unlist(package_dependencies(packageNames, available.packages(), recursive = TRUE))))
     ## remove recommended packages, since those are already installed
-    alreadyInstalled <- as.character(subset(as.data.frame(ap), Priority == 'recommended')$Package)
+    alreadyInstalled <- as.character(subset(as.data.frame(available.packages()), Priority == 'recommended')$Package)
     packagesToDownload <- setdiff(allPackageDependencies, alreadyInstalled)
 
     dirName <- paste0('R_packages_bundle_',format(Sys.time(), format = '%Y%m%d'))

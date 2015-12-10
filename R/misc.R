@@ -240,6 +240,15 @@ makeSqlMrColumnList <- function(columns) {
 }
 
 
+makeSqlAggregateColumnList <- function(columns, sqlAggFun, includeFunInAlias=TRUE) {
+  
+  if (includeFunInAlias)
+    paste0(sqlAggFun, "(", columns, ") ", paste(sqlAggFun, columns, sep='_'), collapse = ", ")
+  else 
+    paste0(sqlAggFun, "(", columns, ") ", columns, collapse = ", ")
+}
+
+
 makeWhereClause <- function (where) {
   
   if(is.null(where))

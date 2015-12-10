@@ -636,6 +636,26 @@ isTable <- function(channel, names) {
   vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
 }
 
+
+isValidConnection <- function(channel, test, error=TRUE) {
+  
+  if(test) 
+    return(TRUE)
+  
+  if(!inherits(channel, "RODBC"))
+    if(error)
+      stop("Connection is not valid RODBC object.")
+    else
+      return(FALSE)
+  
+  connInfo = odbcGetInfo(channel)
+  if(connInfo["DBMS_Name"] != 'nCluster')
+    if(error)
+      stop(paste0("Database driver is invalid: '", connInfo["DBMS_Name"], "', expected 'nCluster'."))
+    else
+      return(FALSE)
+}
+
 # TODO: make part of utility convinience set of functions
 grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
   

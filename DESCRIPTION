@@ -8,12 +8,12 @@ Authors@R: c(
     )
 Description: A consistent set of tools to perform in-database analytics
     on Teradata Aster Big Data Discovery Platform. toaster (a.k.a 'to Aster')
-    embraces simple 2-step approach: compute in Aster - visualize and analyze 
-    in R. Its `compute` functions use combination of SQL and 
-    SQL/MR functions running in Aster database - highly scalable parallel 
-    and distributed analytical platform. Then `create` functions visualize 
-    results with boxplots, scatterplots, histograms, heatmaps, word clouds, 
-    maps, or slope graphs. Advanced options such as faceting, coloring, 
+    embraces simple 2-step approach: compute in Aster - visualize and analyze
+    in R. Its `compute` functions use combination of SQL and
+    SQL/MR functions running in Aster database - highly scalable parallel
+    and distributed analytical platform. Then `create` functions visualize
+    results with boxplots, scatterplots, histograms, heatmaps, word clouds,
+    maps, or slope graphs. Advanced options such as faceting, coloring,
     labeling, and others are supported with most functions.
 SystemRequirements: Teradata Aster Database 5.10 (AD5.10) or higher,
     Teradata Aster Analytical Foundation 5.10 (AA5.10) or higher
@@ -62,4 +62,4 @@ Collate:
     'computeKmeans.R'
     'plotting.R'
     'plottingKmeans.R'
-RoxygenNote: 5.0.0
+RoxygenNote: 5.0.1

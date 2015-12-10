@@ -13,6 +13,7 @@ baseball-maps         Demo geo maps
 baseball-lm           Demo linear regression model
 dallas-text           Demo text tf and tf-idf functions
 baseball-parallel     Demo dual parallel summary and percentile functions: parallelizing computations in both Aster and R
+baseball-kmeans       Demo kmeans clustering including sample clustering and visualizations
 
 
 

@@ -4,15 +4,27 @@
 \alias{computeKmeans}
 \title{Perform k-means clustering on the table.}
 \usage{
-computeKmeans(channel, tableName, tableInfo, id, include = NULL,
-  except = NULL, centers = 6, aggregates = "COUNT(*) cnt", scale = TRUE,
-  idAlias = "id", where = NULL, scaledTableName = NULL,
-  centroidTableName = NULL, schema = NULL, test = FALSE)
+computeKmeans(channel, tableName, centers, threshold = 0.0395, iterMax = 10,
+  tableInfo, id, include = NULL, except = NULL,
+  aggregates = "COUNT(*) cnt", scale = TRUE,
+  idAlias = gsub("[^0-9a-zA-Z]+", "_", id), where = NULL,
+  scaledTableName = NULL, centroidTableName = NULL, schema = NULL,
+  test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}.}
 
 \item{tableName}{Aster table name.}
+
+\item{centers}{either the number of clusters, say \code{k}, or a matrix of initial (distinct) cluster centres. 
+If a number, a random set of (distinct) rows in x is chosen as the initial centres. If a matrix then number 
+of rows determines the number of clusters as each row determines initial center.}
+
+\item{threshold}{the convergence threshold. When the centroids move by less than this amount, 
+the algorithm has converged.}
+
+\item{iterMax}{the maximum number of iterations the algorithm will run before quitting if the convergence 
+threshold has not been met.}
 
 \item{tableInfo}{pre-built summary of data to use (require when \code{test=TRUE}). See \code{\link{getTableSummary}}.}
 
@@ -21,9 +33,6 @@ computeKmeans(channel, tableName, tableInfo, id, include = NULL,
 \item{include}{a vector of column names with variables (must be numeric). Model never contains variables other than in the list.}
 
 \item{except}{a vector of column names to exclude from variables. Model never contains variables from the list.}
-
-\item{centers}{either the number of clusters, say k, or a set of initial (distinct) cluster centres (not supported yet). 
-If a number, a random set of (distinct) rows in x is chosen as the initial centres.}
 
 \item{aggregates}{vector with SQL aggregates to compute for each cluster identified by this function. Aggregate may have 
 optional aliases like in \code{"AVG(era) avg_era"}. Subsequently, use in \code{createClusterPlot} as cluster properties.}
@@ -46,18 +55,52 @@ computation. The creteria are expressed in the form of SQL predicates (inside
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 functions: \link{sqlQuery} and \link{sqlSave}).}
 }
+\value{
+\code{computeKmeans} returns an object of class \code{"toakmeans"} (compatible with class \code{"kmeans"}).
+It is a list with at least the following components:
+\describe{
+  \item{\code{cluster}}{A vector of integers (from 0:K-1) indicating the cluster to which each point is allocated. 
+    \code{\link{computeKmeans}} leaves this component empty. Use function \code{\link{computeClusterSample}} to set this compoenent.}
+  \item{\code{centers}}{A matrix of cluster centres.}
+  \item{\code{totss}}{The total sum of squares.}
+  \item{\code{withinss}}{Vector of within-cluster sum of squares, one component per cluster.}
+  \item{\code{tot.withinss}}{Total within-cluster sum of squares, i.e. \code{sum(withinss)}.}
+  \item{\code{betweenss}}{The between-cluster sum of squares, i.e. \code{totss-tot.withinss}.}
+  \item{\code{size}}{The number of points in each cluster. These includes all points in the Aster table specified that 
+    satisfy optional \code{where} condition.}
+  \item{\code{iter}}{The number of (outer) iterations.}
+  \item{\code{ifault}}{integer: indicator of a possible algorithm problem (always 0).}
+  \item{\code{scale}}{logical: indicates if clustering ran on scalied data.}
+  \item{\code{aggregates}}{Vectors (dataframe) of aggregates computed on each cluster.}
+  \item{\code{tableName}}{Aster table name containing data for clustering.}
+  \item{\code{columns}}{Vector of column names with variables used for clustering.}
+  \item{\code{scaledTableName}}{Aster table name containing scaled data for clustering.}
+  \item{\code{centroidTableName}}{Aster table name containing cluster centroids.}
+  \item{\code{id}}{Column name or SQL expression containing unique table key.}
+  \item{\code{idAlias}}{SQL alias for table id.}
+  \item{\code{whereClause}}{SQL \code{WHERE} clause expression used (if any).}
+  \item{\code{time}}{An object of class \code{proc_time} with user, system, and total elapsed times
+    for the \code{computeKmeans} function call.} 
+}
+}
 \description{
-Perform k-means clustering on the table.
+K-means clustering algorithm runs in-database, computes cluster aggregates and other metrics, and
+returns kmeans object compatible with \code{\link{kmeans}}.
 }
 \examples{
-computeKmeans(NULL, "batting", battingInfo, 
-  id="playerid || '-' || stint || '-' || teamid || '-' || yearid", include=c('g','g_batting','ab','r','h','hr','rbi'),
-  scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', schema='baseball',
-  test=TRUE)
-  
-if(interactive()) {
-  computeKmeans(NULL, "batting", battingInfo, 
-  id="playerid || '-' || stint || '-' || teamid || '-' || yearid", include=c('g','g_batting','ab','r','h','hr','rbi'))
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+km = computeKmeans(conn, "batting", 
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids', schema='baseball',
+                   where="yearid > 2000", test=FALSE)
+kms = computeClusterSample(conn, km, 0.01, test=FALSE)
+createClusterPairsPlot(kms)
 }
 }
 

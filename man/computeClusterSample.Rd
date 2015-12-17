@@ -10,14 +10,14 @@ computeClusterSample(channel, km, sampleFraction, sampleSize, scaled = FALSE,
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}.}
 
-\item{km}{result of k-means clustering obtained with \code{computeKmeans}.}
+\item{km}{an object of class \code{"toakmeans"} obtained with \code{computeKmeans}.}
 
 \item{sampleFraction}{one or more sample fractions to use in the sampling of data. (multipe 
 sampling fractions are not yet supported.)}
 
 \item{sampleSize}{total sample size (applies only when \code{sampleFraction} is missing).}
 
-\item{scaled}{logical indicates if function uses original (default) or scaled variables.}
+\item{scaled}{logical: indicates if original (default) or scaled data returned.}
 
 \item{includeId}{logical indicates if sample should include the key uniquely identifying
 each data row.}
@@ -25,11 +25,29 @@ each data row.}
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 functions: \link{sqlQuery} and \link{sqlSave}).}
 }
+\value{
+\code{computeClusterSample} returns an object of class \code{"toakmeans"} (compatible with class \code{"kmeans"}).
+}
 \description{
 Random sample of clustered data
 }
 \examples{
-
-computeClusterSample(NULL, km, 0.01, test=TRUE)
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+km = computeKmeans(conn, "batting", 
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids', schema='baseball',
+                   where="yearid > 2000", test=FALSE)
+kms = computeClusterSample(conn, km, 0.01, test=FALSE)
+createClusterPairsPlot(kms)
+}
+}
+\seealso{
+\code{\link{computeKmeans}}
 }
 

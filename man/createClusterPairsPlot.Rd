@@ -2,23 +2,21 @@
 % Please edit documentation in R/plottingKmeans.R
 \name{createClusterPairsPlot}
 \alias{createClusterPairsPlot}
-\title{Create cluster variable plot}
+\title{Create cluster variable plot.}
 \usage{
-createClusterPairsPlot(kms, clusterId = "clusterid",
-  title = "Cluster Variable Pairs", baseSize = 12, baseFamily = "serif",
-  ticks = TRUE, defaultTheme = ggthemes::theme_tufte(base_size = baseSize,
-  base_family = baseFamily, ticks = ticks), themeExtra = theme(), ...)
+createClusterPairsPlot(km, baseSize = 12, baseFamily = "serif",
+  title = "Cluster Variable Pairs", ticks = TRUE,
+  defaultTheme = ggthemes::theme_tufte(base_size = baseSize, base_family =
+  baseFamily, ticks = ticks), themeExtra = theme(), ...)
 }
 \arguments{
-\item{kms}{sample of points assigned to clusters}
-
-\item{clusterId}{name of a column with cluster id.}
-
-\item{title}{plot title.}
+\item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 
 \item{baseFamily}{\code{\link{theme}} base font family.}
+
+\item{title}{plot title.}
 
 \item{ticks}{\code{logical} Show axis ticks?}
 
@@ -26,12 +24,27 @@ createClusterPairsPlot(kms, clusterId = "clusterid",
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 
-\item{...}{other parameters being suplied to geom's \code{aes}}
+\item{...}{other parameters being suplied to geom's \code{aes}.}
 }
 \value{
 ggplot object
 }
 \description{
-Create cluster variable plot
+Create cluster variable plot.
+}
+\examples{
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+km = computeKmeans(conn, "batting", 
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids', schema='baseball',
+                   where="yearid > 2000", test=FALSE)
+kms = computeClusterSample(conn, km, 0.01, test=FALSE)
+createClusterPairsPlot(kms, "Batters Clustered by G, R, H", ticks=FALSE)
+}
 }
 

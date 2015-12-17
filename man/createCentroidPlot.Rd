@@ -2,22 +2,23 @@
 % Please edit documentation in R/plottingKmeans.R
 \name{createCentroidPlot}
 \alias{createCentroidPlot}
-\title{Create centroid plot}
+\title{Create plot of cluster centroids.}
 \usage{
-createCentroidPlot(centroids, format = c("line"), clusterId = "clusterid",
+createCentroidPlot(km, format = "line", groupByCluster = TRUE,
   baseSize = 12, baseFamily = "serif", title = paste("Cluster Centroids",
-  format, "Plot"), xlab = ifelse(format == "line", "cluster", "variable"),
-  ylab = ifelse(format == "heatmap", "cluster", "scaled value"),
-  legendPosition = ifelse(format == "bar", "none", "right"),
-  defaultTheme = ggthemes::theme_tufte(base_size = baseSize, base_family =
-  baseFamily, ticks = FALSE), themeExtra = NULL)
+  format, "Plot"), xlab, ylab = ifelse(format == "heatmap", "cluster",
+  "scaled value"), legendPosition = ifelse(format == "bar", "none", "right"),
+  coordFlip = FALSE, defaultTheme = ggthemes::theme_tufte(base_size =
+  baseSize, base_family = baseFamily, ticks = FALSE), themeExtra = NULL)
 }
 \arguments{
-\item{centroids}{Kmeans centroids returned by \code{computeKmeans}.}
+\item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
 
-\item{format}{type of plot to use: line, bar, bar_dodge, bar_facet (same as bar) or heatmap.}
+\item{format}{type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"}, 
+\code{"bar_facet"} (same as \code{"bar"}) or \code{"heatmap"}.}
 
-\item{clusterId}{name of a column with cluster id.}
+\item{groupByCluster}{logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
+has no effect when \code{format="heatmap"}.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 
@@ -32,6 +33,9 @@ createCentroidPlot(centroids, format = c("line"), clusterId = "clusterid",
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 vector). "none" is no legend.}
 
+\item{coordFlip}{logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
+\link{coord_flip}).}
+
 \item{defaultTheme}{plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
@@ -40,8 +44,25 @@ vector). "none" is no legend.}
 ggplot object
 }
 \description{
-Create plot of cluster centroids produced by clustering function like k-means.
-Plot types available are line plot, bar plot, or heatmap. Use parameter \code{format}
-to specify which plot to use.
+Visualize centroids produced by clustering function like k-means.
+Plots available are line plot, bar plot, or heatmap. Parameter \code{format}
+specifies which one to create.
+}
+\examples{
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+km = computeKmeans(conn, "batting", 
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids', schema='baseball',
+                   where="yearid > 2000", test=FALSE)
+createCentroidPlot(km$centroids)
+createCentroidPlot(km$centroids, format="bar_dodge")
+createCentroidPlot(km$centroids, format="bar")
+}
 }
 

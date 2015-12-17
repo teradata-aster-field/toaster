@@ -2,18 +2,16 @@
 % Please edit documentation in R/plottingKmeans.R
 \name{createClusterPlot}
 \alias{createClusterPlot}
-\title{Create clusters' properties plot}
+\title{Create clusters' properties plot.}
 \usage{
-createClusterPlot(aggregates, clusterId = "clusterid", baseSize = 12,
-  baseFamily = "serif", title = paste("Cluster Properties Plot"),
-  xlab = "cluster", ylab = "value", border = TRUE,
+createClusterPlot(km, baseSize = 12, baseFamily = "serif",
+  title = paste("Cluster Properties Plot"), xlab = "cluster",
+  ylab = "value", border = TRUE, colorByCluster = TRUE,
   defaultTheme = ggthemes::theme_tufte(base_size = baseSize, base_family =
   baseFamily, ticks = FALSE), themeExtra = NULL)
 }
 \arguments{
-\item{aggregates}{lis of cluster properties}
-
-\item{clusterId}{name of a column with cluster id.}
+\item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 
@@ -27,6 +25,8 @@ createClusterPlot(aggregates, clusterId = "clusterid", baseSize = 12,
 
 \item{border}{boolean indicates to use border around plotting area. In case of facets border is around each facet.}
 
+\item{colorByCluster}{logical: color corresponds to clusters or properties.}
+
 \item{defaultTheme}{plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
@@ -35,6 +35,24 @@ createClusterPlot(aggregates, clusterId = "clusterid", baseSize = 12,
 ggplot object
 }
 \description{
-Create clusters' properties plot
+Create clusters' properties plot.
+}
+\examples{
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+km = computeKmeans(conn, "batting", 
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids', schema='baseball',
+                   where="yearid > 2000", test=FALSE)
+createClusterPlot(km$aggregates)
+}
+}
+\seealso{
+\code{\link{computeKmeans}}
 }
 

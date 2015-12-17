@@ -59,43 +59,39 @@ if(!all(isTable(conn, c('batting')))) {
 }
 
 # run kmeans in Aster
-km = computeKmeans(conn, "batting", centers=3, iterMax = 25,  tableInfo = batting_info, 
-                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h","AVG(ab) avg_ab"),
-                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", include=c('g','r','h','ab'),
-                   scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', schema='public',
+km.demo = computeKmeans(conn, "batting_enh", centers=3, iterMax = 25,
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h","AVG(ab) avg_ab", 
+                                  "AVG(ba) ba", "AVG(slg) slg", "AVG(ta) ta"),
+                   id="playerid || '-' || teamid || '-' || yearid", include=c('g','r','h','ab'),
+                   # scaledTableName='kmeans_demo_scaled', centroidTableName='kmeans_demo_centroids', schema='public',
                    where="yearid > 2000", test=FALSE)
 
-pause()
+createCentroidPlot(km.demo, format="line")
+createCentroidPlot(km.demo, format="line", groupByCluster=FALSE)
 
-createCentroidPlot(km, format="line", coordFlip = FALSE)
-pause()
+createCentroidPlot(km.demo, format="bar")
+createCentroidPlot(km.demo, format="bar", groupByCluster=FALSE)
 
-createCentroidPlot(km, format="line", groupByCluster=FALSE, coordFlip = FALSE)
-pause()
+createCentroidPlot(km.demo, format="bar_dodge")
+createCentroidPlot(km.demo, format="bar_dodge", groupByCluster=FALSE)
 
-createCentroidPlot(km, format="bar", coordFlip = FALSE)
-pause()
+createCentroidPlot(km.demo, format="heatmap")
+createCentroidPlot(km.demo, format="heatmap", coordFlip = TRUE)
 
-createCentroidPlot(km, format="bar", groupByCluster=FALSE, coordFlip = FALSE)
-pause()
-
-createCentroidPlot(km, format="bar_dodge", coordFlip = FALSE)
-pause()
-
-createCentroidPlot(km, format="bar_dodge", groupByCluster=FALSE, coordFlip = FALSE)
-pause()
-
-createCentroidPlot(km, format="heatmap", coordFlip = FALSE)
-pause()
-
-createClusterPlot(km)
-pause()
-
-createClusterPlot(km, colorByCluster = FALSE)
-pause()
-
-kms = computeClusterSample(conn, km, '0.5', test=FALSE)
+createClusterPlot(km.demo)
+createClusterPlot(km.demo, colorByCluster = FALSE)
 
 pause()
 
-createClusterPairsPlot(kms)
+# sample clustered data
+km.demo = computeClusterSample(conn, km.demo, '0.5', test=FALSE)
+
+createClusterPairsPlot(km.demo)
+
+pause()
+
+
+# silhouette analysis
+km.demo = computeSilhouette(conn, km.demo)
+
+createSilhouetteProfile(km.demo)

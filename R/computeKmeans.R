@@ -587,25 +587,39 @@ getKmeansplotDataSql <- function(scaled_table_name, centroid_table_name, scaled,
 }
 
 
-
 #' Compute Silhouette (k-means clustering).
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}.
 #' @param km an object of class \code{"toakmeans"} obtained with \code{computeKmeans}.
 #' @param scaled logical: indicates if computation performed on original (default) or scaled values.
+#' @param silhouetteTableName name of the Aster table to hold silhouette scores. The table persists silhoutte scores 
+#'   for all clustered elements. Set parameter \code{drop=F} to keep the table.
+#' @param drop logical: indicates if the table \code{silhouetteTableName}
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).
-#' @return \code{computeClusterSample} returns an object of class \code{"toakmeans"} (compatible with class \code{"kmeans"}).
+#' @return \code{computeSilhouette} returns an object of class \code{"toakmeans"} (compatible with class \code{"kmeans"}).
+#'   It adds a named list \code{sil} the \code{km} containing couple of elements: average value of silhouette \code{value} and silhouette profile  
+#'   (distribution of silhouette values on each cluster) \code{profile}
 #' @seealso \code{\link{computeKmeans}}
 #'
 #' @export
-computeSilhouette <- function(channel, km, scaled=FALSE, test=FALSE) {
+computeSilhouette <- function(channel, km, scaled=TRUE, silhouetteTableName=NULL, drop=TRUE, test=FALSE) {
   
   isValidConnection(channel, test)
   
+  if(test && is.null(silhouetteTableName)){
+    stop("Silhouette table name is required when test=TRUE.")
+  }
+    
   if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
     stop("Kmeans object must be specified.")
   }
+  
+  if (nrow(km$centers) == 1)
+    stop("Silhouette values are trivial in case of single cluster model.")
+  
+  if (is.null(silhouetteTableName))
+    silhouetteTableName = makeTempTableName('silhouette', 30)
   
   table_name = km$tableName
   columns = km$columns
@@ -615,13 +629,95 @@ computeSilhouette <- function(channel, km, scaled=FALSE, test=FALSE) {
   idAlias = km$idAlias
   where_clause = km$whereClause
   
+  emptyLine = "--"
+  
+  if(test)
+    sqlText = ""
+  
+  # make silhouette data
+  sqlComment = "-- Create Analytical Table with Silhouette Data"
+  sqlDrop = paste("DROP TABLE IF EXISTS", silhouetteTableName)
+  sql = makeSilhouetteDataSql(table_name, silhouetteTableName, columns, id, idAlias, where_clause, scaled_table_name, centroid_table_name, scaled)
+  if(test) {
+    sqlText = paste(sqlComment, sqlDrop, sep='\n')
+    sqlText = paste(sqlText, sql, sep=';\n')
+  }else {
+    toaSqlQuery(channel, sqlDrop)
+    toaSqlQuery(channel, sql)
+  }
+  
+  # Compute overall silhouette value
+  sqlComment = "-- Compute overall silhouette value"
+  sql = paste0("SELECT AVG((b-a)/greatest(a,b)) silhouette_value FROM ", silhouetteTableName)
+  if(test) {
+    sqlText = paste(sqlText, emptyLine, sqlComment, sql, sep=';\n')
+  }else {
+    data = toaSqlQuery(channel, sql)
+    sil_value = data[[1,'silhouette_value']]
+  }
+  
+  # Compute silhouette profiles (histograms by cluster)
+  sqlComment = "-- Compute silhouette cluster profiles"
+  sql = paste0(
+    "SELECT * FROM Hist_Reduce(
+       ON Hist_Map(
+         ON (SELECT clusterid::varchar clusterid, (b-a)/greatest(a,b) silhouette_value FROM ", silhouetteTableName, "
+         )
+         STARTVALUE('-1')
+         BINSIZE('0.05')
+         ENDVALUE('1')
+         VALUE_COLUMN('silhouette_value')
+         GROUP_COLUMNS('clusterid')
+       ) PARTITION BY clusterid
+     )"
+  )
+  if(test){
+    sqlText = paste(sqlText, emptyLine, sqlComment, sql, sep=';\n')
+  }else {
+    data = toaSqlQuery(channel, sql)
+    sil_profile = toaSqlQuery(channel, sql, stringsAsFactors=TRUE)
+  }
+  
+  # Drop Analytical Table with Silhouette Data 
+  if(drop) {
+    sqlComment = "-- Drop Analytical Table with Silhouette Data"
+    sql = paste0("DROP TABLE IF EXISTS ", silhouetteTableName)
+    if(test){
+      sqlText = paste(sqlText, emptyLine, sqlComment, sql, sep=';\n')
+    }else {
+      toaSqlQuery(channel, sql)
+    }
+  }
+  
+  # get result back
+  if(test){
+    sqlText = paste0(sqlText, ';')
+    return(sqlText)
+  }
+  
+  sil = list(value=sil_value, profile=sil_profile)
+  if(!drop) {
+    sil = c(sil, tableName=silhouetteTableName)
+  }
+  km$sil = sil
+  
+  return(km)
+}
+
+
+makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAlias, 
+                                  where_clause, scaled_table_name, centroid_table_name, scaled) {
+  
   sqlmr_column_list = makeSqlMrColumnList(columns)
   query_as_table = getDataSql(table_name, columns, id, idAlias, where_clause)
   
   sql = paste0(
-    "WITH kmeansplotresult AS (
-       SELECT clusterid, ", idAlias, ", variable, value_double 
-         FROM unpivot(
+    "CREATE ANALYTIC TABLE ", temp_table_name, "
+     DISTRIBUTE BY HASH(clusterid)
+     AS
+     WITH kmeansplotresult AS (
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value 
+           FROM unpivot(
                   ON (", getKmeansplotDataSql(scaled_table_name, centroid_table_name, scaled, query_as_table, idAlias), "
                   )
                   COLSTOUNPIVOT(", sqlmr_column_list, ")
@@ -631,7 +727,7 @@ computeSilhouette <- function(channel, km, scaled=FALSE, test=FALSE) {
                   KEEPINPUTCOLUMNTYPES('true')
                 ) 
      )
-     SELECT AVG((b-a)/greatest(a,b)) silhouette_value
+     SELECT target_clusterid clusterid, target_", idAlias, " ", idAlias, ", a, b 
        FROM (
          SELECT target_clusterid, target_", idAlias, ",
                 MAX(CASE WHEN target_clusterid = ref_clusterid THEN dissimilarity ELSE 0 END) a,
@@ -643,10 +739,10 @@ computeSilhouette <- function(channel, km, scaled=FALSE, test=FALSE) {
                   ON kmeansplotresult AS ref DIMENSION
                   TARGETIDCOLUMNS('clusterid','", idAlias, "')
                   TARGETFEATURECOLUMN('variable')
-                  TARGETVALUECOLUMN('value_double')
+                  TARGETVALUECOLUMN('value')
                   REFIDCOLUMNS('clusterid','", idAlias, "')
                   REFFEATURECOLUMN('variable')
-                  REFVALUECOLUMN('value_double')
+                  REFVALUECOLUMN('value')
                   MEASURE('Euclidean')
                 ) 
           WHERE target_", idAlias," != ref_", idAlias, " 
@@ -655,14 +751,4 @@ computeSilhouette <- function(channel, km, scaled=FALSE, test=FALSE) {
        GROUP BY 1,2
      ) sil"
   )
-  
-  if(test) {
-    return(sql)
-  }else {
-    data = toaSqlQuery(channel, sql)
-    
-    km$silhouetteValue = data[[1,'silhouette_value']]
-    return(km)
-  }
-    
 }

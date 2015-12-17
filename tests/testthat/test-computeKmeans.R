@@ -84,16 +84,24 @@ test_that("computeSilhouette throws errors", {
                "Connection is not valid RODBC object.")
   
   expect_error(computeSilhouette(NULL, test=TRUE),
+               "Silhouette table name is required when test=TRUE.")
+  
+  expect_error(computeSilhouette(NULL, silhouetteTableName='name', test=TRUE),
                "Kmeans object must be specified.")
   
-  expect_error(computeSilhouette(NULL, NULL, test=TRUE),
+  expect_error(computeSilhouette(NULL, NULL, silhouetteTableName='name', test=TRUE),
                "Kmeans object must be specified.")
   
-  expect_error(computeSilhouette(NULL, character(1), test=TRUE),
+  expect_error(computeSilhouette(NULL, character(1), silhouetteTableName='name', test=TRUE),
                "Kmeans object must be specified.")
   
-  expect_error(computeSilhouette(NULL, data.frame(1:5), test=TRUE),
+  expect_error(computeSilhouette(NULL, data.frame(1:5), silhouetteTableName='name', test=TRUE),
                "Kmeans object must be specified.")
+  
+  expect_error(computeSilhouette(NULL, km=structure(list(centers=matrix(c(1), nrow=1, byrow = TRUE)),
+                                                    class = c("toakmeans", "kmeans")), 
+                                 silhouetteTableName = 'name', test=TRUE),
+               "Silhouette values are trivial in case of single cluster model.")
 })
 
 
@@ -712,4 +720,215 @@ test_that("computeClusterSample SQL is correct", {
              ApproximateSampleSize('1000')
            )",
           info="Sampling size scaled data with id.")
+})
+
+
+test_that("computeSilhouette SQL is correct", {
+  
+  kmeans_obj$scaledTableName="public.kmeans_test_scaled"
+  kmeans_obj$centroidTableName="public.kmeans_test_centroids"
+  
+  expect_equal_normalized(computeSilhouette(NULL, kmeans_obj, scaled=TRUE, silhouetteTableName='public.kmeans_test_sil', test=TRUE),
+    "-- Create Analytical Table with Silhouette Data
+DROP TABLE IF EXISTS public.kmeans_test_sil;
+CREATE ANALYTIC TABLE public.kmeans_test_sil
+     DISTRIBUTE BY HASH(clusterid)
+     AS
+     WITH kmeansplotresult AS (
+         SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+           FROM unpivot(
+                  ON (SELECT  d.* 
+                   FROM kmeansplot(
+                     ON public.kmeans_test_scaled PARTITION BY ANY
+                     ON public.kmeans_test_centroids DIMENSION
+                     centroidsTable('public.kmeans_test_centroids')
+                   )  d 
+                  WHERE clusterid != -1
+                  )
+                  COLSTOUNPIVOT('g', 'h', 'r')
+                  COLSTOACCUMULATE('id','clusterid')
+                  ATTRIBUTECOLUMNNAME('variable')
+                  VALUECOLUMNNAME('value')
+                  KEEPINPUTCOLUMNTYPES('true')
+                ) 
+     )
+     SELECT target_clusterid clusterid, target_id id, a, b 
+       FROM (
+         SELECT target_clusterid, target_id,
+                MAX(CASE WHEN target_clusterid = ref_clusterid THEN dissimilarity ELSE 0 END) a,
+                MIN(CASE WHEN target_clusterid = ref_clusterid THEN 'Infinity' ELSE dissimilarity END) b 
+           FROM
+             (SELECT target_clusterid, target_id, ref_clusterid, avg(distance) dissimilarity 
+                FROM VectorDistance(
+                  ON kmeansplotresult AS target PARTITION BY id
+                  ON kmeansplotresult AS ref DIMENSION
+                  TARGETIDCOLUMNS('clusterid','id')
+                  TARGETFEATURECOLUMN('variable')
+                  TARGETVALUECOLUMN('value')
+                  REFIDCOLUMNS('clusterid','id')
+                  REFFEATURECOLUMN('variable')
+                  REFVALUECOLUMN('value')
+                  MEASURE('Euclidean')
+                ) 
+          WHERE target_id != ref_id 
+          GROUP BY 1,2,3
+         ) agg  
+       GROUP BY 1,2
+     ) sil;
+--;
+-- Compute overall silhouette value;
+SELECT AVG((b-a)/greatest(a,b)) silhouette_value FROM public.kmeans_test_sil;
+--;
+-- Compute silhouette cluster profiles;
+SELECT * FROM Hist_Reduce(
+       ON Hist_Map(
+         ON (SELECT clusterid::varchar clusterid, (b-a)/greatest(a,b) silhouette_value FROM public.kmeans_test_sil
+         )
+         STARTVALUE('-1')
+         BINSIZE('0.05')
+         ENDVALUE('1')
+         VALUE_COLUMN('silhouette_value')
+         GROUP_COLUMNS('clusterid')
+       ) PARTITION BY clusterid
+     );
+--;
+-- Drop Analytical Table with Silhouette Data;
+DROP TABLE IF EXISTS public.kmeans_test_sil;",
+          "compute Silhouette on scaled data")
+  
+  
+  expect_equal_normalized(computeSilhouette(NULL, kmeans_obj, scaled=TRUE, silhouetteTableName='public.kmeans_test_sil', drop=FALSE, 
+                                            test=TRUE),
+    "-- Create Analytical Table with Silhouette Data
+DROP TABLE IF EXISTS public.kmeans_test_sil;
+CREATE ANALYTIC TABLE public.kmeans_test_sil
+     DISTRIBUTE BY HASH(clusterid)
+     AS
+     WITH kmeansplotresult AS (
+         SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+           FROM unpivot(
+                  ON (SELECT  d.* 
+                   FROM kmeansplot(
+                     ON public.kmeans_test_scaled PARTITION BY ANY
+                     ON public.kmeans_test_centroids DIMENSION
+                     centroidsTable('public.kmeans_test_centroids')
+                   )  d 
+                  WHERE clusterid != -1
+                  )
+                  COLSTOUNPIVOT('g', 'h', 'r')
+                  COLSTOACCUMULATE('id','clusterid')
+                  ATTRIBUTECOLUMNNAME('variable')
+                  VALUECOLUMNNAME('value')
+                  KEEPINPUTCOLUMNTYPES('true')
+                ) 
+     )
+     SELECT target_clusterid clusterid, target_id id, a, b 
+       FROM (
+         SELECT target_clusterid, target_id,
+                MAX(CASE WHEN target_clusterid = ref_clusterid THEN dissimilarity ELSE 0 END) a,
+                MIN(CASE WHEN target_clusterid = ref_clusterid THEN 'Infinity' ELSE dissimilarity END) b 
+           FROM
+             (SELECT target_clusterid, target_id, ref_clusterid, avg(distance) dissimilarity 
+                FROM VectorDistance(
+                  ON kmeansplotresult AS target PARTITION BY id
+                  ON kmeansplotresult AS ref DIMENSION
+                  TARGETIDCOLUMNS('clusterid','id')
+                  TARGETFEATURECOLUMN('variable')
+                  TARGETVALUECOLUMN('value')
+                  REFIDCOLUMNS('clusterid','id')
+                  REFFEATURECOLUMN('variable')
+                  REFVALUECOLUMN('value')
+                  MEASURE('Euclidean')
+                ) 
+          WHERE target_id != ref_id 
+          GROUP BY 1,2,3
+         ) agg  
+       GROUP BY 1,2
+     ) sil;
+--;
+-- Compute overall silhouette value;
+SELECT AVG((b-a)/greatest(a,b)) silhouette_value FROM public.kmeans_test_sil;
+--;
+-- Compute silhouette cluster profiles;
+SELECT * FROM Hist_Reduce(
+       ON Hist_Map(
+         ON (SELECT clusterid::varchar clusterid, (b-a)/greatest(a,b) silhouette_value FROM public.kmeans_test_sil
+         )
+         STARTVALUE('-1')
+         BINSIZE('0.05')
+         ENDVALUE('1')
+         VALUE_COLUMN('silhouette_value')
+         GROUP_COLUMNS('clusterid')
+       ) PARTITION BY clusterid
+     );",
+          "compute Silhouette on scaled data without drop of silhouette table")
+  
+  
+  expect_equal_normalized(computeSilhouette(NULL, kmeans_obj, scaled=FALSE, silhouetteTableName='public.kmeans_test_sil', test=TRUE),
+    "-- Create Analytical Table with Silhouette Data
+DROP TABLE IF EXISTS public.kmeans_test_sil;
+CREATE ANALYTIC TABLE public.kmeans_test_sil
+     DISTRIBUTE BY HASH(clusterid)
+     AS
+     WITH kmeansplotresult AS (
+         SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+           FROM unpivot(
+                  ON (SELECT  clusterid, d.* 
+                   FROM kmeansplot(
+                     ON public.kmeans_test_scaled PARTITION BY ANY
+                     ON public.kmeans_test_centroids DIMENSION
+                     centroidsTable('public.kmeans_test_centroids')
+                   )  kmp JOIN (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, g, h, r FROM batting WHERE yearid > 2010  ) d ON (kmp.id = d.id)
+                  WHERE clusterid != -1
+                  )
+                  COLSTOUNPIVOT('g', 'h', 'r')
+                  COLSTOACCUMULATE('id','clusterid')
+                  ATTRIBUTECOLUMNNAME('variable')
+                  VALUECOLUMNNAME('value')
+                  KEEPINPUTCOLUMNTYPES('true')
+                ) 
+     )
+     SELECT target_clusterid clusterid, target_id id, a, b 
+       FROM (
+         SELECT target_clusterid, target_id,
+                MAX(CASE WHEN target_clusterid = ref_clusterid THEN dissimilarity ELSE 0 END) a,
+                MIN(CASE WHEN target_clusterid = ref_clusterid THEN 'Infinity' ELSE dissimilarity END) b 
+           FROM
+             (SELECT target_clusterid, target_id, ref_clusterid, avg(distance) dissimilarity 
+                FROM VectorDistance(
+                  ON kmeansplotresult AS target PARTITION BY id
+                  ON kmeansplotresult AS ref DIMENSION
+                  TARGETIDCOLUMNS('clusterid','id')
+                  TARGETFEATURECOLUMN('variable')
+                  TARGETVALUECOLUMN('value')
+                  REFIDCOLUMNS('clusterid','id')
+                  REFFEATURECOLUMN('variable')
+                  REFVALUECOLUMN('value')
+                  MEASURE('Euclidean')
+                ) 
+          WHERE target_id != ref_id 
+          GROUP BY 1,2,3
+         ) agg  
+       GROUP BY 1,2
+     ) sil;
+--;
+-- Compute overall silhouette value;
+SELECT AVG((b-a)/greatest(a,b)) silhouette_value FROM public.kmeans_test_sil;
+--;
+-- Compute silhouette cluster profiles;
+SELECT * FROM Hist_Reduce(
+       ON Hist_Map(
+         ON (SELECT clusterid::varchar clusterid, (b-a)/greatest(a,b) silhouette_value FROM public.kmeans_test_sil
+         )
+         STARTVALUE('-1')
+         BINSIZE('0.05')
+         ENDVALUE('1')
+         VALUE_COLUMN('silhouette_value')
+         GROUP_COLUMNS('clusterid')
+       ) PARTITION BY clusterid
+     );
+--;
+-- Drop Analytical Table with Silhouette Data;
+DROP TABLE IF EXISTS public.kmeans_test_sil;",
+          "compute Silhouette on non-scaled data")
 })

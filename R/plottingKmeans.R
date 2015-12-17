@@ -237,11 +237,18 @@ agg_labeller <- function(value) {
 #' kms = computeClusterSample(conn, km, 0.01, test=FALSE)
 #' createClusterPairsPlot(kms, "Batters Clustered by G, R, H", ticks=FALSE)
 #' }
-createClusterPairsPlot <- function(km, clusterId="clusterid", 
+createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
                                    title="Cluster Variable Pairs", 
-                                   baseSize = 12, baseFamily = "serif", ticks=TRUE,
+                                   ticks=TRUE,
                                    defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
                                    themeExtra = theme(), ...) {
+  
+  if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
+    stop("Kmeans object must be specified.")
+  }
+  
+  if(is.null(km$data))
+    stop("Kmeans object is missing sample data.")
   
   kms = km$data
   
@@ -251,6 +258,54 @@ createClusterPairsPlot <- function(km, clusterId="clusterid",
   p = GGally::ggpairs(kms, color='clusterid', title=title, ...) +
     defaultTheme +
     themeExtra
+  
+  return(p)
+}
+
+
+#' Create cluster silhouette profile plot.
+#' 
+#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
+#' @param baseSize \code{\link{theme}} base font size.
+#' @param baseFamily \code{\link{theme}} base font family.
+#' @param title plot title.
+#' @param ticks \code{logical} Show axis ticks?
+#' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
+#'   \link{coord_flip}).
+#' @param defaultTheme plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.
+#' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
+#'  
+#' @return ggplot object
+#' @export
+createSilhouetteProfile <- function(km, baseSize = 12, baseFamily = "serif",
+                                   title="Cluster Silhouette Profile (Histogram)", xlab="Silhouette Value", ylab="Count",
+                                   ticks=FALSE, coordFlip = TRUE,
+                                   defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
+                                   themeExtra = NULL) {
+  
+  if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
+    stop("Kmeans object must be specified.")
+  }
+  
+  if(is.null(km$sil) || is.null(km$sil$profile))
+    stop("Kmeans object is missing silhouette data.")
+  
+  silprofile = km$sil$profile
+  
+  if (!is.factor(silprofile$clusterid)) 
+    silprofile$clusterid = factor(silprofile$clusterid)
+  
+  silprofile = silprofile[silprofile$bin_percent != 0, ]
+  p = ggplot(silprofile) +
+    geom_bar(aes_string("bin_start","bin_percent",group="clusterid",fill="clusterid"), stat="identity", position="dodge") +
+    facet_wrap(~clusterid, ncol=1) +
+    labs(title=title, x=xlab, y=ylab) +
+    defaultTheme +
+    themeExtra +
+    theme(legend.position="none")
+  
+  if (coordFlip)
+    p = p + coord_flip()
   
   return(p)
 }

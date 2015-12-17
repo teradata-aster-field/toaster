@@ -93,14 +93,15 @@ if(interactive()){
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
                          
-km = computeKmeans(conn, "batting", 
+km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
-                   centroidTableName='kmeans_test_centroids', schema='baseball',
-                   where="yearid > 2000", test=FALSE)
-kms = computeClusterSample(conn, km, 0.01, test=FALSE)
-createClusterPairsPlot(kms)
+                   centroidTableName='kmeans_test_centroids',
+                   where="yearid > 2000")
+km
+createCentroidPlot(km)
+createClusterPlot(km)
 }
 }
 

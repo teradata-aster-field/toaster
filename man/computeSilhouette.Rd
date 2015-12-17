@@ -30,6 +30,23 @@ functions: \link{sqlQuery} and \link{sqlSave}).}
 \description{
 Compute Silhouette (k-means clustering).
 }
+\examples{
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids',
+                   where="yearid > 2000")
+km = computeSilhouette(conn, km)
+km$sil
+createSilhouetteProfile(km, title="Cluster Silhouette Histograms (Profiles)")
+}
+}
 \seealso{
 \code{\link{computeKmeans}}
 }

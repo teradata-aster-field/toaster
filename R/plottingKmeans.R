@@ -30,15 +30,15 @@
 #' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
 #'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #'                          
-#' km = computeKmeans(conn, "batting", 
+#' km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
 #'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
 #'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
 #'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
-#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
-#'                    where="yearid > 2000", test=FALSE)
-#' createCentroidPlot(km$centroids)
-#' createCentroidPlot(km$centroids, format="bar_dodge")
-#' createCentroidPlot(km$centroids, format="bar")
+#'                    centroidTableName='kmeans_test_centroids',
+#'                    where="yearid > 2000")
+#' createCentroidPlot(km)
+#' createCentroidPlot(km, format="bar_dodge")
+#' createCentroidPlot(km, format="heatmap", coordFlip=TRUE)
 #' }
 createCentroidPlot <- function(km, format='line', groupByCluster=TRUE, 
                                baseSize = 12, baseFamily = "serif",
@@ -169,13 +169,13 @@ plotHeatmapCentroids <- function(data, id) {
 #' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
 #'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #'                          
-#' km = computeKmeans(conn, "batting", 
+#' km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
 #'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
 #'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
 #'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
-#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
-#'                    where="yearid > 2000", test=FALSE)
-#' createClusterPlot(km$aggregates)
+#'                    centroidTableName='kmeans_test_centroids',
+#'                    where="yearid > 2000")
+#' createClusterPlot(km)
 #' }
 createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
                               title = paste("Cluster Properties Plot"), xlab = "cluster", ylab = "value", 
@@ -244,13 +244,14 @@ agg_labeller <- function(value) {
 #' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
 #'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #'                          
-#' km = computeKmeans(conn, "batting", 
+#' km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
 #'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
 #'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
-#'                    centroidTableName='kmeans_test_centroids', schema='baseball',
-#'                    where="yearid > 2000", test=FALSE)
-#' kms = computeClusterSample(conn, km, 0.01, test=FALSE)
-#' createClusterPairsPlot(kms, "Batters Clustered by G, R, H", ticks=FALSE)
+#'                    centroidTableName='kmeans_test_centroids',
+#'                    where="yearid > 2000")
+#' km = computeClusterSample(conn, km, 0.01)
+#' createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
 #' }
 createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
                                    title="Cluster Variable Pairs", 
@@ -284,6 +285,8 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
+#' @param xlab a label for the x axis, defaults to a description of x.
+#' @param ylab a label for the y axis, defaults to a description of y.
 #' @param ticks \code{logical} Show axis ticks?
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
@@ -292,6 +295,21 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
 #'  
 #' @return ggplot object
 #' @export
+#' @examples 
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'                          
+#' km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+#'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                    include=c('g','r','h'), scaledTableName='kmeans_test_scaled', 
+#'                    centroidTableName='kmeans_test_centroids',
+#'                    where="yearid > 2000")
+#' km = computeSilhouette(conn, km)
+#' createSilhouetteProfile(km, title="Cluster Silhouette Histograms (Profiles)")
+#' }
 createSilhouetteProfile <- function(km, baseSize = 12, baseFamily = "serif",
                                    title="Cluster Silhouette Profile (Histogram)", xlab="Silhouette Value", ylab="Count",
                                    ticks=FALSE, coordFlip = TRUE,

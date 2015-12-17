@@ -133,17 +133,15 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   emptyLine = "--"
   
   if(test)
-    sqlSave = ""
-  else
-    sqlSave = NULL
+    sqlText = ""
   
   # scale data
   sqlComment = "-- Data Prep: scale"
   sqlDrop = paste("DROP TABLE IF EXISTS", scaledTableName)
   sql = getDataPrepSql(tableName, scaledTableName, columns, id, idAlias, where_clause)
   if(test) {
-    sqlSave = paste(sqlComment, sqlDrop, sep='\n')
-    sqlSave = paste(sqlSave, sql, sep=';\n')
+    sqlText = paste(sqlComment, sqlDrop, sep='\n')
+    sqlText = paste(sqlText, sql, sep=';\n')
   }else {
     toaSqlQuery(channel, sqlDrop)
     toaSqlQuery(channel, sql)
@@ -155,7 +153,7 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   sqlDrop = paste("DROP TABLE IF EXISTS", centroidTableName)
   sql = getKmeansSql(scaledTableName, centroidTableName, centers, threshold, iterMax)
   if(test) {
-    sqlSave = paste(sqlSave, emptyLine, sqlComment, sqlDrop, sql, sep=';\n')
+    sqlText = paste(sqlText, emptyLine, sqlComment, sqlDrop, sql, sep=';\n')
   }else {
     toaSqlQuery(channel, sqlDrop)
     kmeansResultStr = toaSqlQuery(channel, sql, stringsAsFactors=FALSE)
@@ -174,7 +172,7 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   sql = getKmeansStatsSql(tableName, scaledTableName, centroidTableName, columns, 
                          K, id, idAlias, aggregates, where_clause)
   if(test)
-    sqlSave = paste(sqlSave, emptyLine, sqlComment, sql, sep=';\n')
+    sqlText = paste(sqlText, emptyLine, sqlComment, sql, sep=';\n')
   else
     kmeansstats = toaSqlQuery(channel, sql, stringsAsFactors=FALSE)
   
@@ -184,7 +182,7 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   sql = getTotalSumOfSquaresSql(scaledTableName, columns, idAlias, scale)
   
   if(test)
-    sqlSave = paste(sqlSave, emptyLine, sqlComment, sql, sep=';\n')
+    sqlText = paste(sqlText, emptyLine, sqlComment, sql, sep=';\n')
   else {
     rs = toaSqlQuery(channel, sql)
     totss = rs$totss[[1]]
@@ -193,8 +191,8 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   
   # return sql
   if(test) {
-    sqlSave = paste0(sqlSave, ';')
-    return(sqlSave)
+    sqlText = paste0(sqlText, ';')
+    return(sqlText)
   }
   
   result = makeKmeansResult(kmeansstats, K, totss, iter, tableName, columns, scale,

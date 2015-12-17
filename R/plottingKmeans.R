@@ -1,16 +1,15 @@
 
-#' Create plot of cluster centroids
+#' Create plot of cluster centroids.
 #' 
 #' Visualize centroids produced by clustering function like k-means.
 #' Plots available are line plot, bar plot, or heatmap. Parameter \code{format}
 #' specifies which one to create.
 #' 
-#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}
+#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
 #' @param format type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"}, 
 #'   \code{"bar_facet"} (same as \code{"bar"}) or \code{"heatmap"}.
 #' @param groupByCluster logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
 #'   has no effect when \code{format="heatmap"}.
-#' @param clusterId name of a column with cluster id.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -42,10 +41,9 @@
 #' createCentroidPlot(km$centroids, format="bar")
 #' }
 createCentroidPlot <- function(km, format='line', groupByCluster=TRUE, 
-                               clusterId="clusterid", baseSize = 12, baseFamily = "serif",
+                               baseSize = 12, baseFamily = "serif",
                                title = paste("Cluster Centroids", format, "Plot"), 
-                               xlab = ifelse(format=="line", "cluster", "variable"), 
-                               ylab = ifelse(format=="heatmap", "cluster", "scaled value"), 
+                               xlab, ylab = ifelse(format=="heatmap", "cluster", "scaled value"), 
                                legendPosition = ifelse(format=="bar", "none", "right"),
                                coordFlip = FALSE,
                                defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
@@ -54,16 +52,27 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   # match argument values
   format = match.arg(format, c('line', 'bar', 'heatmap','bar_dodge'))
   
+  if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
+    stop("Kmeans object must be specified.")
+  }
+  
+  if(is.null(km$centers))
+    stop("Kmeans object is missing cluster centers.")
+  
+  clusterid = "clusterid"
+  
   centroids = data.frame(km$centers, stringsAsFactors = TRUE)
-  centroids[, clusterId] = factor(rownames(km$centers))
-  data = melt(centroids,id.vars=clusterId)
+  centroids[, clusterid] = factor(rownames(km$centers))
+  data = melt(centroids,id.vars=clusterid)
   
   if(groupByCluster) {
     x = "variable"
-    group = clusterId
+    group = clusterid
+    if(missing(xlab) && format!='bar_dodge') xlab = "variable" else xlab = "cluster"
   }else {
-    x = clusterId
+    x = clusterid
     group = "variable"
+    if(missing(xlab) && format!='bar_dodge') xlab = "cluster" else xlab = "variable"
   }
   
   if (format=='line') {
@@ -73,7 +82,7 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   }else if (format=='bar_dodge') {
     p = plotBarDodgeCentroids(data, x, group)
   }else {
-    p = plotHeatmapCentroids(data, clusterId)
+    p = plotHeatmapCentroids(data, clusterid)
   }
   
   border_element = if(format=='bar') element_rect(fill=NA) else element_blank()
@@ -138,9 +147,9 @@ plotHeatmapCentroids <- function(data, id) {
 }
 
 
-#' Create clusters' properties plot
+#' Create clusters' properties plot.
 #' 
-#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}
+#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -174,7 +183,14 @@ createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
                               defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
                               themeExtra = NULL) {
   
-  clusterId="clusterid"
+  if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
+    stop("Kmeans object must be specified.")
+  }
+  
+  if(is.null(km$aggregates))
+    stop("Kmeans object is missing cluster aggregates.")
+  
+  clusterid="clusterid"
   aggregates = km$aggregates
   
   if (!is.factor(aggregates$clusterid)) 
@@ -184,14 +200,14 @@ createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
     aggregates$unit_withinss = aggregates$withinss / aggregates$cnt
   }
   
-  data = melt(aggregates,id.vars=clusterId)
+  data = melt(aggregates,id.vars=clusterid)
   
   facet_formula = stats::as.formula(paste("~", "variable"))
   border_element = if(border) element_rect(fill=NA) else element_blank()
-  fill = ifelse(colorByCluster, clusterId, "variable")
+  fill = ifelse(colorByCluster, clusterid, "variable")
   
   p = ggplot(data) +
-    geom_bar(aes_string(clusterId, "value", fill=fill), stat="identity", position="dodge") +
+    geom_bar(aes_string(clusterid, "value", fill=fill), stat="identity", position="dodge") +
     facet_wrap(facet_formula, scales="free") +
     # post ggplot2 1.0.1 version
     # facet_wrap(facet_formula, scales="free", dir="h", labeller=labeller(.default=agg_labeller)) +
@@ -209,17 +225,16 @@ agg_labeller <- function(value) {
 }
 
 
-#' Create cluster variable plot
+#' Create cluster variable plot.
 #' 
-#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}
-#' @param clusterId name of a column with cluster id.
+#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
 #' @param ticks \code{logical} Show axis ticks?
 #' @param defaultTheme plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
-#' @param ... other parameters being suplied to geom's \code{aes}
+#' @param ... other parameters being suplied to geom's \code{aes}.
 #' 
 #' @return ggplot object
 #' @export

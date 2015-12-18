@@ -1,7 +1,7 @@
 #' Perform k-means clustering on the table.
 #' 
-#' K-means clustering algorithm runs in-database, computes cluster aggregates and other metrics, and
-#' returns kmeans object compatible with \code{\link{kmeans}}.
+#' K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} that 
+#' also includes arbitrary aggregate metrics computed on resulting clusters in-database.
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}.
 #' @param tableName Aster table name.
@@ -17,10 +17,11 @@
 #'   the algorithm has converged.
 #' @param iterMax the maximum number of iterations the algorithm will run before quitting if the convergence 
 #'   threshold has not been met.
-#' @param aggregates vector with SQL aggregates to compute for each cluster identified by this function. Aggregate may have 
-#'   optional aliases like in \code{"AVG(era) avg_era"}. Subsequently, use in \code{createClusterPlot} as cluster properties.
-#' @param scale logical if TRUE then scale each variable in-database before clustering. Currently scaling to 0 mean and unit
-#'   standard deviation only is supported.
+#' @param aggregates vector with SQL aggregates that define arbitrary aggreate metrics to be computed on each cluster 
+#'   after running k-means. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}. 
+#'   Subsequently, used in \code{\link{createClusterPlot}} as cluster properties.
+#' @param scale logical if TRUE then scale each variable in-database before clustering. Scaling performed results in 0 mean and unit
+#'   standard deviation for each of input variables.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
@@ -43,7 +44,7 @@
 #'     satisfy optional \code{where} condition.}
 #'   \item{\code{iter}}{The number of (outer) iterations.}
 #'   \item{\code{ifault}}{integer: indicator of a possible algorithm problem (always 0).}
-#'   \item{\code{scale}}{logical: indicates if clustering ran on scalied data.}
+#'   \item{\code{scale}}{logical: indicates if variable scaling was performed before clustering.}
 #'   \item{\code{aggregates}}{Vectors (dataframe) of aggregates computed on each cluster.}
 #'   \item{\code{tableName}}{Aster table name containing data for clustering.}
 #'   \item{\code{columns}}{Vector of column names with variables used for clustering.}
@@ -57,6 +58,7 @@
 #' }
 #' 
 #' @export
+#' @seealso \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}
 #' @examples 
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
@@ -136,10 +138,10 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   if(test)
     sqlText = ""
   
-  # scale data
+  # scale data or just eliminate incomplete observations (if not scaling)
   sqlComment = "-- Data Prep: scale"
   sqlDrop = paste("DROP TABLE IF EXISTS", scaledTableName)
-  sql = getDataPrepSql(tableName, scaledTableName, columns, id, idAlias, where_clause)
+  sql = getDataPrepSql(scale, tableName, scaledTableName, columns, id, idAlias, where_clause)
   if(test) {
     sqlText = paste(sqlComment, sqlDrop, sep='\n')
     sqlText = paste(sqlText, sql, sep=';\n')
@@ -205,7 +207,19 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
 
 
 # Phase 1: Data Prep
-getDataPrepSql <- function(tableName, tempTableName, columns, id, idAlias, whereClause) {
+getDataPrepSql <- function(scale, tableName, tempTableName, columns, id, idAlias, whereClause) {
+  
+  dataPrepSql = ifelse(scale, 
+                      getDataScaledSql(tableName, columns, id, idAlias, whereClause),
+                      getDataNoNullsSql(tableName, columns, id, idAlias, whereClause))
+  
+  tempTableSql = paste0(
+    "CREATE FACT TABLE ", tempTableName, " DISTRIBUTE BY HASH(", idAlias, ") AS 
+       ", dataPrepSql
+  )
+}
+
+getDataScaledSql <- function(tableName, columns, id, idAlias, whereClause) {
   
   sqlmr_column_list = makeSqlMrColumnList(columns)
   query_as_table = getDataSql(tableName, columns, id, idAlias, whereClause)
@@ -229,10 +243,18 @@ getDataPrepSql <- function(tableName, tempTableName, columns, id, idAlias, where
      )"
   )
   
-  tempTableSql = paste0(
-    "CREATE FACT TABLE ", tempTableName, " DISTRIBUTE BY HASH(", idAlias, ") AS 
-       ", scaleSql
-  )
+  return(scaleSql)
+}
+
+getDataNoNullsSql <- function(tableName, columns, id, idAlias, whereClause) {
+  
+  not_null_clause = paste0(c(idAlias, columns), " IS NOT NULL", collapse=" AND ")
+  query_as_table = getDataSql(tableName, columns, id, idAlias, whereClause)
+  
+  noNullsSql = paste0(
+    "SELECT * FROM (", query_as_table, ") d
+      WHERE ", not_null_clause)
+  
 }
 
 # Phase: kmeans 
@@ -321,7 +343,7 @@ getUnpivotedClusterSql <- function(clusterid, scaledTableName, centroidTableName
     
     "VectorDistance(
        ON (
-         SELECT clusterid, ", idAlias, ", variable, value_double 
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value
            FROM unpivot(
                   ON (SELECT d.* 
                         FROM kmeansplot (
@@ -343,7 +365,7 @@ getUnpivotedClusterSql <- function(clusterid, scaledTableName, centroidTableName
        ) AS ref DIMENSION
        TARGETIDCOLUMNS('",idAlias,"')
        TARGETFEATURECOLUMN('variable')
-       TARGETVALUECOLUMN('value_double')
+       TARGETVALUECOLUMN('value')
        REFIDCOLUMNS('clusterid')
        REFFEATURECOLUMN('variable')
        REFVALUECOLUMN('value')
@@ -373,17 +395,16 @@ getTotalSumOfSquaresSql <- function(scaledTableName, columns, idAlias, scale) {
   sqlmr_column_list = makeSqlMrColumnList(columns)
   
   if (scale) {
-    sqlagg_column_list = makeSqlAggregateColumnList(columns, "avg", FALSE)
-    globalCenterSql = paste0("SELECT 1 id, ", sqlagg_column_list, " FROM ", scaledTableName)
-  }else {
-    sqlagg_column_list = paste0("0.0 ", columns, collapse = ", ")
+    sqlagg_column_list = paste0("0.0::double ", columns, collapse = ", ")
     globalCenterSql = paste0("SELECT 1 id, ", sqlagg_column_list)
+  }else {
+    sqlagg_column_list = makeSqlAggregateColumnList(columns, "avg", FALSE, cast="::double")
+    globalCenterSql = paste0("SELECT 1 id, ", sqlagg_column_list, " FROM ", scaledTableName)
   }
-    
-  
+
   sql = paste0(
     "SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-       ON (SELECT ", idAlias, ", variable, value_double
+       ON (SELECT ", idAlias, ", variable, coalesce(value_double, value_long) value
              FROM unpivot(
                ON ", scaledTableName , "
                COLSTOUNPIVOT(", sqlmr_column_list, ")
@@ -405,7 +426,7 @@ getTotalSumOfSquaresSql <- function(scaledTableName, columns, idAlias, scale) {
        ) AS ref DIMENSION
        TARGETIDCOLUMNS('",idAlias,"')
        TARGETFEATURECOLUMN('variable')
-       TARGETVALUECOLUMN('value_double')
+       TARGETVALUECOLUMN('value')
        REFIDCOLUMNS('id')
        REFFEATURECOLUMN('variable')
        REFVALUECOLUMN('value_double')
@@ -732,7 +753,7 @@ makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAl
      DISTRIBUTE BY HASH(clusterid)
      AS
      WITH kmeansplotresult AS (
-         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value 
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value
            FROM unpivot(
                   ON (", getKmeansplotDataSql(scaled_table_name, centroid_table_name, scaled, query_as_table, idAlias), "
                   )

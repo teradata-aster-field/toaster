@@ -34,11 +34,12 @@ threshold has not been met.}
 
 \item{except}{a vector of column names to exclude from variables. Model never contains variables from the list.}
 
-\item{aggregates}{vector with SQL aggregates to compute for each cluster identified by this function. Aggregate may have 
-optional aliases like in \code{"AVG(era) avg_era"}. Subsequently, use in \code{createClusterPlot} as cluster properties.}
+\item{aggregates}{vector with SQL aggregates that define arbitrary aggreate metrics to be computed on each cluster 
+after running k-means. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}. 
+Subsequently, used in \code{\link{createClusterPlot}} as cluster properties.}
 
-\item{scale}{logical if TRUE then scale each variable in-database before clustering. Currently scaling to 0 mean and unit
-standard deviation only is supported.}
+\item{scale}{logical if TRUE then scale each variable in-database before clustering. Scaling performed results in 0 mean and unit
+standard deviation for each of input variables.}
 
 \item{idAlias}{SQL alias for table id. This is required when SQL expression is given for \code{id}.}
 
@@ -70,7 +71,7 @@ It is a list with at least the following components:
     satisfy optional \code{where} condition.}
   \item{\code{iter}}{The number of (outer) iterations.}
   \item{\code{ifault}}{integer: indicator of a possible algorithm problem (always 0).}
-  \item{\code{scale}}{logical: indicates if clustering ran on scalied data.}
+  \item{\code{scale}}{logical: indicates if variable scaling was performed before clustering.}
   \item{\code{aggregates}}{Vectors (dataframe) of aggregates computed on each cluster.}
   \item{\code{tableName}}{Aster table name containing data for clustering.}
   \item{\code{columns}}{Vector of column names with variables used for clustering.}
@@ -84,8 +85,8 @@ It is a list with at least the following components:
 }
 }
 \description{
-K-means clustering algorithm runs in-database, computes cluster aggregates and other metrics, and
-returns kmeans object compatible with \code{\link{kmeans}}.
+K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} that 
+also includes arbitrary aggregate metrics computed on resulting clusters in-database.
 }
 \examples{
 if(interactive()){
@@ -103,5 +104,8 @@ km
 createCentroidPlot(km)
 createClusterPlot(km)
 }
+}
+\seealso{
+\code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}
 }
 

@@ -240,12 +240,13 @@ makeSqlMrColumnList <- function(columns) {
 }
 
 
-makeSqlAggregateColumnList <- function(columns, sqlAggFun, includeFunInAlias=TRUE) {
+makeSqlAggregateColumnList <- function(columns, sqlAggFun, includeFunInAlias=TRUE, cast="") {
   
   if (includeFunInAlias)
-    paste0(sqlAggFun, "(", columns, ") ", paste(sqlAggFun, columns, sep='_'), collapse = ", ")
+    paste0(toupper(sqlAggFun), "(", columns, ")", cast, " ", tolower(sqlAggFun), '_', columns, collapse = ", ")
+    # paste0(sqlAggFun, "(", columns, ")", cast, " ", paste(sqlAggFun, columns, sep='_'), collapse = ", ")
   else 
-    paste0(sqlAggFun, "(", columns, ") ", columns, collapse = ", ")
+    paste0(toupper(sqlAggFun), "(", columns, ")", cast, " ", columns, collapse = ", ")
 }
 
 

@@ -10,6 +10,9 @@ NEW FEATURES
   on centroids, clusters, their properties, and data samples.
 * New K-means clustering functions: computeKmeans, ...
 
+* Utility function getNullCounts returns NULL value counts per column
+  in the table.
+
 
 toaster 0.3.1
 ----------------------------------------------------------------

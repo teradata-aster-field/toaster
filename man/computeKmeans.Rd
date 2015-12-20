@@ -85,8 +85,8 @@ It is a list with at least the following components:
 }
 }
 \description{
-K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} that 
-also includes arbitrary aggregate metrics computed on resulting clusters in-database.
+K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} and 
+includes arbitrary aggregate metrics computed on resulting clusters.
 }
 \examples{
 if(interactive()){

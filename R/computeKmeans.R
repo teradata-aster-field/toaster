@@ -126,6 +126,8 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
       stop(paste0("Kmeans received incompatible parameters: dimension of initial cluster centers doesn't match variables: '", 
                   paste0(columns, collapse = "', '"), "'"))
   
+  aggregates = makeAggregatesAlwaysContainCount(aggregates)
+  
   if (is.null(scaledTableName))
     scaledTableName = makeTempTableName('scaled', 30, schema)
   else if (!is.null(schema))
@@ -479,6 +481,48 @@ makeKmeansResult <- function(data, K, totss, iter, tableName, columns, scale,
   class = c("toakmeans", "kmeans"))
   
   return (z)
+}
+
+
+makeAggregatesAlwaysContainCount <- function(aggregates){
+  
+  # empty or NULL list 
+  if (length(aggregates) == 0)
+    return("COUNT(*) cnt")
+ 
+  # parse aggregates into tuples of function and alias
+  aggFun = unlist(sapply(strsplit(aggregates, '[[:space:]]'), 
+                 FUN=function(x) {
+                   s = paste0(x[1:length(x)-1], collapse = ' ')
+                   if (nchar(s)==0) NULL else s
+                 }))
+ 
+  aggAlias = unlist(sapply(strsplit(aggregates, '[[:space:]]'), 
+                   FUN=function(x) {
+                     s = x[length(x)]
+                     if (nchar(s)==0) NULL else s
+                  }))
+ 
+  # detect missing alias
+  if (length(aggFun) != length(aggAlias))
+   stop("Check aggregates: at least one missing alias found.")
+ 
+  # detect if 'COUNT(*) cnt' present
+  missingCount = TRUE
+  for(i in 1:length(aggregates)) {
+    fun = aggFun[[i]]
+    alias = aggAlias[[i]]
+   
+    if(tolower(fun) == 'count(*)' && alias == 'cnt')
+      missingCount = FALSE
+ }
+ 
+  # form final aggregates
+  aggregates = paste(aggFun, aggAlias)
+  if (missingCount)
+    aggregates = c(aggregates, "COUNT(*) cnt")
+ 
+  return(aggregates)
 }
 
 

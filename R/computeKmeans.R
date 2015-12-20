@@ -1,7 +1,12 @@
 #' Perform k-means clustering on the table.
 #' 
-#' K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} that 
-#' also includes arbitrary aggregate metrics computed on resulting clusters in-database.
+#' K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} and 
+#' includes arbitrary aggregate metrics computed on resulting clusters.
+#' 
+#' The function fist scales not-null data (if \code{scale=TRUE}) or just eliminate nulls without scaling. After 
+#' that the data given (table \code{tableName} with option of filering with \code{where}) are clustered by the 
+#' k-means in Aster. Next, all standard metrics of k-means clusters plus additional aggregates provided with
+#' \code{aggregates} are calculated again in-database.
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}.
 #' @param tableName Aster table name.

@@ -1,5 +1,22 @@
 context("computeTfIdf")
 
+test_that("computeTfIdf throws errors", {
+  
+  expect_error(computeTfIdf(NULL, "table1", "id", c('text1','text2'), nGram(2), rankFunction = "NO SUCH RANK FUNcTION"),
+               "'arg' should be one of \"rank\", \"rownumber\", \"row\", \"denserank\", \"percentrank\"")
+  
+  expect_error(computeTfIdf(NULL), "Table name must be specified.")
+  
+  expect_error(computeTfIdf(NULL, "table1"), "Doc id must be specified.")
+  
+  expect_error(computeTfIdf(NULL, "table1", "id"), "Text columns must be specified.")
+  
+  expect_error(computeTfIdf(NULL, "table1", "id", character(0)), "Text columns must be specified.")
+  
+  expect_error(computeTfIdf(NULL, "table1", "id", c("text1","text2")), "Connection is not valid RODBC object.")
+  
+})
+
 
 test_that("computeTfIdf SQL with nGram parser is correct", {
   

@@ -9,8 +9,8 @@ isTable(channel, names)
 \arguments{
 \item{channel}{object as returned by \code{\link{odbcConnect}}.}
 
-\item{names}{vector of table names. Name may contain SQL wildcard
-characters but it should not contain schema prefix. All visible schemas
+\item{names}{vector of table names. Name may contain SQL wildcard 
+characters but it should not contain schema prefix. All visible schemas 
 will be checked for table name specified.}
 }
 \value{
@@ -21,11 +21,11 @@ Test if table present in the database.
 }
 \examples{
 if(interactive()){
-# initialize connection to Lahman baseball database in Aster
+# initialize connection to Lahman baseball database in Aster 
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
-isTable(conn, "pitching")        # TRUE
+isTable(conn, "pitching")        # TRUE 
 isTable(conn, "pitch\%")          # TRUE
 isTable(conn, "public.pitching") # FALSE
 }

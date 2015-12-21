@@ -7,8 +7,11 @@ test_that("computeCorrelations throws errors", {
   expect_error(computeCorrelations(test=TRUE),
                "Must provide tableInfo when test==TRUE")
   
-  expect_error(computeCorrelations(channel=conn, tableName="pitching_enh", tableInfo=pitching_info,
-                                   include = c('abcdef', 'qwerty')),
+  expect_error(computeCorrelations(NULL),
+               "Connection is not valid RODBC object.")
+  
+  expect_error(computeCorrelations(channel=NULL, tableName="pitching_enh", tableInfo=pitching_info,
+                                   include = c('abcdef', 'qwerty'), test=TRUE),
                "Must provide at least 2 numeric columns.")
   
 })

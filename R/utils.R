@@ -77,6 +77,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   if (parallel && !getDoParRegistered())
     stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
   
+  isValidConnection(channel, mock)
+  
   tableName = normalizeTableName(tableName)
   
   if (mock) {

@@ -77,8 +77,6 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
     stop("Must have all 2 heatmap dimensions defined to compute.")
   }
   
-  where_clause = makeWhereClause(where)
-  
   # validate aggregate args
   # check for deprecated parameters first
   if (!missing(aggregateFun)) {
@@ -93,6 +91,10 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
   
   if (is.null(aggregates) || length(aggregates) < 1)
     stop("Must have at least one aggregate defined.")
+  
+  isValidConnection(channel, test)
+  
+  where_clause = makeWhereClause(where)
   
   aggSelectList = paste(aggregates, collapse=", ")
   

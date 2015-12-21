@@ -111,6 +111,8 @@ computePercentiles <- function(channel, tableName, columnName = NULL, columns = 
     stop("Must provide at least one column name.")
   }
   
+  isValidConnection(channel, test)
+  
   # percentiles
   # always add 50 (median) and 25, 75 for IQR computations
   default_percentiles = c(ifelse(temporal, 25, 0), 25, 50, 75, 100)

@@ -16,6 +16,9 @@ test_that("exceptions are properly handled by utility functions", {
   expect_error(getTableSummary(NULL, tableName="abcdefg", parallel=TRUE),
                "Please register parallel backend appropriate to your platform to run with parallel=TRUE")
   
+  expect_error(getTableSummary(NULL, tableName = "abcdefg"),
+               "Connection is not valid RODBC object.")
+  
   expect_error(getTableSummary(NULL, tableName="fielding", mock=TRUE),
                "Test sql with 'getTableSummary' only for 'batting' or 'pitching' tables.")
   

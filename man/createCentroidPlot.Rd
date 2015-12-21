@@ -8,8 +8,8 @@ createCentroidPlot(km, format = "line", groupByCluster = TRUE,
   baseSize = 12, baseFamily = "serif", title = paste("Cluster Centroids",
   format, "Plot"), xlab, ylab = ifelse(format == "heatmap", "cluster",
   "scaled value"), legendPosition = ifelse(format == "bar", "none", "right"),
-  coordFlip = FALSE, defaultTheme = ggthemes::theme_tufte(base_size =
-  baseSize, base_family = baseFamily, ticks = FALSE), themeExtra = NULL)
+  coordFlip = FALSE, defaultTheme = theme_tufte(base_size = baseSize,
+  base_family = baseFamily, ticks = FALSE), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}

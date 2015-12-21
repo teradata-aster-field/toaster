@@ -12,6 +12,9 @@ test_that("computeAggregates throws errors", {
                        aggregates = vector()),
                "Must have at least one aggregate defined.")
   
+  expect_error(computeAggregates(NULL, tableName="table_name", by="column1"),
+               "Connection is not valid RODBC object.")
+  
 })
 
 

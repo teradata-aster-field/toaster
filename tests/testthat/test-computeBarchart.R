@@ -15,6 +15,9 @@ test_that("computeBarchart throws errors", {
                                aggregates = vector()), 
                "Must have at least one aggregate defined.")
   
+  expect_error(computeBarchart(NULL, tableName="fake", category="1"),
+               "Connection is not valid RODBC object.")
+  
 })
 
 

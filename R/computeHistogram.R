@@ -62,6 +62,8 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
     stop("Must provide table and column names.")
   }
   
+  isValidConnection(channel, test)
+  
   where_clause = makeWhereClause(where)
   
   if (!missing(by)) {

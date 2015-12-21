@@ -7,8 +7,8 @@
 createClusterPlot(km, baseSize = 12, baseFamily = "serif",
   title = paste("Cluster Properties Plot"), xlab = "cluster",
   ylab = "value", border = TRUE, colorByCluster = TRUE,
-  defaultTheme = ggthemes::theme_tufte(base_size = baseSize, base_family =
-  baseFamily, ticks = FALSE), themeExtra = NULL)
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
+  ticks = FALSE), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}

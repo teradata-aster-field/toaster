@@ -6,8 +6,8 @@
 \usage{
 createClusterPairsPlot(km, baseSize = 12, baseFamily = "serif",
   title = "Cluster Variable Pairs", ticks = TRUE,
-  defaultTheme = ggthemes::theme_tufte(base_size = baseSize, base_family =
-  baseFamily, ticks = ticks), themeExtra = theme(), ...)
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
+  ticks = ticks), themeExtra = theme(), ...)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}

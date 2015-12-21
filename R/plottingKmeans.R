@@ -46,7 +46,7 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
                                xlab, ylab = ifelse(format=="heatmap", "cluster", "scaled value"), 
                                legendPosition = ifelse(format=="bar", "none", "right"),
                                coordFlip = FALSE,
-                               defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
+                               defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
                                      themeExtra = NULL) {
   
   # match argument values
@@ -181,7 +181,7 @@ plotHeatmapCentroids <- function(data, id) {
 createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
                               title = paste("Cluster Properties Plot"), xlab = "cluster", ylab = "value", 
                               border=TRUE, colorByCluster=TRUE,
-                              defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
+                              defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
                               themeExtra = NULL) {
   
   if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
@@ -255,7 +255,7 @@ agg_labeller <- function(value) {
 createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
                                    title="Cluster Variable Pairs", 
                                    ticks=TRUE,
-                                   defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
+                                   defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
                                    themeExtra = theme(), ...) {
   
   if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
@@ -312,7 +312,7 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
 createSilhouetteProfile <- function(km, baseSize = 12, baseFamily = "serif",
                                    title="Cluster Silhouette Profile (Histogram)", xlab="Silhouette Value", ylab="Count",
                                    ticks=FALSE, coordFlip = TRUE,
-                                   defaultTheme=ggthemes::theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
+                                   defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
                                    themeExtra = NULL) {
   
   if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {

@@ -65,13 +65,16 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize,
     columns = " * "
   }
   
+  if (!missing(sampleFraction) && !is.null(sampleFraction))
+    stopifnot(sampleFraction >= 0, sampleFraction <= 1)
+  
+  isValidConnection(channel, test)
+  
   columnList = paste(columns, collapse = ", ")
   
   where_clause = makeWhereClause(where)
   
   if (!missing(sampleFraction) && !is.null(sampleFraction)) {
-    stopifnot(sampleFraction >= 0, sampleFraction <= 1)
-    
     # using fraction, ignore sample size
     sql = paste0("SELECT *   
                     FROM sample(

@@ -15,12 +15,13 @@ test_that("computeHeatmap throws errors", {
                               aggregateFun=c("COUNT(*)", "COUNT(*)/(sum(count(*)) over ())"), 
                               aggregateAlias="alias"),
                '(Defunct; last used in version 0.2.4)')
-               
-  
+
   expect_error(computeHeatmap(channel=NULL, table='fake', dimension1='dim1', dimension2='dim2',
                               aggregates=vector()),
                "Must have at least one aggregate defined.")
   
+  expect_error(computeHeatmap(channel=NULL, table='fake', dimension1='dim1', dimension2='dim2'),
+               "Connection is not valid RODBC object.")
   
 })
 

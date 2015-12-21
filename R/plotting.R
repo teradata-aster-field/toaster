@@ -898,8 +898,8 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
   data2 = data[with(data, get(divideBy)) == values[[2]],]
   
   p = ggplot(data, aes_string(x=bin, y=count, fill=divideBy)) +
-    geom_histogram(data=data1, stat="identity", colour=mainColour, fill=fillColours[[1]]) +
-    geom_histogram(data=data2, stat="identity", colour=mainColour, fill=fillColours[[2]]) +
+    geom_bar(data=data1, stat="identity", colour=mainColour, fill=fillColours[[1]]) +
+    geom_bar(data=data2, stat="identity", colour=mainColour, fill=fillColours[[2]]) +
     coord_flip() +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +

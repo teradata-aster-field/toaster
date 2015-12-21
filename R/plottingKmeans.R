@@ -111,9 +111,10 @@ plotBarCentroids <- function(data, x, group) {
   
   ggplot(data) +
     geom_bar(aes_string(x, "value", fill=group), stat="identity", position="dodge") +
-    # ggplol2 version post 1.0.1
-    # facet_wrap(facet_formula, scales="fixed", dir="h", labeller=labeller(.default=cluster_labeller)) +
-    facet_wrap(facet_formula, scales="fixed") 
+    if (group == "clusterid")
+      facet_wrap(facet_formula, scales="fixed", dir="h", labeller=labeller(.default=cluster_labeller))
+    else
+      facet_wrap(facet_formula, scales="fixed", dir="h", labeller=labeller(.default=agg_labeller))
 }
 
 cluster_labeller <- function(value) {
@@ -208,9 +209,7 @@ createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
   
   p = ggplot(data) +
     geom_bar(aes_string(clusterid, "value", fill=fill), stat="identity", position="dodge") +
-    facet_wrap(facet_formula, scales="free") +
-    # post ggplot2 1.0.1 version
-    # facet_wrap(facet_formula, scales="free", dir="h", labeller=labeller(.default=agg_labeller)) +
+    facet_wrap(facet_formula, scales="free", dir="h", labeller=labeller(.default=agg_labeller)) +
     labs(title=title, x=xlab, y=ylab) +
     defaultTheme + 
     theme(legend.position="none",

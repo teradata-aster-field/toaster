@@ -58,6 +58,8 @@ computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, exc
     stop("Must provide tableInfo when test==TRUE.")
   }
   
+  isValidConnection(channel, test)
+  
   if (missing(tableInfo)) {
     tableInfo = sqlColumns(channel, tableName)
   }

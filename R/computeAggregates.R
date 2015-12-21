@@ -57,6 +57,8 @@ computeAggregates <- function(channel, tableName,
     stop("Must have at least one aggregate defined.")
   }
   
+  isValidConnection(channel, test)
+  
   where_clause = makeWhereClause(where)
   
   columnExpr = sub(by, pattern = " [a-zA-Z0-9_]*$", replacement = "")

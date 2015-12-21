@@ -62,7 +62,7 @@ test_that("createBoxplot with facet wrap works", {
   expect_equal(names(p$facet$facets), "lgid")
   expect_false(any(p$data$upper_bound == c(1.0,0.8,4.0,2.0,9.0,11.0)), info="when useIQR=T upper bound is different from max values")
   expect_equal(p$theme$legend.position, "none")
-  expect_is(p$coordinates, c("flip","cartesian","coord"))
+  expect_is(p$coordinates, c("CoordFlip","CoordCartesian","Coord"))
   expect_equal(p$labels$title, "Batting by Leagues and Decades")
   
   p = createBoxplot(data, x='column', facet=c('lgid'), useIQR=FALSE, coordFlip=TRUE, 

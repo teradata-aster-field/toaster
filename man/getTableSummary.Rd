@@ -19,17 +19,17 @@ getTableSummary(channel, tableName, include = NULL, except = NULL,
 
 \item{modeValue}{logical indicates if mode values should be computed. Default is FALSE.}
 
-\item{percentiles}{list of percentiles (integers between 0 and 100) to collect (always collects 25th and 75th
-for IQR calculation). There is no penalty in specifying more percentiles as they get calculated in a single call
+\item{percentiles}{list of percentiles (integers between 0 and 100) to collect (always collects 25th and 75th 
+for IQR calculation). There is no penalty in specifying more percentiles as they get calculated in a single call 
 for each column - no matter how many different values are requested.}
 
 \item{where}{SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE).}
 
 \item{mock}{logical: if TRUE returns pre-computed table statistics for tables \code{pitching} or \code{batting}, only.}
 
-\item{parallel}{logical: enable parallel calls to Aster database. This option requires parallel
-backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel}
-obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or
+\item{parallel}{logical: enable parallel calls to Aster database. This option requires parallel 
+backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel} 
+obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or 
 \code{\link{odbcDriverConnect}} calls, but not with \code{\link{odbcConnect}(dsn, user, password)}.}
 }
 \value{
@@ -64,7 +64,7 @@ a column to ODBC metadata data frame.
 }
 \examples{
 if(interactive()){
-# initialize connection to Lahman baseball database in Aster
+# initialize connection to Lahman baseball database in Aster 
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
@@ -73,18 +73,18 @@ pitchingInfo = getTableSummary(channel=conn, 'pitching_enh')
 pitchingInfo$COLUMN_NAME
 
 # compute statistics on subset of baseball data after 1999
-battingInfo = getTableSummary(channel=conn, 'batting_enh',
+battingInfo = getTableSummary(channel=conn, 'batting_enh', 
                               where='yearid between 2000 and 2013')
-
+                              
 # compute statistics for certain columns including each percentile from 1 to 99
 pitchingInfo = getTableSummary(channel=conn, 'pitching_enh',
                               include=c('h', 'er', 'hr', 'bb', 'so'),
                               percentiles=seq(1,99))
 # list data frame column names to see all computed statistics
 names(pitchingInfo)
-
+                             
 # compute statitics on all numeric columns except certain columns
-teamInfo = getTableSummary(channel=conn, 'teams_enh',
+teamInfo = getTableSummary(channel=conn, 'teams_enh', 
                    include=getNumericColumns(sqlColumns(conn, 'teams_enh')),
                    except=c('lgid', 'teamid', 'playerid', 'yearid', 'decadeid'))
 }

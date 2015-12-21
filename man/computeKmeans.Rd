@@ -88,6 +88,12 @@ It is a list with at least the following components:
 K-means clustering algorithm runs in-database, returns object compatible with \code{\link{kmeans}} and 
 includes arbitrary aggregate metrics computed on resulting clusters.
 }
+\details{
+The function fist scales not-null data (if \code{scale=TRUE}) or just eliminate nulls without scaling. After 
+that the data given (table \code{tableName} with option of filering with \code{where}) are clustered by the 
+k-means in Aster. Next, all standard metrics of k-means clusters plus additional aggregates provided with
+\code{aggregates} are calculated again in-database.
+}
 \examples{
 if(interactive()){
 # initialize connection to Lahman baseball database in Aster 

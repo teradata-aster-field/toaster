@@ -7,8 +7,8 @@
 createSilhouetteProfile(km, baseSize = 12, baseFamily = "serif",
   title = "Cluster Silhouette Profile (Histogram)",
   xlab = "Silhouette Value", ylab = "Count", ticks = FALSE,
-  coordFlip = TRUE, defaultTheme = ggthemes::theme_tufte(base_size =
-  baseSize, base_family = baseFamily, ticks = ticks), themeExtra = NULL)
+  coordFlip = TRUE, defaultTheme = theme_tufte(base_size = baseSize,
+  base_family = baseFamily, ticks = ticks), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}

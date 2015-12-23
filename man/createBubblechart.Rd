@@ -12,7 +12,7 @@ createBubblechart(data, x, y, z, label = z, fill = NULL, facet = NULL,
   fill), xlab = x, ylab = y, labelSize = 5, labelFamily = "",
   labelFontface = "plain", labelColour = "black", labelVJust = 0.5,
   labelHJust = 0.5, labelAlpha = 1, labelAngle = 0,
-  legendPosition = "right", defaultTheme = theme_bw(base_size = baseSize,
+  legendPosition = "right", defaultTheme = theme_tufte(base_size = baseSize,
   base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
@@ -90,8 +90,9 @@ if FALSE then scale the area.}
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 vector). "none" is no legend.}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-\code{\link[ggplot2]{theme_classic}} or custom.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }
@@ -103,6 +104,21 @@ Create a bubble chart that utilizes three dimensions of data. It is a variation
 of the scatter plot with data points replaced with shapes ("bubbles"): x and y 
 are bubble location and z is its size. It can optionally assign data points
 labels and fill shapes with colors.
+}
+\examples{
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+
+cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pitching_enh"), 
+                             include = c('w','l','cg','sho','sv','ipouts','h','er','hr','bb',
+                                         'so','baopp','era','whip','ktobb','fip'),
+                             where = "decadeid = 2000", test=FALSE)
+# remove duplicate correlation values (no symmetry)
+cormat = cormat[cormat$metric1 < cormat$metric2, ]
+createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign")
+}
 }
 \seealso{
 \code{\link{computeAggregates}} computes data for the bubble chart.

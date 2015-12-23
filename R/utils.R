@@ -77,6 +77,8 @@ getTableSummary <- function (channel, tableName, include = NULL, except = NULL,
   if (parallel && !getDoParRegistered())
     stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
   
+  isValidConnection(channel, mock)
+  
   tableName = normalizeTableName(tableName)
   
   if (mock) {
@@ -636,6 +638,26 @@ isTable <- function(channel, names) {
   vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
 }
 
+
+isValidConnection <- function(channel, test, error=TRUE) {
+  
+  if(test) 
+    return(TRUE)
+  
+  if(!inherits(channel, "RODBC"))
+    if(error)
+      stop("Connection is not valid RODBC object.")
+    else
+      return(FALSE)
+  
+  connInfo = odbcGetInfo(channel)
+  if(connInfo["DBMS_Name"] != 'nCluster')
+    if(error)
+      stop(paste0("Database driver is invalid: '", connInfo["DBMS_Name"], "', expected 'nCluster'."))
+    else
+      return(FALSE)
+}
+
 # TODO: make part of utility convinience set of functions
 grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
   
@@ -658,4 +680,97 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
     
     return (result)
   }
+}
+
+
+#' Counts nulls per column in the table.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param tableName name of the table in Aster.
+#' @param schema NULL or character: optional schema to restric table search to signle schema. In general,
+#'   table search performed across whole database. Including \code{schema} restricts it to this single 
+#'   schema only.
+#' @param tableInfo pre-built summary of columns to use (require when \code{test=TRUE}). 
+#'   See \code{\link{sqlColumns}} or \code{\link{getTableSummary}}.
+#' @param include a vector of column names to include. Output never contains attributes other than in the list.
+#' @param except a vector of column names to exclude. Output never contains attributes from the list.
+#' @param where specifies criteria to satisfy by the table rows before applying computation. 
+#'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
+#' @param output Default output is a data frame in \code{'long'} format. Other options include 
+#'   \code{'wide'} format and \code{'matrix'}.
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).
+#' @export
+#' @examples 
+#' if (interactive()) {
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'
+#' null_counts = getNullCounts(conn, "baseball.batting", 
+#'                             include=c('g','ab','r','h','so','bb','cs'), 
+#'                             where='yearid > 2000')
+#' 
+#' }
+getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, 
+                          schema=NULL, output='long', where=NULL, test=FALSE){
+  
+  # match argument values
+  output = match.arg(output, c('long', 'wide', 'matrix'))
+    
+    ## table name is required
+    if (missing(tableName)) {
+      stop("Table name must be specified.")
+    }
+    
+    tableName <- normalizeTableName(tableName)
+    
+    if (is.null(tableInfo) && test) {
+      stop("Must provide tableInfo when test==TRUE.")
+    }
+    
+    ## get column names
+    if (is.null(tableInfo)) {
+      tableInfo <- sqlColumns(channel, sqtable = tableName, schema = schema)
+    }
+    
+    if (length(unique(tableInfo$TABLE_SCHEM)) > 1) 
+      stop("Table name is not uqique - must provide schema using either parameter 'schema' or 'tableName'.")
+    
+    
+    columnNames <- includeExcludeColumns(tableInfo, include, except)$COLUMN_NAME
+    
+    ## per column name, construct count nulls SQL
+    columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL)
+    
+    where_clause <- makeWhereClause(where)
+
+    ## assemble full SQL query
+    nullCountsSQL <- paste('SELECT',
+                          paste(columnNameNullSQL, collapse = ', '),
+                          'FROM', tableName, where_clause)
+
+    ## execute SQL to collect counts
+    if (test) 
+      return(nullCountsSQL)
+    else
+      nullCountsWide <- sqlQuery(channel, nullCountsSQL)
+
+    if (output == 'wide') 
+      return (nullCountsWide)
+    else if(output == 'long') {
+      ## transpose results
+      nullCountsLongMatrix <- t(nullCountsWide)
+      nullCountsLong <- data.frame(variable = row.names(nullCountsLongMatrix),
+                                   nullcount = as.integer(nullCountsLongMatrix))
+      return (nullCountsLong)
+    }else
+      return (as.matrix(t(nullCountsWide)))
+    
+}
+
+## construct count nulls string -- used in getNullCounts
+constructCountNullsSQL <- function(variableName){
+    sqlString <- paste0('COUNT(1) - COUNT(',variableName,') AS ', variableName)
+    return(sqlString)
 }

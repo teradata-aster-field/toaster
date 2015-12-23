@@ -105,6 +105,21 @@ computeTf <- function(channel, tableName, docId, textColumns, parser,
                     log="log",
                     augment="augment"
   )
+  
+  if (missing(tableName)) {
+    stop("Table name must be specified.")
+  }
+  
+  if (missing(docId)) {
+    stop("Doc id must be specified.")
+  }
+  
+  if (missing(textColumns) || length(textColumns)==0) {
+    stop("Text columns must be specified.")
+  }
+  
+  isValidConnection(channel, test)
+  
   windowFunction = getWindowFunction(rankFunction)
   
   where_clause = makeWhereClause(where)
@@ -236,6 +251,21 @@ computeTfIdf <- function(channel, tableName, docId, textColumns, parser,
                          stopwords = NULL, test = FALSE) {
   
   rankFunction = match.arg(rankFunction, c('rank', 'rownumber', 'row', 'denserank', 'percentrank'))
+  
+  if (missing(tableName)) {
+    stop("Table name must be specified.")
+  }
+  
+  if (missing(docId)) {
+    stop("Doc id must be specified.")
+  }
+  
+  if (missing(textColumns) || length(textColumns)==0) {
+    stop("Text columns must be specified.")
+  }
+  
+  isValidConnection(channel, test)
+
   windowFunction = getWindowFunction(rankFunction)
   
   where_clause = makeWhereClause(where)

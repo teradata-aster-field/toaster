@@ -11,6 +11,9 @@ test_that("computeHistogram throws errors", {
   expect_error(computeHistogram(channel=NULL, tableName="fake"),
                "Must provide table and column names.")
   
+   expect_error(computeHistogram(channel=NULL, tableName="fake", columnName="nocolumn"),
+               "Connection is not valid RODBC object.")
+  
   expect_error(computeHistogram(channel=NULL, tableName="fake", columnName="nocolumn", test=TRUE),
                "Must provide tableInfo when test==TRUE")
   
@@ -18,11 +21,11 @@ test_that("computeHistogram throws errors", {
                "No columns specified found in the table")
   
   expect_error(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
-                                tableInfo=start_end_test_info),
+                                tableInfo=start_end_test_info, test=TRUE),
                "Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
   
   expect_error(computeHistogram(channel=NULL, tableName="texts.containertrailerplanpaths", columnName="missentcount", 
-                                tableInfo=start_end_test_info, useIQR=TRUE),
+                                tableInfo=start_end_test_info, useIQR=TRUE, test=TRUE),
                "Start value should not be greater than or equal to end value. Try to run with useIQR=FALSE or check that data is not constant.")
   
   

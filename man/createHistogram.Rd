@@ -13,7 +13,7 @@ createHistogram(data, x = "bin_start", y = "bin_count", fill = NULL,
   trendLinetype = "solid", trendLinesize = 1, trendLinecolour = "black",
   title = paste("Histgoram by", fill), xlab = x, ylab = y,
   legendPosition = "right", coordFlip = FALSE,
-  defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL)
 }
 \arguments{
@@ -94,8 +94,9 @@ vector). "none" is no legend.}
 \item{coordFlip}{logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 \link{coord_flip}).}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-\code{\link[ggplot2]{theme_classic}} or custom.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }

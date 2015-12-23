@@ -1,19 +1,19 @@
 Package: toaster
 Type: Package
 Title: Big Data in-Database Analytics with Teradata Aster
-Version: 0.4.0.900
+Version: 0.4.1
 Authors@R: c(
     person("Gregory", "Kanevsky", , "gregory.kanevsky@teradata.com", c("aut","cre")),
     person("Nick", "Switanek", , "nicholas.switanek@teradata.com", "aut")
     )
 Description: A consistent set of tools to perform in-database analytics
     on Teradata Aster Big Data Discovery Platform. toaster (a.k.a 'to Aster')
-    embraces simple 2-step approach: compute in Aster - visualize and analyze 
-    in R. Its `compute` functions use combination of SQL and 
-    SQL/MR functions running in Aster database - highly scalable parallel 
-    and distributed analytical platform. Then `create` functions visualize 
-    results with boxplots, scatterplots, histograms, heatmaps, word clouds, 
-    maps, or slope graphs. Advanced options such as faceting, coloring, 
+    embraces simple 2-step approach: compute in Aster - visualize and analyze
+    in R. Its `compute` functions use combination of SQL and
+    SQL/MR functions running in Aster database - highly scalable parallel
+    and distributed analytical platform. Then `create` functions visualize
+    results with boxplots, scatterplots, histograms, heatmaps, word clouds,
+    maps, or slope graphs. Advanced options such as faceting, coloring,
     labeling, and others are supported with most functions.
 SystemRequirements: Teradata Aster Database 5.10 (AD5.10) or higher,
     Teradata Aster Analytical Foundation 5.10 (AA5.10) or higher
@@ -24,18 +24,20 @@ Depends:
 Imports:
     plyr (>= 1.8.3),
     reshape2 (>= 1.4.1),
-    ggplot2 (>= 1.0.1),
+    ggplot2 (>= 2.0.0),
+    ggthemes (>= 3.0.0),
     scales,
     RColorBrewer (>= 1.1-2),
     grid,
     wordcloud (>= 2.5),
-    ggmap (>= 2.5.2),
+    ggmap (>= 2.6),
+    GGally (>= 0.5.0),
     memoise,
     slam (>= 0.1-32),
     foreach (>= 1.4.3),
     stats
 Suggests:
-    testthat (>= 0.11.0),
+    testthat (>= 0.9.1-1),
     tm,
     doParallel
 License: GPL-2
@@ -49,7 +51,6 @@ Collate:
     'computeCorrelations.R'
     'computeHistogram.R'
     'computeHeatmap.R'
-    'plotting.R'
     'maps.R'
     'showData.R'
     'computeAggregates.R'
@@ -59,4 +60,7 @@ Collate:
     'computeLm.R'
     'computeTfIdf.R'
     'textParsers.R'
-RoxygenNote: 5.0.0
+    'computeKmeans.R'
+    'plotting.R'
+    'plottingKmeans.R'
+RoxygenNote: 5.0.1

@@ -22,6 +22,9 @@ test_that("computePercentiles throws errros", {
   
   expect_error(computePercentiles(channel=NULL, tableName="fake_table", columns=character(0)),
                "Must provide at least one column name.")
+  
+  expect_error(computePercentiles(channel=NULL, tableName="fake_table", columns="column1"),
+               "Connection is not valid RODBC object.")
 })
 
 test_that("computePercentiles numerical SQL is correct", {

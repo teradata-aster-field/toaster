@@ -20,6 +20,9 @@ test_that("computeSample throws errors", {
   expect_error(computeSample(channel=NULL, tableName="faketable", sampleFraction=-0.000001,
                              test=FALSE),
                "sampleFraction >= 0 is not TRUE")
+  
+  expect_error(computeSample(channel=NULL, tableName="faketable", sampleFraction=0.000001),
+               "Connection is not valid RODBC object.")
 })
 
 test_that("computeSample SQL is correct", {

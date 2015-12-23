@@ -1,4 +1,30 @@
 
+toaster 0.4.1
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* K-means clustering function performs in-database data prep, scaling, 
+  clustering, computing standard k-means measures and aggregated metrics 
+  on produced clusters. Other functions include the silhouette method of 
+  evaluating cluster consistency and validity and variety of 
+  visualizations options. Result of k-means function is compatible with
+  stats 'kmeans' object. 
+  
+* Utility getNullCounts function returns NULL counts per column 
+  in the table.
+
+MINOR FEATURES
+
+* Upgraded plotting to ggplot2 2.0.0 and fixed test faiures attributed
+  to this upgrade.
+* Changed default theme settings to theme_tufte from ggthemes package
+  for all plotting (create) functions.
+* Updated some examples in the documentation.
+* Added validation of RODBC connection (except checking for live 
+  connection to a database).
+
+
 toaster 0.3.1
 ----------------------------------------------------------------
 

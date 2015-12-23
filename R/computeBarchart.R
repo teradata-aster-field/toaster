@@ -73,6 +73,8 @@ computeBarchart <- function(channel, tableName, category,
     stop("Must have at least one aggregate defined.")
   }
   
+  isValidConnection(channel, test)
+  
   where_clause = makeWhereClause(where)
   
   orderby_clause = makeOrderByClause(orderBy)

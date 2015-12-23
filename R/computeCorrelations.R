@@ -47,6 +47,7 @@
 #'                              where = "decadeid = 2000", test=FALSE)
 #' # remove duplicate correlation values (no symmetry)
 #' cormat = cormat[cormat$metric1 < cormat$metric2, ]
+#' createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign")
 #' }
 computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, except=NULL, where=NULL, 
                                 output=c('data.frame','matrix'), test=FALSE) {
@@ -57,6 +58,8 @@ computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, exc
   if (test & missing(tableInfo)) {
     stop("Must provide tableInfo when test==TRUE.")
   }
+  
+  isValidConnection(channel, test)
   
   if (missing(tableInfo)) {
     tableInfo = sqlColumns(channel, tableName)

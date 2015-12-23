@@ -34,13 +34,30 @@
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
-#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @return ggplot object
 #' @seealso \code{\link{computeHeatmap}} for computing data for heat map 
-#' 
 #' @export
+#' @examples
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
+#' hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w) w', 
+#'                     where="decadeid >= 1950")
+#' hm$decadeid = factor(hm$decadeid)
+#' createHeatmap(hm, 'decadeid', 'franchid', 'w')
+#' 
+#' # with diverging color gradient
+#' hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w-l) wl', 
+#'                     where="decadeid >= 1950")
+#' hm$decadeid = factor(hm$decadeid)
+#' createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
+#' }
 createHeatmap <- function(data, x, y, fill,
                           facet = NULL, ncol = 1, baseSize = 12, baseFamily = "sans",
                           thresholdValue = NULL, thresholdName = fill,
@@ -51,7 +68,7 @@ createHeatmap <- function(data, x, y, fill,
                           highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"), 
                           title = paste("Heatmap by", fill), xlab = x, ylab = y,
                           legendPosition = "right",
-                          defaultTheme = theme_bw(base_size = baseSize, base_family=baseFamily),
+                          defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                           themeExtra = NULL) {
   
   # Handle threshold if defined
@@ -144,8 +161,9 @@ createHeatmap <- function(data, x, y, fill,
 #'   vector). "none" is no legend.
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
-#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @seealso \code{\link{computeHistogram}} and \code{\link{computeBarchart}} to
 #'   compute data for histogram
@@ -202,7 +220,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
                             title = paste("Histgoram by", fill), xlab = x, ylab = y, 
                             legendPosition = "right",
                             coordFlip = FALSE,
-                            defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
+                            defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                             themeExtra = NULL) { 
   
   # Set text layer before ggplot 
@@ -349,8 +367,9 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'   vector). "none" is no legend.
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
-#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @export
@@ -363,24 +382,22 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
 #' # boxplot of pitching ipouts for AL in 2000s
-#' ipop = computePercentiles(conn, "pitching", "ipouts")
+#' ipop = computePercentiles(conn, "pitching", columns="ipouts")
 #' createBoxplot(ipop)
 #'                           
 #' # boxplots by the league of pitching ipouts
-#' ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
+#' ipopLg = computePercentiles(conn, "pitching", columns="ipouts", by="lgid")
 #' createBoxplot(ipopLg, x="lgid")
 #' 
 #' # boxplots by the league with facet yearid of pitching ipouts in 2010s
-#' ipopLgYear = computePercentiles(conn, "pitching", "ipouts", by=c("lgid", "yearid"),
+#' ipopLgYear = computePercentiles(conn, "pitching", columns="ipouts", by=c("lgid", "yearid"),
 #'                                 where = "yearid >= 2010")
 #' createBoxplot(ipopLgYear, x="lgid", facet="yearid", ncol=3)
 #' 
 #' # boxplot with facets only
-#' bapLgDec = computePercentiles(conn, "pitching_enh", "ba", by=c("lgid", "decadeid"),
+#' bapLgDec = computePercentiles(conn, "pitching_enh", columns="era", by=c("lgid", "decadeid"),
 #'                               where = "lgid in ('AL','NL')")
 #' createBoxplot(bapLgDec, facet=c("lgid", "decadeid"))
-#' 
-#'  
 #' }
 createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FALSE,
                           facet = NULL, ncol = 1, facetScales = "fixed",                          
@@ -389,7 +406,7 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
                           xlab = x, ylab = NULL,
                           legendPosition="right", coordFlip = FALSE,
                           baseSize = 12, baseFamily = "sans",
-                          defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
+                          defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                           themeExtra=NULL) {
   
   if (is.null(x)) {
@@ -520,12 +537,27 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
 #' @param labelAngle the angle at which to draw the text label
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
-#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @return ggplot object
 #' @seealso \code{\link{computeAggregates}} computes data for the bubble chart.
 #' @export
+#' @examples
+#' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' 
+#' cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pitching_enh"), 
+#'                              include = c('w','l','cg','sho','sv','ipouts','h','er','hr','bb',
+#'                                          'so','baopp','era','whip','ktobb','fip'),
+#'                              where = "decadeid = 2000", test=FALSE)
+#' # remove duplicate correlation values (no symmetry)
+#' cormat = cormat[cormat$metric1 < cormat$metric2, ]
+#' createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign")
+#' }
 createBubblechart <- function(data, x, y, z, label = z, fill = NULL, 
                               facet = NULL, ncol = 1, facetScales = "fixed",
                               xlim = NULL, baseSize = 12, baseFamily = "sans",
@@ -537,15 +569,15 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                               labelColour = "black", labelVJust = 0.5, labelHJust = 0.5,
                               labelAlpha = 1, labelAngle = 0, 
                               legendPosition="right",
-                              defaultTheme=theme_bw(base_size = baseSize, base_family = baseFamily),
+                              defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                               themeExtra=NULL) {
   
   p = ggplot(data, aes_string(x=x, y=y, size=z, label=label, fill=fill), guide=F) +
-    geom_point(colour=shapeColour, shape=shape, show_guide=T) +
+    geom_point(colour=shapeColour, shape=shape, show.legend=TRUE) +
     (if (!is.null(label)) 
       geom_text(size=labelSize, colour=labelColour, family=labelFamily, fontface=labelFontface, 
                 vjust=labelVJust, hjust=labelHJust, angle=labelAngle, alpha=labelAlpha, 
-                show_guide=F)) +
+                show.legend=FALSE)) +
     (if (scaleSize)
        scale_size_continuous(range=shapeSizeRange, guide=FALSE)
      else
@@ -600,8 +632,9 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 #' @param title plot title
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}}, \code{\link[ggplot2]{theme_grey}},
-#'   \code{\link[ggplot2]{theme_classic}} (default) or custom.
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @return ggplot object
 #' @export
@@ -615,7 +648,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
                              highlights = integer(0),
                              lineSize = 0.15, textSize = 3.75, 
                              panelGridColour = "black", panelGridSize = 0.1,
-                             defaultTheme = theme_classic(base_size = baseSize, base_family = baseFamily),
+                             defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                              themeExtra = NULL) {
   
   if (na.rm) {
@@ -826,8 +859,9 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", 
 #'   or two-element numeric vector). "none" is no legend.
-#' @param defaultTheme plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-#'   \code{\link[ggplot2]{theme_classic}} or custom.
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @return ggplot object
 #' @export 
@@ -886,8 +920,7 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
                              title=paste("Population Pyramid Histogram by", divideBy), 
                              xlab = bin, ylab = count,
                              legendPosition = "right",
-                             defaultTheme = theme_bw(base_size = baseSize, 
-                                                     base_family = baseFamily),
+                             defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                              themeExtra = NULL) {
   if (missing(values)) {
     values = sort(unique(data[, divideBy]))[1:2]
@@ -898,8 +931,8 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
   data2 = data[with(data, get(divideBy)) == values[[2]],]
   
   p = ggplot(data, aes_string(x=bin, y=count, fill=divideBy)) +
-    geom_histogram(data=data1, stat="identity", colour=mainColour, fill=fillColours[[1]]) +
-    geom_histogram(data=data2, stat="identity", colour=mainColour, fill=fillColours[[2]]) +
+    geom_bar(data=data1, stat="identity", colour=mainColour, fill=fillColours[[1]]) +
+    geom_bar(data=data2, stat="identity", colour=mainColour, fill=fillColours[[2]]) +
     coord_flip() +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +

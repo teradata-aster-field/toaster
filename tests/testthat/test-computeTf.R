@@ -1,5 +1,26 @@
 context("computeTf")
 
+test_that("computeTf throws errors", {
+  
+  expect_error(computeTf(NULL, "table1", "id", c('text1','text2'), nGram(3), weighting="NO SUCH WEIGHTING"),
+               "'arg' should be one of \"raw\", \"bool\", \"binary\", \"log\", \"augment\", \"normal\"")
+  
+  expect_error(computeTf(NULL, "table1", "id", c('text1','text2'), nGram(3), weighting="normal",
+                         rankFunction = "NO SUCH RANK FUNCTION"),
+               "'arg' should be one of \"rank\", \"rownumber\", \"row\", \"denserank\", \"percentrank\"")
+  
+  expect_error(computeTf(NULL), "Table name must be specified.")
+  
+  expect_error(computeTf(NULL, "table1"), "Doc id must be specified.")
+  
+  expect_error(computeTf(NULL, "table1", "id"), "Text columns must be specified.")
+  
+  expect_error(computeTf(NULL, "table1", "id", character(0)), "Text columns must be specified.")
+  
+  expect_error(computeTf(NULL, "table1", "id", c("text1","text2")), "Connection is not valid RODBC object.")
+  
+})
+
 test_that("computeTf SQL with nGram parser is correct", {
   
   expect_equal_normalized(

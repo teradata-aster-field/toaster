@@ -8,8 +8,8 @@ createCentroidPlot(km, format = "line", groupByCluster = TRUE,
   baseSize = 12, baseFamily = "serif", title = paste("Cluster Centroids",
   format, "Plot"), xlab, ylab = ifelse(format == "heatmap", "cluster",
   "scaled value"), legendPosition = ifelse(format == "bar", "none", "right"),
-  coordFlip = FALSE, defaultTheme = theme_tufte(base_size = baseSize,
-  base_family = baseFamily, ticks = FALSE), themeExtra = NULL)
+  coordFlip = FALSE, ticks = FALSE, defaultTheme = theme_tufte(base_size =
+  baseSize, base_family = baseFamily, ticks = ticks), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
@@ -36,7 +36,11 @@ vector). "none" is no legend.}
 \item{coordFlip}{logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 \link{coord_flip}).}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.}
+\item{ticks}{\code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?}
+
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }

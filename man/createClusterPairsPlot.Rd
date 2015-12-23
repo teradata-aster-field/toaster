@@ -5,7 +5,7 @@
 \title{Create cluster variable plot.}
 \usage{
 createClusterPairsPlot(km, baseSize = 12, baseFamily = "serif",
-  title = "Cluster Variable Pairs", ticks = TRUE,
+  title = "Cluster Variable Pairs", ticks = FALSE,
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
   ticks = ticks), themeExtra = theme(), ...)
 }
@@ -18,9 +18,11 @@ createClusterPairsPlot(km, baseSize = 12, baseFamily = "serif",
 
 \item{title}{plot title.}
 
-\item{ticks}{\code{logical} Show axis ticks?}
+\item{ticks}{\code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 

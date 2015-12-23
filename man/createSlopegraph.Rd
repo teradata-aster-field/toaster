@@ -11,8 +11,8 @@ createSlopegraph(data, id, rankFrom, rankTo, reverse = TRUE, na.rm = FALSE,
   classTextSize = 12, colour = "#999999", upColour = "#D55E00",
   downColour = "#009E73", highlights = integer(0), lineSize = 0.15,
   textSize = 3.75, panelGridColour = "black", panelGridSize = 0.1,
-  defaultTheme = theme_classic(base_size = baseSize, base_family =
-  baseFamily), themeExtra = NULL)
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains data computed for slopegraph}
@@ -60,8 +60,9 @@ proceeds.}
 
 \item{panelGridSize}{background panel grid size}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggplot2]{theme_bw}}, \code{\link[ggplot2]{theme_grey}},
-\code{\link[ggplot2]{theme_classic}} (default) or custom.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }

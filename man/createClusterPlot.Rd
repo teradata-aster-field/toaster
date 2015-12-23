@@ -6,9 +6,9 @@
 \usage{
 createClusterPlot(km, baseSize = 12, baseFamily = "serif",
   title = paste("Cluster Properties Plot"), xlab = "cluster",
-  ylab = "value", border = TRUE, colorByCluster = TRUE,
+  ylab = "value", border = TRUE, colorByCluster = TRUE, ticks = FALSE,
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
-  ticks = FALSE), themeExtra = NULL)
+  ticks = ticks), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
@@ -27,7 +27,11 @@ createClusterPlot(km, baseSize = 12, baseFamily = "serif",
 
 \item{colorByCluster}{logical: color corresponds to clusters or properties.}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.}
+\item{ticks}{\code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?}
+
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }

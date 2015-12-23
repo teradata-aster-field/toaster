@@ -65,6 +65,7 @@ cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pit
                              where = "decadeid = 2000", test=FALSE)
 # remove duplicate correlation values (no symmetry)
 cormat = cormat[cormat$metric1 < cormat$metric2, ]
+createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign")
 }
 }
 \seealso{

@@ -24,6 +24,7 @@ MINOR FEATURES
 * Added validation of RODBC connection (except checking for live 
   connection to a database).
 
+
 toaster 0.3.1
 ----------------------------------------------------------------
 

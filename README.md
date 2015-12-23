@@ -5,6 +5,7 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/toaster)](http://cran.r-project.org/package=toaster)
 [![Downloads_all_badge](http://cranlogs.r-pkg.org/badges/grand-total/toaster?color=orange)](http://www.r-pkg.org/pkg/toaster)
 [![Downloads_week_badge](http://cranlogs.r-pkg.org/badges/last-week/tcR?color=orange)](http://www.r-pkg.org/pkg/toaster)
+[![License](http://img.shields.io/:license-gpl2-blue.svg)](http://www.gnu.org/licenses/gpl-2.0.html)
 
 
 

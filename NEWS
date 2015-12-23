@@ -12,7 +12,9 @@ NEW FEATURES
 
 * Utility function getNullCounts returns NULL value counts per column
   in the table.
-
+* Upgraded plotting to ggplot2 2.0.0.
+* Changed default theme settings to theme_tufte from ggthemes package
+  for all plotting (create) functions.
 
 toaster 0.3.1
 ----------------------------------------------------------------

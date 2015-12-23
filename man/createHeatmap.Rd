@@ -11,8 +11,8 @@ createHeatmap(data, x, y, fill, facet = NULL, ncol = 1, baseSize = 12,
   lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"),
   midGradient = "white", highGradient = ifelse(divergingColourGradient,
   muted("blue"), "#132B43"), title = paste("Heatmap by", fill), xlab = x,
-  ylab = y, legendPosition = "right", defaultTheme = theme_bw(base_size =
-  baseSize, base_family = baseFamily), themeExtra = NULL)
+  ylab = y, legendPosition = "right", defaultTheme = theme_tufte(base_size
+  = baseSize, base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains data computed for heatmap}
@@ -68,8 +68,9 @@ extremes (e.g. temprature, outliers, etc.)}
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 vector). "none" is no legend.}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-\code{\link[ggplot2]{theme_classic}} or custom.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }
@@ -79,6 +80,24 @@ ggplot object
 \description{
 Create heat map visualization of 2D matrix from the data frame \code{data}
 pre-computed with \code{\link{computeHeatmap}}.
+}
+\examples{
+if(interactive()){
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+
+hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w) w', 
+                    where="decadeid >= 1950")
+hm$decadeid = factor(hm$decadeid)
+createHeatmap(hm, 'decadeid', 'franchid', 'w')
+
+# with diverging color gradient
+hm = computeHeatmap(conn, "teams_enh", 'franchid', 'decadeid', 'avg(w-l) wl', 
+                    where="decadeid >= 1950")
+hm$decadeid = factor(hm$decadeid)
+createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
+}
 }
 \seealso{
 \code{\link{computeHeatmap}} for computing data for heat map

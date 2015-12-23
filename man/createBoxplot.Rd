@@ -9,7 +9,7 @@ createBoxplot(data, x = NULL, fill = x, value = "value", useIQR = FALSE,
   palette = "Set1", title = paste("Boxplots", ifelse(is.null(x), NULL,
   paste("by", x))), xlab = x, ylab = NULL, legendPosition = "right",
   coordFlip = FALSE, baseSize = 12, baseFamily = "sans",
-  defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL)
 }
 \arguments{
@@ -63,8 +63,9 @@ vector). "none" is no legend.}
 
 \item{baseFamily}{\code{\link{theme}} base font family}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-\code{\link[ggplot2]{theme_classic}} or custom.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }
@@ -102,24 +103,22 @@ conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
 # boxplot of pitching ipouts for AL in 2000s
-ipop = computePercentiles(conn, "pitching", "ipouts")
+ipop = computePercentiles(conn, "pitching", columns="ipouts")
 createBoxplot(ipop)
                           
 # boxplots by the league of pitching ipouts
-ipopLg = computePercentiles(conn, "pitching", "ipouts", by="lgid")
+ipopLg = computePercentiles(conn, "pitching", columns="ipouts", by="lgid")
 createBoxplot(ipopLg, x="lgid")
 
 # boxplots by the league with facet yearid of pitching ipouts in 2010s
-ipopLgYear = computePercentiles(conn, "pitching", "ipouts", by=c("lgid", "yearid"),
+ipopLgYear = computePercentiles(conn, "pitching", columns="ipouts", by=c("lgid", "yearid"),
                                 where = "yearid >= 2010")
 createBoxplot(ipopLgYear, x="lgid", facet="yearid", ncol=3)
 
 # boxplot with facets only
-bapLgDec = computePercentiles(conn, "pitching_enh", "ba", by=c("lgid", "decadeid"),
+bapLgDec = computePercentiles(conn, "pitching_enh", columns="era", by=c("lgid", "decadeid"),
                               where = "lgid in ('AL','NL')")
 createBoxplot(bapLgDec, facet=c("lgid", "decadeid"))
-
- 
 }
 }
 \seealso{

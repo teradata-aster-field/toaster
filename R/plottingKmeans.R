@@ -19,7 +19,10 @@
 #'   vector). "none" is no legend.
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
-#' @param defaultTheme plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.
+#' @param ticks \code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})? 
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @return ggplot object
@@ -45,8 +48,8 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
                                title = paste("Cluster Centroids", format, "Plot"), 
                                xlab, ylab = ifelse(format=="heatmap", "cluster", "scaled value"), 
                                legendPosition = ifelse(format=="bar", "none", "right"),
-                               coordFlip = FALSE,
-                               defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
+                               coordFlip = FALSE, ticks = FALSE,
+                               defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=ticks),
                                      themeExtra = NULL) {
   
   # match argument values
@@ -158,7 +161,10 @@ plotHeatmapCentroids <- function(data, id) {
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param border boolean indicates to use border around plotting area. In case of facets border is around each facet.
 #' @param colorByCluster logical: color corresponds to clusters or properties.
-#' @param defaultTheme plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.
+#' @param ticks \code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' 
 #' @return ggplot object
@@ -180,8 +186,8 @@ plotHeatmapCentroids <- function(data, id) {
 #' }
 createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
                               title = paste("Cluster Properties Plot"), xlab = "cluster", ylab = "value", 
-                              border=TRUE, colorByCluster=TRUE,
-                              defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=FALSE),
+                              border=TRUE, colorByCluster=TRUE, ticks=FALSE,
+                              defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=ticks),
                               themeExtra = NULL) {
   
   if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
@@ -230,8 +236,10 @@ agg_labeller <- function(value) {
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
-#' @param ticks \code{logical} Show axis ticks?
-#' @param defaultTheme plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.
+#' @param ticks \code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #' @param ... other parameters being suplied to geom's \code{aes}.
 #' 
@@ -253,8 +261,7 @@ agg_labeller <- function(value) {
 #' createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
 #' }
 createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
-                                   title="Cluster Variable Pairs", 
-                                   ticks=TRUE,
+                                   title="Cluster Variable Pairs", ticks=FALSE,
                                    defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
                                    themeExtra = theme(), ...) {
   
@@ -286,10 +293,12 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
 #' @param title plot title.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
-#' @param ticks \code{logical} Show axis ticks?
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
-#' @param defaultTheme plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.
+#' @param ticks \code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?
+#' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+#'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+#'   and \code{\link[ggthemes]{ggthemes}}.
 #' @param themeExtra any additional \code{\link[ggplot2]{theme}} settings that override default theme.
 #'  
 #' @return ggplot object
@@ -311,7 +320,7 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
 #' }
 createSilhouetteProfile <- function(km, baseSize = 12, baseFamily = "serif",
                                    title="Cluster Silhouette Profile (Histogram)", xlab="Silhouette Value", ylab="Count",
-                                   ticks=FALSE, coordFlip = TRUE,
+                                   coordFlip = TRUE, ticks=FALSE,
                                    defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
                                    themeExtra = NULL) {
   

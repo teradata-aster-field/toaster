@@ -6,8 +6,8 @@
 \usage{
 createSilhouetteProfile(km, baseSize = 12, baseFamily = "serif",
   title = "Cluster Silhouette Profile (Histogram)",
-  xlab = "Silhouette Value", ylab = "Count", ticks = FALSE,
-  coordFlip = TRUE, defaultTheme = theme_tufte(base_size = baseSize,
+  xlab = "Silhouette Value", ylab = "Count", coordFlip = TRUE,
+  ticks = FALSE, defaultTheme = theme_tufte(base_size = baseSize,
   base_family = baseFamily, ticks = ticks), themeExtra = NULL)
 }
 \arguments{
@@ -23,12 +23,14 @@ createSilhouetteProfile(km, baseSize = 12, baseFamily = "serif",
 
 \item{ylab}{a label for the y axis, defaults to a description of y.}
 
-\item{ticks}{\code{logical} Show axis ticks?}
-
 \item{coordFlip}{logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 \link{coord_flip}).}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggthemes]{theme_tufte}} is default.}
+\item{ticks}{\code{logical} Show axis ticks using default theme settings (see \code{defaultTheme})?}
+
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }

@@ -9,7 +9,7 @@ createPopPyramid(data, bin = "bin_start", count = "bin_count", divideBy,
   facet = NULL, ncol = 1, facetScales = "fixed", baseSize = 12,
   baseFamily = "sans", title = paste("Population Pyramid Histogram by",
   divideBy), xlab = bin, ylab = count, legendPosition = "right",
-  defaultTheme = theme_bw(base_size = baseSize, base_family = baseFamily),
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL)
 }
 \arguments{
@@ -56,8 +56,9 @@ columns (see in \code{facet_wrap} parameter \code{scales} )}
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", 
 or two-element numeric vector). "none" is no legend.}
 
-\item{defaultTheme}{plot theme to use: \code{\link[ggplot2]{theme_bw}} (default), \code{\link[ggplot2]{theme_grey}},
-\code{\link[ggplot2]{theme_classic}} or custom.}
+\item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
+are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
+and \code{\link[ggthemes]{ggthemes}}.}
 
 \item{themeExtra}{any additional \code{\link[ggplot2]{theme}} settings that override default theme.}
 }

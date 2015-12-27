@@ -340,7 +340,7 @@ getClusterSumOfSquaresSql <- function(clusterid, scaledTableName, centroidTableN
   clusterid = as.character(clusterid - 1)
   
   sql = paste0(
-    "SELECT ", clusterid, " clusterid, SUM(distance^2) withinss FROM ", 
+    "SELECT ", clusterid, " clusterid, SUM(distance::double ^ 2) withinss FROM ", 
     getUnpivotedClusterSql(clusterid, scaledTableName, centroidTableName, columns, idAlias)
   )
 }
@@ -355,7 +355,7 @@ getUnpivotedClusterSql <- function(clusterid, scaledTableName, centroidTableName
     
     "VectorDistance(
        ON (
-         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long, value_str::double) value
            FROM unpivot(
                   ON (SELECT d.* 
                         FROM kmeansplot (
@@ -415,8 +415,8 @@ getTotalSumOfSquaresSql <- function(scaledTableName, columns, idAlias, scale) {
   }
 
   sql = paste0(
-    "SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-       ON (SELECT ", idAlias, ", variable, coalesce(value_double, value_long) value
+    "SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+       ON (SELECT ", idAlias, ", variable, coalesce(value_double, value_long, value_str::double) value
              FROM unpivot(
                ON ", scaledTableName , "
                COLSTOUNPIVOT(", sqlmr_column_list, ")
@@ -807,7 +807,7 @@ makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAl
      DISTRIBUTE BY HASH(clusterid)
      AS
      WITH kmeansplotresult AS (
-         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long, value_str::double) value
            FROM unpivot(
                   ON (", getKmeansplotDataSql(scaled_table_name, centroid_table_name, scaled, query_as_table, idAlias), "
                   )

@@ -160,9 +160,9 @@ test_that("computeKmeans SQL is correct", {
                                        ) clustered_data
                                  GROUP BY clusterid, means
                                 ) c1 JOIN 
-                               ( SELECT 0 clusterid, SUM(distance^2) withinss 
+                               ( SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                    FROM VectorDistance(
-                                     ON ( SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+                                     ON ( SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value 
                                             FROM unpivot(
                                               ON (SELECT d.* 
                                                     FROM kmeansplot (
@@ -192,9 +192,9 @@ test_that("computeKmeans SQL is correct", {
                               MEASURE('Euclidean')
                             )
                             UNION ALL
-                            SELECT 1 clusterid, SUM(distance^2) withinss FROM VectorDistance(
+                            SELECT 1 clusterid, SUM(distance::double ^ 2) withinss FROM VectorDistance(
                               ON (
-                                SELECT clusterid, id, variable, coalesce(value_double, value_long) value
+                                SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value
                                 FROM unpivot(
                                   ON (SELECT d.* 
                                         FROM kmeansplot (
@@ -225,9 +225,9 @@ test_that("computeKmeans SQL is correct", {
                               MEASURE('Euclidean')
                             )
                             UNION ALL
-                            SELECT 2 clusterid, SUM(distance^2) withinss FROM VectorDistance(
+                            SELECT 2 clusterid, SUM(distance::double ^ 2) withinss FROM VectorDistance(
                               ON (
-                                SELECT clusterid, id, variable, coalesce(value_double, value_long) value
+                                SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value
                                 FROM unpivot(
                                   ON (SELECT d.* 
                                         FROM kmeansplot (
@@ -261,8 +261,8 @@ test_that("computeKmeans SQL is correct", {
                           ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT id, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT id, variable, coalesce(value_double, value_long, value_str::double) value
                                 FROM unpivot(
                                   ON baseball.kmeans_test_scaled
                                   COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -340,9 +340,9 @@ test_that("computeKmeans SQL is correct", {
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, id, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -376,8 +376,8 @@ test_that("computeKmeans SQL is correct", {
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT id, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT id, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -459,9 +459,9 @@ test_that("computeKmeans SQL is correct", {
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -495,8 +495,8 @@ test_that("computeKmeans SQL is correct", {
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -578,9 +578,9 @@ test_that("computeKmeans SQL is correct", {
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -614,8 +614,8 @@ test_that("computeKmeans SQL is correct", {
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -697,9 +697,9 @@ test_that("computeKmeans SQL is correct", {
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -733,8 +733,8 @@ test_that("computeKmeans SQL is correct", {
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -816,9 +816,9 @@ test_that("computeKmeans SQL is correct", {
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -852,8 +852,8 @@ test_that("computeKmeans SQL is correct", {
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT playerid_stint_teamid_yearid, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -919,9 +919,9 @@ SELECT c1.*, c2.withinss
                     ) clustered_data
               GROUP BY clusterid, means
             ) c1 JOIN ( 
-            SELECT 0 clusterid, SUM(distance^2) withinss FROM VectorDistance(
+            SELECT 0 clusterid, SUM(distance::double ^ 2) withinss FROM VectorDistance(
        ON (
-         SELECT clusterid, id, variable, coalesce(value_double, value_long) value
+         SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value
            FROM unpivot(
                   ON (SELECT d.* 
                         FROM kmeansplot (
@@ -954,8 +954,8 @@ SELECT c1.*, c2.withinss
       ORDER BY clusterid;
 --;
 -- Compute Total Sum of Squares;
-SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-       ON (SELECT id, variable, coalesce(value_double, value_long) value
+SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+       ON (SELECT id, variable, coalesce(value_double, value_long, value_str::double) value
              FROM unpivot(
                ON kmeans_test_scaled
                COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -1037,9 +1037,9 @@ SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, __playerid__, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, __playerid__, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -1073,8 +1073,8 @@ SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT __playerid__, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT __playerid__, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -1155,9 +1155,9 @@ SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
                                           ) clustered_data
                                     GROUP BY clusterid, means
                                   ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance^2) withinss 
+                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
                                     FROM VectorDistance(
-                                      ON ( SELECT clusterid, __playerid__, variable, coalesce(value_double, value_long) value
+                                      ON ( SELECT clusterid, __playerid__, variable, coalesce(value_double, value_long, value_str::double) value
                                              FROM unpivot(
                                                ON (SELECT d.* 
                                                      FROM kmeansplot (
@@ -1191,8 +1191,8 @@ SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
                               ORDER BY clusterid;
                           --;
                           -- Compute Total Sum of Squares;
-                          SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-                            ON (SELECT __playerid__, variable, coalesce(value_double, value_long) value
+                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+                            ON (SELECT __playerid__, variable, coalesce(value_double, value_long, value_str::double) value
                                   FROM unpivot(
                                     ON kmeans_test_scaled
                                     COLSTOUNPIVOT('ab', 'g', 'h', 'r')
@@ -1435,7 +1435,7 @@ CREATE ANALYTIC TABLE public.kmeans_test_sil
      DISTRIBUTE BY HASH(clusterid)
      AS
      WITH kmeansplotresult AS (
-         SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+         SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value 
            FROM unpivot(
                   ON (SELECT  d.* 
                    FROM kmeansplot(
@@ -1505,7 +1505,7 @@ CREATE ANALYTIC TABLE public.kmeans_test_sil
      DISTRIBUTE BY HASH(clusterid)
      AS
      WITH kmeansplotresult AS (
-         SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+         SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value 
            FROM unpivot(
                   ON (SELECT  d.* 
                    FROM kmeansplot(
@@ -1571,7 +1571,7 @@ CREATE ANALYTIC TABLE public.kmeans_test_sil
      DISTRIBUTE BY HASH(clusterid)
      AS
      WITH kmeansplotresult AS (
-         SELECT clusterid, id, variable, coalesce(value_double, value_long) value 
+         SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value 
            FROM unpivot(
                   ON (SELECT  clusterid, d.* 
                    FROM kmeansplot(

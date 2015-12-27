@@ -696,6 +696,8 @@ getKmeansplotDataSql <- function(scaled_table_name, centroid_table_name, scaled,
 #' }
 computeSilhouette <- function(channel, km, scaled=TRUE, silhouetteTableName=NULL, drop=TRUE, test=FALSE) {
   
+  ptm = proc.time()
+  
   isValidConnection(channel, test)
   
   if(test && is.null(silhouetteTableName)){
@@ -790,6 +792,7 @@ computeSilhouette <- function(channel, km, scaled=TRUE, silhouetteTableName=NULL
   if(!drop) {
     sil = c(sil, tableName=silhouetteTableName)
   }
+  sil$time = proc.time() - ptm
   km$sil = sil
   
   return(km)

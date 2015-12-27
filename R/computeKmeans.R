@@ -118,8 +118,13 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
     stop("Kmeans operates on one or more numeric variables.")
   }
   
+  # check if id alias is not one of independent variables
   if(idAlias %in% columns)
     stop(paste0("Id alias '", idAlias, "' can't be one of variable names."))
+  
+  # adjust id alias if it's exactly one of the table columns
+  if(idAlias %in% tableInfo$COLUMN_NAME)
+    idAlias = paste("_", idAlias, "_", sep="_")
   
   if (is.matrix(centers))
     if (length(columns) != ncol(centers))

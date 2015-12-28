@@ -1,4 +1,20 @@
 
+toaster 0.4.2
+----------------------------------------------------------------
+
+MINOR FEATURES
+
+* added transparency control of shapes associated with metric values 
+  on the map. (#24)
+  
+BUG FIXES
+
+* Kmeans cluster and total within sum of squares calculations now
+  work when `scale=FALSE`. (fixes #23)
+  
+* Kmeans SQL is correct now when `id` is exactly one of
+  the table columns and default `aliasId`. (fixes #22)
+
 toaster 0.4.1
 ----------------------------------------------------------------
 

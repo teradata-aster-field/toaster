@@ -9,9 +9,9 @@ createMap(data, maptype = "terrain", mapColor = c("color", "bw"),
   locator = "center", boxBorderMargin = 10, zoom = NULL,
   locationName = NULL, lonName = "LONGITUDE", latName = "LATITUDE",
   metricName = NULL, labelName = NULL, scaleRange = c(1, 6),
-  shapeColour = "red", textColour = "black", textFamily = "mono",
-  textFace = "plain", textSize = 4, facet = NULL, ncol = 1,
-  facetScales = "fixed", geocodeFun = memoise::memoise(geocode),
+  shapeColour = "red", shapeAlpha = 0.5, textColour = "black",
+  textFamily = "mono", textFace = "plain", textSize = 4, facet = NULL,
+  ncol = 1, facetScales = "fixed", geocodeFun = memoise::memoise(geocode),
   getmapFun = get_map, urlonly = FALSE, api_key = NULL, baseSize = 12,
   baseFamily = "sans", title = NULL, legendPosition = "right",
   defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL)
@@ -70,7 +70,10 @@ ignored if \code{locationName} is defined.}
 \item{scaleRange}{a numeric vector of lenght 2 that specifies the minimum and maximum size 
 of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).}
 
-\item{shapeColour}{color of of artifact placed on map.}
+\item{shapeColour}{color of metric artifacts placed on map.}
+
+\item{shapeAlpha}{transparency of metric artifacts expressed as a fraction between 0 (complete 
+transparency) and 1 (complete opacity).}
 
 \item{textColour}{color of artifact labels on map.}
 

@@ -85,7 +85,9 @@
 #' @param scaleRange a numeric vector of lenght 2 that specifies the minimum and maximum size 
 #'   of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).
 #' @param labelName name of the column to use for the artifact label text when displaying data. 
-#' @param shapeColour color of of artifact placed on map.
+#' @param shapeColour color of metric artifacts placed on map.
+#' @param shapeAlpha transparency of metric artifacts expressed as a fraction between 0 (complete 
+#'   transparency) and 1 (complete opacity).
 #' @param textColour color of artifact labels on map.
 #' @param textFamily font family (when available) to use for artfiact labels.
 #' @param textFace font style to apply to artifact labels: 'plain' (default), 'bold', 'italic', or 
@@ -147,6 +149,7 @@ createMap <- function(data,
                       metricName = NULL, labelName = NULL, 
                       scaleRange = c(1,6),
                       shapeColour = "red",
+                      shapeAlpha = 0.5,
                       textColour = "black", textFamily='mono' , textFace="plain", textSize=4,
                       facet = NULL, ncol = 1, facetScales = "fixed",
                       geocodeFun = memoise::memoise(geocode), getmapFun = get_map,
@@ -230,7 +233,7 @@ createMap <- function(data,
   
   if (!missing(metricName)) {
     p = p +
-      geom_point(data=data, aes_string(x=lonName, y=latName, size=metricName), colour=shapeColour) +
+      geom_point(data=data, aes_string(x=lonName, y=latName, size=metricName), colour=shapeColour, alpha=shapeAlpha) +
       scale_size(metricName, range=scaleRange)
   } 
   

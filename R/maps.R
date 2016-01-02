@@ -81,13 +81,19 @@
 #' @param latName name of the column with latitude value. This value (in combination with value 
 #'   from column \code{lonName}) is used to place each data point on the map. This parameter is 
 #'   ignored if \code{locationName} is defined.
-#' @param metricName name of the column to use for the artifact metric when displaying data.
+#' @param metricName name of the column to use when scaling artifact shapes (also see \code{scaleSize} and \code{shapeStroke}).
 #' @param scaleRange a numeric vector of lenght 2 that specifies the minimum and maximum size 
 #'   of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).
 #' @param labelName name of the column to use for the artifact label text when displaying data. 
+#' @param shape type of shape to use.
 #' @param shapeColour color of metric artifacts placed on map.
-#' @param shapeAlpha transparency of metric artifacts expressed as a fraction between 0 (complete 
+#' @param shapeAlpha transparency of an artifact shape expressed as a fraction between 0 (complete 
 #'   transparency) and 1 (complete opacity).
+#' @param shapeStroke border width of an artifact shape. Remember, that in \code{ggplot2} \code{size} and \code{stroke}
+#'   are additive so a point with \code{size = 5} and \code{stroke = 5} will have a diameter of 10mm. \code{\link{createMap}} 
+#'   maps \code{metricName} to shape size.
+#' @param scaleSize logical if TRUE then scale artifact shapes by size (radius), otherwise scale shape's 
+#'   area (artifact shapes scaling always uses \code{metricName} values).
 #' @param textColour color of artifact labels on map.
 #' @param textFamily font family (when available) to use for artfiact labels.
 #' @param textFace font style to apply to artifact labels: 'plain' (default), 'bold', 'italic', or 
@@ -110,8 +116,10 @@
 #' @param baseSize base font size.
 #' @param baseFamily base font family.
 #' @param title plot title.
-#' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element 
-#'   numeric vector. "none" is no legend.)
+#' @param legendPosition the position of metric guide ("left", "right", "bottom", "top", or two-element 
+#'   numeric vector; "none" is no legend).
+#' @param metricGuide Name of guide object, or object itself. Guide is for the metric, typically 
+#'   \code{"legend"} name or object \code{\link[ggplot2]{guide_legend}}.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}.
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add.
 #' 
@@ -148,8 +156,11 @@ createMap <- function(data,
                       lonName = "LONGITUDE", latName = "LATITUDE",
                       metricName = NULL, labelName = NULL, 
                       scaleRange = c(1,6),
+                      shape = 19,
                       shapeColour = "red",
                       shapeAlpha = 0.5,
+                      shapeStroke = 0.5,
+                      scaleSize = TRUE,
                       textColour = "black", textFamily='mono' , textFace="plain", textSize=4,
                       facet = NULL, ncol = 1, facetScales = "fixed",
                       geocodeFun = memoise::memoise(geocode), getmapFun = get_map,
@@ -157,6 +168,7 @@ createMap <- function(data,
                       baseSize = 12, baseFamily = "sans", 
                       title = NULL,
                       legendPosition = "right",
+                      metricGuide = "legend",
                       defaultTheme = theme_bw(base_size = baseSize),
                       themeExtra = NULL) {
   
@@ -233,9 +245,13 @@ createMap <- function(data,
   
   if (!missing(metricName)) {
     p = p +
-      geom_point(data=data, aes_string(x=lonName, y=latName, size=metricName), colour=shapeColour, alpha=shapeAlpha) +
-      scale_size(metricName, range=scaleRange)
-  } 
+      geom_point(data=data, aes_string(x=lonName, y=latName, size=metricName), shape=shape, colour=shapeColour, 
+                 stroke=shapeStroke, alpha=shapeAlpha) +
+      (if (scaleSize)
+       scale_radius(metricName, range=scaleRange, guide=metricGuide)
+     else
+       scale_size(metricName, range=scaleRange, guide=metricGuide))
+  }
   
   if (!missing(labelName)) {
     p = p +

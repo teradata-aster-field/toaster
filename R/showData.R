@@ -389,7 +389,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     overview = melt(data, id.vars='COLUMN_NAME', measure.vars=measures)
     
     p = ggplot(overview, aes_string(x='COLUMN_NAME')) +
-      geom_histogram(aes_string(y='value', fill='COLUMN_NAME'), stat="identity", position="dodge") +
+      geom_bar(aes_string(y='value', fill='COLUMN_NAME'), stat="identity", position="dodge") +
       scale_fill_manual(values = getPalette(nrow(data))) +
       facet_wrap(~variable, ncol=1, scales=scales) +
       labs(title=title, x='Columns')

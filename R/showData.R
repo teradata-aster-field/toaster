@@ -161,12 +161,13 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
                      facetName = NULL, regressionLine = FALSE,
                      corrLabel = 'none', digits = 2, 
                      shape = 21, shapeSizeRange = c(1,10),
-                     facet = FALSE, ncol = 4, 
+                     facet = ifelse(format == 'overview', TRUE, FALSE), 
                      scales = ifelse(facet & format %in% c('boxplot','overview'),"free", "fixed"),
-                     coordFlip = FALSE, paletteName = "Set1", 
+                     ncol = 4, coordFlip = FALSE, paletteName = "Set1", 
                      baseSize = 12, baseFamily = "sans",
                      legendPosition = "none",
-                     defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL, 
+                     defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily), 
+                     themeExtra = NULL, 
                      where = NULL, test = FALSE) {
   
   # match argument values

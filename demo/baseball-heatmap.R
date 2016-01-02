@@ -70,7 +70,7 @@ heatBA = computeHeatmap(conn, 'batting_enh', 'teamid', 'yearid',
                         withMelt=FALSE)
 createHeatmap(heatBA, 'yearid', 'teamid', 'ba',
               title='BA Heatmap AL vs. NL 1990-2012', xlab='Year', ylab='Team',
-              lowGradient=muted("grey", l=30, c=250), highGradient="red",
+              lowGradient="lightgrey", highGradient="red",
               text=TRUE, percent=FALSE, digits=3,
               facet='lgid', legendPosition="none")
 
@@ -80,6 +80,6 @@ pitchERA = computeHeatmap(conn, 'pitching_enh', 'teamid', 'yearid',
                          where="yearid between 1990 and 2012", by="lgid")
 createHeatmap(pitchERA, 'yearid', 'teamid', 'era',
               title='ERA Heatmap AL vs. NL 1990-2012', xlab='Year', ylab='Team',
-              lowGradient="red", highGradient=muted("grey", l=30, c=250),
+              lowGradient="red", highGradient="lightgrey",
               text=TRUE, percent=FALSE, digits=3,
               facet='lgid', legendPosition="none")

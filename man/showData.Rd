@@ -11,10 +11,11 @@ showData(channel = NULL, tableName = NULL, tableInfo = NULL,
   extraPointShape = 15, sampleFraction = NULL, sampleSize = NULL,
   pointColour = NULL, facetName = NULL, regressionLine = FALSE,
   corrLabel = "none", digits = 2, shape = 21, shapeSizeRange = c(1, 10),
-  facet = FALSE, ncol = 4, scales = ifelse(facet & format \%in\%
-  c("boxplot", "overview"), "free", "fixed"), coordFlip = FALSE,
-  paletteName = "Set1", baseSize = 12, baseFamily = "sans",
-  legendPosition = "none", defaultTheme = theme_bw(base_size = baseSize),
+  facet = ifelse(format == "overview", TRUE, FALSE), scales = ifelse(facet &
+  format \%in\% c("boxplot", "overview"), "free", "fixed"), ncol = 4,
+  coordFlip = FALSE, paletteName = "Set1", baseSize = 12,
+  baseFamily = "sans", legendPosition = "none",
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL, where = NULL, test = FALSE)
 }
 \arguments{
@@ -78,12 +79,12 @@ column list (e.g. \code{include}).}
 When set to TRUE and format is 'boxplot' scales defalut changes from 'fixed' to 'free'. Has no effect 
 when format is 'corr'.}
 
-\item{ncol}{Number of columns in facet wrap.}
-
 \item{scales}{Are scales shared across all facets: \code{"fixed"} - all are the same, 
 \code{"free_x"} - vary across rows (x axis), \code{"free_y"} - vary across columns (Y axis) (default),
 \code{"free"} - both rows and columns (see in \code{facet_wrap} parameter \code{scales}. 
 Also see parameter \code{facet} for details on default values.)}
+
+\item{ncol}{Number of columns in facet wrap.}
 
 \item{coordFlip}{logical flipped cartesian coordinates so that horizontal becomes vertical, 
 and vertical, horizontal (see \link{coord_flip}).}

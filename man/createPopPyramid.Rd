@@ -9,8 +9,8 @@ createPopPyramid(data, bin = "bin_start", count = "bin_count", divideBy,
   facet = NULL, ncol = 1, facetScales = "fixed", baseSize = 12,
   baseFamily = "sans", title = paste("Population Pyramid Histogram by",
   divideBy), xlab = bin, ylab = count, legendPosition = "right",
-  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
-  themeExtra = NULL)
+  fillGuide = "legend", defaultTheme = theme_tufte(base_size = baseSize,
+  base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains 2 histograms for the same bins. Bins are divided into 2 sets with
@@ -55,6 +55,9 @@ columns (see in \code{facet_wrap} parameter \code{scales} )}
 
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", 
 or two-element numeric vector). "none" is no legend.}
+
+\item{fillGuide}{Name of guide object, or object itself for \code{divideBy}. Typically \code{"legend"} name
+or object \code{\link[ggplot2]{guide_legend}}.}
 
 \item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 

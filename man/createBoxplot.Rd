@@ -8,9 +8,9 @@ createBoxplot(data, x = NULL, fill = x, value = "value", useIQR = FALSE,
   facet = NULL, ncol = 1, facetScales = "fixed", paletteValues = NULL,
   palette = "Set1", title = paste("Boxplots", ifelse(is.null(x), NULL,
   paste("by", x))), xlab = x, ylab = NULL, legendPosition = "right",
-  coordFlip = FALSE, baseSize = 12, baseFamily = "sans",
-  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
-  themeExtra = NULL)
+  fillGuide = "legend", coordFlip = FALSE, baseSize = 12,
+  baseFamily = "sans", defaultTheme = theme_tufte(base_size = baseSize,
+  base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
 \item{data}{quartiles precomputed with \code{\link{computePercentiles}}}
@@ -55,6 +55,9 @@ columns (see in \code{facet_wrap} parameter \code{scales} )}
 
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 vector). "none" is no legend.}
+
+\item{fillGuide}{Name of guide object, or object itself for the \code{fill} (when present). Typically \code{"legend"} name
+or object \code{\link[ggplot2]{guide_legend}}.}
 
 \item{coordFlip}{logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 \link{coord_flip}).}

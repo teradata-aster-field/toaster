@@ -8,13 +8,16 @@ createMap(data, maptype = "terrain", mapColor = c("color", "bw"),
   source = c("google", "osm", "stamen", "cloudmade"), location = NULL,
   locator = "center", boxBorderMargin = 10, zoom = NULL,
   locationName = NULL, lonName = "LONGITUDE", latName = "LATITUDE",
-  metricName = NULL, labelName = NULL, scaleRange = c(1, 6),
-  shapeColour = "red", shapeAlpha = 0.5, textColour = "black",
-  textFamily = "mono", textFace = "plain", textSize = 4, facet = NULL,
-  ncol = 1, facetScales = "fixed", geocodeFun = memoise::memoise(geocode),
-  getmapFun = get_map, urlonly = FALSE, api_key = NULL, baseSize = 12,
-  baseFamily = "sans", title = NULL, legendPosition = "right",
-  defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL)
+  metricName = NULL, metrics = metricName, labelName = NULL,
+  scaleRange = c(1, 6), shape = 19, shapeColour = "red",
+  shapeAlpha = 0.5, shapeStroke = 0.5, scaleSize = TRUE,
+  textColour = "black", textFamily = "mono", textFace = "plain",
+  textSize = 4, facet = NULL, ncol = 1, facetScales = "fixed",
+  geocodeFun = memoise::memoise(geocode), getmapFun = get_map,
+  urlonly = FALSE, api_key = NULL, baseSize = 12, baseFamily = "sans",
+  title = NULL, legendPosition = "right", metricGuide = c("legend",
+  "colorbar"), defaultTheme = theme_bw(base_size = baseSize),
+  themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame with artifacts and their locations and metric(s) to be placed 
@@ -63,17 +66,30 @@ ignored if \code{locationName} is defined.}
 from column \code{lonName}) is used to place each data point on the map. This parameter is 
 ignored if \code{locationName} is defined.}
 
-\item{metricName}{name of the column to use for the artifact metric when displaying data.}
+\item{metricName}{(deprecated) name of the column to use when scaling artifact shapes 
+(also see \code{scaleSize} and \code{shapeStroke}). Use parameter \code{metrics} instead.}
+
+\item{metrics}{character vector of column names with metric values to scale shapes placed on map. First 
+metric corresponds to the size (or area depending on \code{scaleSize}), second to the fill gradient.}
 
 \item{labelName}{name of the column to use for the artifact label text when displaying data.}
 
 \item{scaleRange}{a numeric vector of lenght 2 that specifies the minimum and maximum size 
 of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).}
 
+\item{shape}{type of shape to use.}
+
 \item{shapeColour}{color of metric artifacts placed on map.}
 
-\item{shapeAlpha}{transparency of metric artifacts expressed as a fraction between 0 (complete 
+\item{shapeAlpha}{transparency of an artifact shape expressed as a fraction between 0 (complete 
 transparency) and 1 (complete opacity).}
+
+\item{shapeStroke}{border width of an artifact shape. Remember, that in \code{ggplot2} \code{size} and \code{stroke}
+are additive so a point with \code{size = 5} and \code{stroke = 5} will have a diameter of 10mm. \code{\link{createMap}} 
+maps \code{metrics[[1]]} to shape size.}
+
+\item{scaleSize}{logical if TRUE then scale artifact shapes by size (radius), otherwise scale shape's 
+area (artifact shapes scaling always uses \code{metrics[[1]]} values).}
 
 \item{textColour}{color of artifact labels on map.}
 
@@ -111,8 +127,11 @@ use memoised version, e.g. \code{memose(get_map)}, instead (see package \pkg{mem
 
 \item{title}{plot title.}
 
-\item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element 
-numeric vector. "none" is no legend.)}
+\item{legendPosition}{the position of metric guide ("left", "right", "bottom", "top", or two-element 
+numeric vector; "none" is no legend).}
+
+\item{metricGuide}{Name of guide object, or object itself. Guide is for the metric, typically 
+\code{"legend"} name or object \code{\link[ggplot2]{guide_legend}}.}
 
 \item{defaultTheme}{plot theme to use, default is \code{theme_bw}.}
 
@@ -158,8 +177,8 @@ or map types terrain, satellite, roadmap or hybrid.
 Note that in most cases by using Google source you are agreeing to the Google Maps API 
 Terms of Service at https://developers.google.com/maps/terms.
 
-Shapes: data artifacts are shapes placed over the map. Their size is scaled using
-values in \code{metricName} column and their location is determined either by 
+Shapes: data artifacts are shapes placed over the map. Their size and fill are scaled using
+values in \code{metrics} columns and their location is determined either by 
 geocoding values from \code{locationName} column or with longitude and latitude values
 stored in \code{lonName} and \code{latName} columns.
 
@@ -183,7 +202,7 @@ geocodeMem = memoise(geocode)
 createMap(data=data[data$decadeid>=2000,], 
           source = "stamen", maptype = "watercolor", zoom=4, 
           facet=c("lgid", "decadeid"),
-          locationName='teamname', locationNameBak='park', metricName='attendance', 
+          locationName='teamname', locationNameBak='park', metrics='attendance', 
           labelName='name', shapeColour="blue", scaleRange = c(2,12), textColour="black",
           title='Game Attendance by Decade and League (yearly, 2000-2012)',
           geocodeFun=geocodeMem)

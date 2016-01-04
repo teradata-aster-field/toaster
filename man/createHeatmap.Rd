@@ -11,8 +11,9 @@ createHeatmap(data, x, y, fill, facet = NULL, ncol = 1, baseSize = 12,
   lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"),
   midGradient = "white", highGradient = ifelse(divergingColourGradient,
   muted("blue"), "#132B43"), title = paste("Heatmap by", fill), xlab = x,
-  ylab = y, legendPosition = "right", defaultTheme = theme_tufte(base_size
-  = baseSize, base_family = baseFamily), themeExtra = NULL)
+  ylab = y, legendPosition = "right", fillGuide = "colorbar",
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains data computed for heatmap}
@@ -67,6 +68,9 @@ extremes (e.g. temprature, outliers, etc.)}
 
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 vector). "none" is no legend.}
+
+\item{fillGuide}{Name of guide object, or object itself for the \code{fill}. Typically \code{"colorbar"} name
+or object \code{\link[ggplot2]{guide_colourbar}}.}
 
 \item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 

@@ -38,8 +38,8 @@
 #' Note that in most cases by using Google source you are agreeing to the Google Maps API 
 #' Terms of Service at https://developers.google.com/maps/terms.
 #' 
-#' Shapes: data artifacts are shapes placed over the map. Their size is scaled using
-#' values in \code{metricName} column and their location is determined either by 
+#' Shapes: data artifacts are shapes placed over the map. Their size and fill are scaled using
+#' values in \code{metrics} columns and their location is determined either by 
 #' geocoding values from \code{locationName} column or with longitude and latitude values
 #' stored in \code{lonName} and \code{latName} columns. 
 #' 
@@ -81,7 +81,10 @@
 #' @param latName name of the column with latitude value. This value (in combination with value 
 #'   from column \code{lonName}) is used to place each data point on the map. This parameter is 
 #'   ignored if \code{locationName} is defined.
-#' @param metricName name of the column to use when scaling artifact shapes (also see \code{scaleSize} and \code{shapeStroke}).
+#' @param metricName (deprecated) name of the column to use when scaling artifact shapes 
+#'   (also see \code{scaleSize} and \code{shapeStroke}). Use parameter \code{metrics} instead.
+#' @param metrics character vector of column names with metric values to scale shapes placed on map. First 
+#'   metric corresponds to the size (or area depending on \code{scaleSize}), second to the fill gradient.
 #' @param scaleRange a numeric vector of lenght 2 that specifies the minimum and maximum size 
 #'   of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).
 #' @param labelName name of the column to use for the artifact label text when displaying data. 
@@ -91,9 +94,9 @@
 #'   transparency) and 1 (complete opacity).
 #' @param shapeStroke border width of an artifact shape. Remember, that in \code{ggplot2} \code{size} and \code{stroke}
 #'   are additive so a point with \code{size = 5} and \code{stroke = 5} will have a diameter of 10mm. \code{\link{createMap}} 
-#'   maps \code{metricName} to shape size.
+#'   maps \code{metrics[[1]]} to shape size.
 #' @param scaleSize logical if TRUE then scale artifact shapes by size (radius), otherwise scale shape's 
-#'   area (artifact shapes scaling always uses \code{metricName} values).
+#'   area (artifact shapes scaling always uses \code{metrics[[1]]} values).
 #' @param textColour color of artifact labels on map.
 #' @param textFamily font family (when available) to use for artfiact labels.
 #' @param textFace font style to apply to artifact labels: 'plain' (default), 'bold', 'italic', or 
@@ -141,7 +144,7 @@
 #' createMap(data=data[data$decadeid>=2000,], 
 #'           source = "stamen", maptype = "watercolor", zoom=4, 
 #'           facet=c("lgid", "decadeid"),
-#'           locationName='teamname', locationNameBak='park', metricName='attendance', 
+#'           locationName='teamname', locationNameBak='park', metrics='attendance', 
 #'           labelName='name', shapeColour="blue", scaleRange = c(2,12), textColour="black",
 #'           title='Game Attendance by Decade and League (yearly, 2000-2012)',
 #'           geocodeFun=geocodeMem)
@@ -154,7 +157,7 @@ createMap <- function(data,
                       zoom = NULL,
                       locationName = NULL, 
                       lonName = "LONGITUDE", latName = "LATITUDE",
-                      metricName = NULL, labelName = NULL, 
+                      metricName = NULL, metrics = metricName, labelName = NULL, 
                       scaleRange = c(1,6),
                       shape = 19,
                       shapeColour = "red",
@@ -168,7 +171,7 @@ createMap <- function(data,
                       baseSize = 12, baseFamily = "sans", 
                       title = NULL,
                       legendPosition = "right",
-                      metricGuide = "legend",
+                      metricGuide = c("legend", "colorbar"),
                       defaultTheme = theme_bw(base_size = baseSize),
                       themeExtra = NULL) {
   
@@ -177,6 +180,10 @@ createMap <- function(data,
   mapColor = match.arg(mapColor, c('color', 'bw'))
   source = match.arg(source, c("google", "osm", "stamen", "cloudmade"))
   locator = match.arg(locator, c('center', 'box'))
+  
+  if (!is.null(metricName)) {
+    toa_dep("0.4.1", "\"metricName\" argument in createMap is deprecated. Use \"metrics\" for column names with values used to scale shapes placed on map.")
+  }
   
   # geocode locations
   if (missing(location)) {
@@ -243,14 +250,28 @@ createMap <- function(data,
   p = ggmap(m) +
     labs(title=title)
   
-  if (!missing(metricName)) {
-    p = p +
-      geom_point(data=data, aes_string(x=lonName, y=latName, size=metricName), shape=shape, colour=shapeColour, 
+  if (!missing(metrics) && length(metrics) > 0) {
+    if (length(metrics) == 1) {
+      metric1 = metrics[[1]]
+      p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1), shape=shape, colour=shapeColour, 
                  stroke=shapeStroke, alpha=shapeAlpha) +
       (if (scaleSize)
-       scale_radius(metricName, range=scaleRange, guide=metricGuide)
+       scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
      else
-       scale_size(metricName, range=scaleRange, guide=metricGuide))
+       scale_size(metric1, range=scaleRange, guide=metricGuide[[1]]))
+
+    }else {
+      metric1 = metrics[[1]]
+      metric2 = metrics[[2]]
+      p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1, fill=metric2), shape=shape,
+                               stroke=shapeStroke, alpha=shapeAlpha) +
+        (if (scaleSize)
+       scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
+     else
+       scale_size(metric1, range=scaleRange, guide=metricGuide[[1]])) +
+        scale_fill_gradient(metric2, low="grey", high=shapeColour, guide=metricGuide[[2]])
+
+    }
   }
   
   if (!missing(labelName)) {

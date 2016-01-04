@@ -264,7 +264,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     corrmat = cbind(corrmat, valuePretty=prettyNum(corrmat[, 'value'], digits=digits) , none='')
     corrmat$value = abs(corrmat$value)
     corrLabelName = list('none', 'valuePretty', 'corr')[match(corrLabel, c('none','value','pair'))]
-    p = createBubblechart(corrmat, "metric1", "metric2", "value", label=corrLabelName, fill="sign",
+    p = createBubblechart(corrmat, "metric1", "metric2", "value", label=unlist(corrLabelName), fill="sign",
                           shape=shape, shapeSizeRange=shapeSizeRange, labelSize=5, labelVJust=0,
                           title=title, legendPosition=legendPosition,
                           defaultTheme=defaultTheme, 

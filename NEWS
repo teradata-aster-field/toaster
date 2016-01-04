@@ -4,8 +4,16 @@ toaster 0.4.2
 
 MINOR FEATURES
 
-* added transparency control of shapes associated with metric values 
-  on the map. (#24)
+* `createMap` support for:
+    - scaling of shape's fill using 2d metric. This deprecates parameter 
+      `metricName` - use vector `metrics` instead (#25);
+    - transparency control of shapes on the map. (#24);
+    - shape and stroke parameters to better manage appearance of 
+      artifacts on the map.
+      
+* all plotting functions gain guide parameter(s) to control appearance of 
+  fill, size or other legend(s) using ggplot2 guide object name or object 
+  itself.
   
 BUG FIXES
 
@@ -14,6 +22,12 @@ BUG FIXES
   
 * Kmeans SQL is correct now when `id` is exactly one of
   the table columns and default `aliasId`. (fixes #22)
+  
+* `showData` now uses same default theme_tufte as the rest of plotting 
+  functions (missed it 0.4.1).
+
+* fixed histograms in `showData` after upgrading to ggplot2 2.0.0 (missed 
+  it 0.4.1).
 
 toaster 0.4.1
 ----------------------------------------------------------------

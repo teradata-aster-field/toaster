@@ -46,7 +46,7 @@
 createCentroidPlot <- function(km, format='line', groupByCluster=TRUE, 
                                baseSize = 12, baseFamily = "serif",
                                title = paste("Cluster Centroids", format, "Plot"), 
-                               xlab, ylab = ifelse(format=="heatmap", "cluster", "scaled value"), 
+                               xlab, ylab = ifelse(format=="heatmap", "cluster", ifelse(km$scale, "scaled value", "value")), 
                                legendPosition = ifelse(format=="bar", "none", "right"),
                                coordFlip = FALSE, ticks = FALSE,
                                defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=ticks),

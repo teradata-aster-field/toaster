@@ -185,6 +185,14 @@ createMap <- function(data,
     toa_dep("0.4.1", "\"metricName\" argument in createMap is deprecated. Use \"metrics\" for column names with values used to scale shapes placed on map.")
   }
   
+  if (length(metrics) > 2) {
+    stop("createMap supports 2 or fewer metrics.")
+  }
+  
+  if (!all(metrics %in% names(data))) {
+    stop(paste("Some of the metrics", paste0("'", metrics, "'", collapse=", "), "are missing from the data."))
+  }
+
   # geocode locations
   if (missing(location)) {
     if (!missing(locationName)) {
@@ -250,28 +258,29 @@ createMap <- function(data,
   p = ggmap(m) +
     labs(title=title)
   
-  if (!missing(metrics) && length(metrics) > 0) {
-    if (length(metrics) == 1) {
-      metric1 = metrics[[1]]
-      p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1), shape=shape, colour=shapeColour, 
-                 stroke=shapeStroke, alpha=shapeAlpha) +
-      (if (scaleSize)
+  if (length(metrics) == 0) {
+    p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=1), shape=shape, colour=shapeColour,
+                       stroke=shapeStroke, alpha=shapeAlpha)
+    
+  }else if (length(metrics) == 1) {
+    metric1 = metrics[[1]]
+    p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1), shape=shape, colour=shapeColour, 
+               stroke=shapeStroke, alpha=shapeAlpha) +
+    (if (scaleSize)
        scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
-     else
+    else
        scale_size(metric1, range=scaleRange, guide=metricGuide[[1]]))
 
-    }else {
-      metric1 = metrics[[1]]
-      metric2 = metrics[[2]]
-      p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1, fill=metric2), shape=shape,
+  }else {
+    metric1 = metrics[[1]]
+    metric2 = metrics[[2]]
+    p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1, fill=metric2), shape=shape,
                                stroke=shapeStroke, alpha=shapeAlpha) +
-        (if (scaleSize)
-       scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
-     else
-       scale_size(metric1, range=scaleRange, guide=metricGuide[[1]])) +
-        scale_fill_gradient(metric2, low="grey", high=shapeColour, guide=metricGuide[[2]])
-
-    }
+      (if (scaleSize)
+         scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
+       else
+         scale_size(metric1, range=scaleRange, guide=metricGuide[[1]])) +
+      scale_fill_gradient(metric2, low="grey", high=shapeColour, guide=metricGuide[[2]])
   }
   
   if (!missing(labelName)) {

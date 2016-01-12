@@ -15,7 +15,7 @@ createMap(data, maptype = "terrain", mapColor = c("color", "bw"),
   textSize = 4, facet = NULL, ncol = 1, facetScales = "fixed",
   geocodeFun = memoise::memoise(geocode), getmapFun = get_map,
   urlonly = FALSE, api_key = NULL, baseSize = 12, baseFamily = "sans",
-  title = NULL, legendPosition = "right", metricGuide = c("legend",
+  title = NULL, legendPosition = "right", metricGuides = c("legend",
   "colorbar"), defaultTheme = theme_bw(base_size = baseSize),
   themeExtra = NULL)
 }
@@ -130,8 +130,9 @@ use memoised version, e.g. \code{memose(get_map)}, instead (see package \pkg{mem
 \item{legendPosition}{the position of metric guide ("left", "right", "bottom", "top", or two-element 
 numeric vector; "none" is no legend).}
 
-\item{metricGuide}{Name of guide object, or object itself. Guide is for the metric, typically 
-\code{"legend"} name or object \code{\link[ggplot2]{guide_legend}}.}
+\item{metricGuides}{list or vector with names of guide objects, or objects themselves, for up to 2 metrics. Typical 
+guides are \code{"legend"} or \code{"colorbar"} names and \code{\link[ggplot2]{guide_legend}} or
+\code{\link[ggplot2]{guide_colorbar}} objects.}
 
 \item{defaultTheme}{plot theme to use, default is \code{theme_bw}.}
 

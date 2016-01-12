@@ -121,8 +121,9 @@
 #' @param title plot title.
 #' @param legendPosition the position of metric guide ("left", "right", "bottom", "top", or two-element 
 #'   numeric vector; "none" is no legend).
-#' @param metricGuide Name of guide object, or object itself. Guide is for the metric, typically 
-#'   \code{"legend"} name or object \code{\link[ggplot2]{guide_legend}}.
+#' @param metricGuides list or vector with names of guide objects, or objects themselves, for up to 2 metrics. Typical 
+#'   guides are \code{"legend"} or \code{"colorbar"} names and \code{\link[ggplot2]{guide_legend}} or
+#'   \code{\link[ggplot2]{guide_colorbar}} objects.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}.
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add.
 #' 
@@ -171,7 +172,7 @@ createMap <- function(data,
                       baseSize = 12, baseFamily = "sans", 
                       title = NULL,
                       legendPosition = "right",
-                      metricGuide = c("legend", "colorbar"),
+                      metricGuides = c("legend", "colorbar"),
                       defaultTheme = theme_bw(base_size = baseSize),
                       themeExtra = NULL) {
   
@@ -267,9 +268,9 @@ createMap <- function(data,
     p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1), shape=shape, colour=shapeColour, 
                stroke=shapeStroke, alpha=shapeAlpha) +
     (if (scaleSize)
-       scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
+       scale_radius(metric1, range=scaleRange, guide=metricGuides[[1]])
     else
-       scale_size(metric1, range=scaleRange, guide=metricGuide[[1]]))
+       scale_size(metric1, range=scaleRange, guide=metricGuides[[1]]))
 
   }else {
     metric1 = metrics[[1]]
@@ -277,10 +278,10 @@ createMap <- function(data,
     p = p + geom_point(data=data, aes_string(x=lonName, y=latName, size=metric1, fill=metric2), shape=shape,
                                stroke=shapeStroke, alpha=shapeAlpha) +
       (if (scaleSize)
-         scale_radius(metric1, range=scaleRange, guide=metricGuide[[1]])
+         scale_radius(metric1, range=scaleRange, guide=metricGuides[[1]])
        else
-         scale_size(metric1, range=scaleRange, guide=metricGuide[[1]])) +
-      scale_fill_gradient(metric2, low="grey", high=shapeColour, guide=metricGuide[[2]])
+         scale_size(metric1, range=scaleRange, guide=metricGuides[[1]])) +
+      scale_fill_gradient(metric2, low="grey", high=shapeColour, guide=metricGuides[[2]])
   }
   
   if (!missing(labelName)) {

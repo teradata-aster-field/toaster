@@ -7,9 +7,10 @@
 createCentroidPlot(km, format = "line", groupByCluster = TRUE,
   baseSize = 12, baseFamily = "serif", title = paste("Cluster Centroids",
   format, "Plot"), xlab, ylab = ifelse(format == "heatmap", "cluster",
-  "scaled value"), legendPosition = ifelse(format == "bar", "none", "right"),
-  coordFlip = FALSE, ticks = FALSE, defaultTheme = theme_tufte(base_size =
-  baseSize, base_family = baseFamily, ticks = ticks), themeExtra = NULL)
+  ifelse(km$scale, "scaled value", "value")), legendPosition = ifelse(format
+  == "bar", "none", "right"), coordFlip = FALSE, ticks = FALSE,
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
+  ticks = ticks), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}

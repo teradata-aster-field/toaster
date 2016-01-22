@@ -72,19 +72,21 @@
 #' @param zoom map zoom as defined in \code{\link{get_map}}: an integer from 3 (continent) 
 #'   to 21 (building), default value 10 (city). Properly setting \code{zoom} for each map is 
 #'   responsibility of a caller. Zoom is optional when using bounding box location specification. 
-#' @param locationName name of the column with strings to be geocoded to determine longitude and
-#'   latitude for each data point. If this value is specified then parameters \code{lonName} and 
-#'   \code{latName} are ignored.
+#' @param locationName vector of the column names with address or name to geocode its location (find 
+#'   latitude and longitude) using \code{\link{geocode}} (see package \pkg{ggmap}). 
+#'   When \code{locationName} is specified then parameters \code{lonName} and \code{latName} are ignored. 
+#'   Multiple column names are used in order of appearance: geocoding tries 1st column's values first, 
+#'   then, for the data points that didn't get resolved, it tries the 2d column's values, and so on.
 #' @param lonName name of the column with longitude value. This value (in combination with value 
 #'   from column \code{latName}) is used to place each data point on the map. This parameter is 
 #'   ignored if \code{locationName} is defined. 
 #' @param latName name of the column with latitude value. This value (in combination with value 
 #'   from column \code{lonName}) is used to place each data point on the map. This parameter is 
 #'   ignored if \code{locationName} is defined.
-#' @param metricName (deprecated) name of the column to use when scaling artifact shapes 
-#'   (also see \code{scaleSize} and \code{shapeStroke}). Use parameter \code{metrics} instead.
+#' @param metricName (deprecated) Use parameter \code{metrics} instead.
 #' @param metrics character vector of column names with metric values to scale shapes placed on map. First 
 #'   metric corresponds to the size (or area depending on \code{scaleSize}), second to the fill gradient.
+#'   See also \code{scaleSize} and \code{shapeStroke}.
 #' @param scaleRange a numeric vector of lenght 2 that specifies the minimum and maximum size 
 #'   of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).
 #' @param labelName name of the column to use for the artifact label text when displaying data. 
@@ -134,21 +136,22 @@
 #' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
 #'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 #' 
-#' data = computeAggregates(asterConn, "pitching",
-#'                columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
-#'                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
-#'                               "avg(attendance) attendance")
-#'                )
+#' data = computeAggregates(channel = conn, "teams_enh",
+#'                 aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
+#'                                "avg(attendance) attendance"),
+#'                 by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"))
 #'                
-#' geocodeMem = memoise(geocode)
+#' geocodeFun = memoise::memoise(ggmap::geocode)
+#' getMapFun = memoise::memoise(ggmap::get_map)
 #' 
 #' createMap(data=data[data$decadeid>=2000,], 
 #'           source = "stamen", maptype = "watercolor", zoom=4, 
 #'           facet=c("lgid", "decadeid"),
-#'           locationName='teamname', locationNameBak='park', metrics='attendance', 
+#'           locationName=c('teamname','name'), 
+#'           metrics=c('rank', 'attendance'), shape = 21,
 #'           labelName='name', shapeColour="blue", scaleRange = c(2,12), textColour="black",
 #'           title='Game Attendance by Decade and League (yearly, 2000-2012)',
-#'           geocodeFun=geocodeMem)
+#'           geocodeFun=geocodeFun, getmapFun = getMapFun)
 #' }
 createMap <- function(data,  
                       maptype = "terrain", 
@@ -156,7 +159,7 @@ createMap <- function(data,
                       source = c("google", "osm", "stamen", "cloudmade"),
                       location = NULL, locator = 'center', boxBorderMargin = 10,
                       zoom = NULL,
-                      locationName = NULL, 
+                      locationName = NULL,
                       lonName = "LONGITUDE", latName = "LATITUDE",
                       metricName = NULL, metrics = metricName, labelName = NULL, 
                       scaleRange = c(1,6),
@@ -197,7 +200,20 @@ createMap <- function(data,
   # geocode locations
   if (missing(location)) {
     if (!missing(locationName)) {
-      geocodes = ldply(data[, locationName], function(x) geocodeFun(x, output="latlon"))
+      geocodes = adply(data[ , locationName, drop=FALSE], 1, function(x) {
+        x = as.data.frame(x, stringsAsFactors=FALSE)
+        for(i in length(x)) {
+          lookup_value = x[[1,i]]
+          if (is.na(lookup_value) || is.null(lookup_value)) break
+          latlon_lookup = geocodeFun(lookup_value, output="latlon")
+          if (!any(is.na(latlon_lookup))) break
+        }
+        if(exists("latlon_lookup"))
+          latlon_lookup
+        else
+          data.frame(lon=NA, lat=NA)
+      })
+      geocodes = geocodes[ , -which(names(geocodes) %in% locationName)]
     }else {
       geocodes = data[, c(lonName, latName)]
     }
@@ -287,7 +303,7 @@ createMap <- function(data,
   if (!missing(labelName)) {
     p = p +
       geom_text(data=data, aes_string(label=labelName, x=lonName, y=latName), colour=textColour, 
-                family=textFamily , face=textFace, size=textSize, hjust=0.5, vjust=-0.5)
+                family=textFamily , fontface=textFace, size=textSize, hjust=0.5, vjust=-0.5)
   }
   
   p = applyFacet(p, facet, facetScales, ncol)

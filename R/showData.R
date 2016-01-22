@@ -161,12 +161,13 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
                      facetName = NULL, regressionLine = FALSE,
                      corrLabel = 'none', digits = 2, 
                      shape = 21, shapeSizeRange = c(1,10),
-                     facet = FALSE, ncol = 4, 
+                     facet = ifelse(format == 'overview', TRUE, FALSE), 
                      scales = ifelse(facet & format %in% c('boxplot','overview'),"free", "fixed"),
-                     coordFlip = FALSE, paletteName = "Set1", 
+                     ncol = 4, coordFlip = FALSE, paletteName = "Set1", 
                      baseSize = 12, baseFamily = "sans",
                      legendPosition = "none",
-                     defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL, 
+                     defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily), 
+                     themeExtra = NULL, 
                      where = NULL, test = FALSE) {
   
   # match argument values
@@ -263,7 +264,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     corrmat = cbind(corrmat, valuePretty=prettyNum(corrmat[, 'value'], digits=digits) , none='')
     corrmat$value = abs(corrmat$value)
     corrLabelName = list('none', 'valuePretty', 'corr')[match(corrLabel, c('none','value','pair'))]
-    p = createBubblechart(corrmat, "metric1", "metric2", "value", label=corrLabelName, fill="sign",
+    p = createBubblechart(corrmat, "metric1", "metric2", "value", label=unlist(corrLabelName), fill="sign",
                           shape=shape, shapeSizeRange=shapeSizeRange, labelSize=5, labelVJust=0,
                           title=title, legendPosition=legendPosition,
                           defaultTheme=defaultTheme, 
@@ -389,7 +390,7 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     overview = melt(data, id.vars='COLUMN_NAME', measure.vars=measures)
     
     p = ggplot(overview, aes_string(x='COLUMN_NAME')) +
-      geom_histogram(aes_string(y='value', fill='COLUMN_NAME'), stat="identity", position="dodge") +
+      geom_bar(aes_string(y='value', fill='COLUMN_NAME'), stat="identity", position="dodge") +
       scale_fill_manual(values = getPalette(nrow(data))) +
       facet_wrap(~variable, ncol=1, scales=scales) +
       labs(title=title, x='Columns')

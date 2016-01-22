@@ -8,13 +8,16 @@ createMap(data, maptype = "terrain", mapColor = c("color", "bw"),
   source = c("google", "osm", "stamen", "cloudmade"), location = NULL,
   locator = "center", boxBorderMargin = 10, zoom = NULL,
   locationName = NULL, lonName = "LONGITUDE", latName = "LATITUDE",
-  metricName = NULL, labelName = NULL, scaleRange = c(1, 6),
-  shapeColour = "red", textColour = "black", textFamily = "mono",
-  textFace = "plain", textSize = 4, facet = NULL, ncol = 1,
-  facetScales = "fixed", geocodeFun = memoise::memoise(geocode),
-  getmapFun = get_map, urlonly = FALSE, api_key = NULL, baseSize = 12,
-  baseFamily = "sans", title = NULL, legendPosition = "right",
-  defaultTheme = theme_bw(base_size = baseSize), themeExtra = NULL)
+  metricName = NULL, metrics = metricName, labelName = NULL,
+  scaleRange = c(1, 6), shape = 19, shapeColour = "red",
+  shapeAlpha = 0.5, shapeStroke = 0.5, scaleSize = TRUE,
+  textColour = "black", textFamily = "mono", textFace = "plain",
+  textSize = 4, facet = NULL, ncol = 1, facetScales = "fixed",
+  geocodeFun = memoise::memoise(geocode), getmapFun = get_map,
+  urlonly = FALSE, api_key = NULL, baseSize = 12, baseFamily = "sans",
+  title = NULL, legendPosition = "right", metricGuides = c("legend",
+  "colorbar"), defaultTheme = theme_bw(base_size = baseSize),
+  themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame with artifacts and their locations and metric(s) to be placed 
@@ -51,9 +54,11 @@ from data locations.}
 to 21 (building), default value 10 (city). Properly setting \code{zoom} for each map is 
 responsibility of a caller. Zoom is optional when using bounding box location specification.}
 
-\item{locationName}{name of the column with strings to be geocoded to determine longitude and
-latitude for each data point. If this value is specified then parameters \code{lonName} and 
-\code{latName} are ignored.}
+\item{locationName}{vector of the column names with address or name to geocode its location (find 
+latitude and longitude) using \code{\link{geocode}} (see package \pkg{ggmap}). 
+When \code{locationName} is specified then parameters \code{lonName} and \code{latName} are ignored. 
+Multiple column names are used in order of appearance: geocoding tries 1st column's values first, 
+then, for the data points that didn't get resolved, it tries the 2d column's values, and so on.}
 
 \item{lonName}{name of the column with longitude value. This value (in combination with value 
 from column \code{latName}) is used to place each data point on the map. This parameter is 
@@ -63,14 +68,30 @@ ignored if \code{locationName} is defined.}
 from column \code{lonName}) is used to place each data point on the map. This parameter is 
 ignored if \code{locationName} is defined.}
 
-\item{metricName}{name of the column to use for the artifact metric when displaying data.}
+\item{metricName}{(deprecated) Use parameter \code{metrics} instead.}
+
+\item{metrics}{character vector of column names with metric values to scale shapes placed on map. First 
+metric corresponds to the size (or area depending on \code{scaleSize}), second to the fill gradient.
+See also \code{scaleSize} and \code{shapeStroke}.}
 
 \item{labelName}{name of the column to use for the artifact label text when displaying data.}
 
 \item{scaleRange}{a numeric vector of lenght 2 that specifies the minimum and maximum size 
 of the plotting symbol after transformation (see parameter \code{range} of \code{\link{scale_size}}).}
 
-\item{shapeColour}{color of of artifact placed on map.}
+\item{shape}{type of shape to use.}
+
+\item{shapeColour}{color of metric artifacts placed on map.}
+
+\item{shapeAlpha}{transparency of an artifact shape expressed as a fraction between 0 (complete 
+transparency) and 1 (complete opacity).}
+
+\item{shapeStroke}{border width of an artifact shape. Remember, that in \code{ggplot2} \code{size} and \code{stroke}
+are additive so a point with \code{size = 5} and \code{stroke = 5} will have a diameter of 10mm. \code{\link{createMap}} 
+maps \code{metrics[[1]]} to shape size.}
+
+\item{scaleSize}{logical if TRUE then scale artifact shapes by size (radius), otherwise scale shape's 
+area (artifact shapes scaling always uses \code{metrics[[1]]} values).}
 
 \item{textColour}{color of artifact labels on map.}
 
@@ -108,8 +129,12 @@ use memoised version, e.g. \code{memose(get_map)}, instead (see package \pkg{mem
 
 \item{title}{plot title.}
 
-\item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element 
-numeric vector. "none" is no legend.)}
+\item{legendPosition}{the position of metric guide ("left", "right", "bottom", "top", or two-element 
+numeric vector; "none" is no legend).}
+
+\item{metricGuides}{list or vector with names of guide objects, or objects themselves, for up to 2 metrics. Typical 
+guides are \code{"legend"} or \code{"colorbar"} names and \code{\link[ggplot2]{guide_legend}} or
+\code{\link[ggplot2]{guide_colorbar}} objects.}
 
 \item{defaultTheme}{plot theme to use, default is \code{theme_bw}.}
 
@@ -155,8 +180,8 @@ or map types terrain, satellite, roadmap or hybrid.
 Note that in most cases by using Google source you are agreeing to the Google Maps API 
 Terms of Service at https://developers.google.com/maps/terms.
 
-Shapes: data artifacts are shapes placed over the map. Their size is scaled using
-values in \code{metricName} column and their location is determined either by 
+Shapes: data artifacts are shapes placed over the map. Their size and fill are scaled using
+values in \code{metrics} columns and their location is determined either by 
 geocoding values from \code{locationName} column or with longitude and latitude values
 stored in \code{lonName} and \code{latName} columns.
 
@@ -169,21 +194,22 @@ if(interactive()){
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
-data = computeAggregates(asterConn, "pitching",
-               columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
-               aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
-                              "avg(attendance) attendance")
-               )
+data = computeAggregates(channel = conn, "teams_enh",
+                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
+                               "avg(attendance) attendance"),
+                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"))
                
-geocodeMem = memoise(geocode)
+geocodeFun = memoise::memoise(ggmap::geocode)
+getMapFun = memoise::memoise(ggmap::get_map)
 
 createMap(data=data[data$decadeid>=2000,], 
           source = "stamen", maptype = "watercolor", zoom=4, 
           facet=c("lgid", "decadeid"),
-          locationName='teamname', locationNameBak='park', metricName='attendance', 
+          locationName=c('teamname','name'), 
+          metrics=c('rank', 'attendance'), shape = 21,
           labelName='name', shapeColour="blue", scaleRange = c(2,12), textColour="black",
           title='Game Attendance by Decade and League (yearly, 2000-2012)',
-          geocodeFun=geocodeMem)
+          geocodeFun=geocodeFun, getmapFun = getMapFun)
 }
 }
 

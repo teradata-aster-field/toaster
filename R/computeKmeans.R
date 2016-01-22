@@ -118,8 +118,13 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
     stop("Kmeans operates on one or more numeric variables.")
   }
   
+  # check if id alias is not one of independent variables
   if(idAlias %in% columns)
     stop(paste0("Id alias '", idAlias, "' can't be one of variable names."))
+  
+  # adjust id alias if it's exactly one of the table columns
+  if(idAlias %in% tableInfo$COLUMN_NAME)
+    idAlias = paste("_", idAlias, "_", sep="_")
   
   if (is.matrix(centers))
     if (length(columns) != ncol(centers))
@@ -335,7 +340,7 @@ getClusterSumOfSquaresSql <- function(clusterid, scaledTableName, centroidTableN
   clusterid = as.character(clusterid - 1)
   
   sql = paste0(
-    "SELECT ", clusterid, " clusterid, SUM(distance^2) withinss FROM ", 
+    "SELECT ", clusterid, " clusterid, SUM(distance::double ^ 2) withinss FROM ", 
     getUnpivotedClusterSql(clusterid, scaledTableName, centroidTableName, columns, idAlias)
   )
 }
@@ -350,7 +355,7 @@ getUnpivotedClusterSql <- function(clusterid, scaledTableName, centroidTableName
     
     "VectorDistance(
        ON (
-         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long, value_str::double) value
            FROM unpivot(
                   ON (SELECT d.* 
                         FROM kmeansplot (
@@ -410,8 +415,8 @@ getTotalSumOfSquaresSql <- function(scaledTableName, columns, idAlias, scale) {
   }
 
   sql = paste0(
-    "SELECT sum(distance::bigint ^ 2) totss FROM VectorDistance(
-       ON (SELECT ", idAlias, ", variable, coalesce(value_double, value_long) value
+    "SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
+       ON (SELECT ", idAlias, ", variable, coalesce(value_double, value_long, value_str::double) value
              FROM unpivot(
                ON ", scaledTableName , "
                COLSTOUNPIVOT(", sqlmr_column_list, ")
@@ -691,6 +696,8 @@ getKmeansplotDataSql <- function(scaled_table_name, centroid_table_name, scaled,
 #' }
 computeSilhouette <- function(channel, km, scaled=TRUE, silhouetteTableName=NULL, drop=TRUE, test=FALSE) {
   
+  ptm = proc.time()
+  
   isValidConnection(channel, test)
   
   if(test && is.null(silhouetteTableName)){
@@ -785,6 +792,7 @@ computeSilhouette <- function(channel, km, scaled=TRUE, silhouetteTableName=NULL
   if(!drop) {
     sil = c(sil, tableName=silhouetteTableName)
   }
+  sil$time = proc.time() - ptm
   km$sil = sil
   
   return(km)
@@ -802,7 +810,7 @@ makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAl
      DISTRIBUTE BY HASH(clusterid)
      AS
      WITH kmeansplotresult AS (
-         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long) value
+         SELECT clusterid, ", idAlias, ", variable, coalesce(value_double, value_long, value_str::double) value
            FROM unpivot(
                   ON (", getKmeansplotDataSql(scaled_table_name, centroid_table_name, scaled, query_as_table, idAlias), "
                   )

@@ -34,6 +34,8 @@
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
+#' @param fillGuide Name of guide object, or object itself for the \code{fill}. Typically \code{"colorbar"} name
+#'   or object \code{\link[ggplot2]{guide_colourbar}}.
 #' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 #'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
 #'   and \code{\link[ggthemes]{ggthemes}}.
@@ -67,7 +69,7 @@ createHeatmap <- function(data, x, y, fill,
                           midGradient = "white",
                           highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"), 
                           title = paste("Heatmap by", fill), xlab = x, ylab = y,
-                          legendPosition = "right",
+                          legendPosition = "right", fillGuide = "colorbar",
                           defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                           themeExtra = NULL) {
   
@@ -77,22 +79,17 @@ createHeatmap <- function(data, x, y, fill,
     data = data[data[, thresholdName]>=thresholdValue,]
   }
   
-  # Set text layer before ggplot 
-  #   l = setTextLayer(text, data, fill, percent, digits)
-  #   data = l$data
-  #   textLayer = l$textLayer
   textLayer = setTextLayer(text, data, x, y, textFill, position="identity", percent=percent, digits=digits)
   
   p = ggplot(data, aes_string(x=x, y=y)) +
     geom_tile(aes_string(fill=fill), colour = "white") +    
     (if (divergingColourGradient)
-      scale_fill_gradient2(low=lowGradient, mid=midGradient, high=highGradient)
+      scale_fill_gradient2(low=lowGradient, mid=midGradient, high=highGradient, guide=fillGuide)
      else
-       scale_fill_gradient(low=lowGradient, high=highGradient)
+       scale_fill_gradient(low=lowGradient, high=highGradient, guide=fillGuide)
     ) + 
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
-    #scale_x_discrete(expand = c(0, 0)) +
     theme(legend.position = legendPosition, 
           axis.ticks = element_blank(), 
           #axis.title.x = ifelse(missing(xlab), element_blank(), element_text()),
@@ -224,10 +221,6 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
                             themeExtra = NULL) { 
   
   # Set text layer before ggplot 
-  #   l = setTextLayer(text, data, y, percent, digits)
-  #   data = l$data
-  #   textLayer = l$
-  # #another alternative:#
   # textLayer = setTextLayerBin(text, data, x, y, y, fill=fill, position="identity", percent=percent, digits=digits)
   if (text) {
     data$.value.text = paste0(prettyNum(data[, y], big.mark=",", digits=digits), ifelse(percent, "%", ""))
@@ -365,6 +358,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #' @param baseFamily \code{\link{theme}} base font family
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
+#' @param fillGuide Name of guide object, or object itself for the \code{fill} (when present). Typically \code{"legend"} name
+#'   or object \code{\link[ggplot2]{guide_legend}}.
 #' @param coordFlip logical flipped cartesian coordinates so that horizontal becomes vertical, and vertical horizontal (see 
 #'   \link{coord_flip}).
 #' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
@@ -404,7 +399,7 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
                           paletteValues = NULL, palette = "Set1",
                           title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))), 
                           xlab = x, ylab = NULL,
-                          legendPosition="right", coordFlip = FALSE,
+                          legendPosition="right", fillGuide = "legend", coordFlip = FALSE,
                           baseSize = 12, baseFamily = "sans",
                           defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                           themeExtra=NULL) {
@@ -439,9 +434,9 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
                  stat = "identity") +
     (if(!is.null(fill))
       if(!missing(paletteValues))
-        scale_fill_manual(values = paletteValues)
+        scale_fill_manual(values = paletteValues, guide = fillGuide)
      else # if(!missing(palette))
-       scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))))
+       scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))), guide = fillGuide)
     ) +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
@@ -537,6 +532,10 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
 #' @param labelAngle the angle at which to draw the text label
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 #'   vector). "none" is no legend.
+#' @param sizeGuide Name of guide object, or object itself for the \code{z} (bubble size). Typically \code{"legend"} name
+#'   or object \code{\link[ggplot2]{guide_legend}}. 
+#' @param fillGuide Name of guide object, or object itself for the \code{fill}. Typically \code{"colorbar"} name
+#'   or object \code{\link[ggplot2]{guide_colourbar}}.
 #' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 #'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
 #'   and \code{\link[ggthemes]{ggthemes}}.
@@ -568,9 +567,12 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                               labelSize = 5, labelFamily = "", labelFontface = "plain",
                               labelColour = "black", labelVJust = 0.5, labelHJust = 0.5,
                               labelAlpha = 1, labelAngle = 0, 
-                              legendPosition="right",
+                              legendPosition="right", sizeGuide=FALSE, fillGuide="colorbar",
                               defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                               themeExtra=NULL) {
+  
+  if(is.logical(sizeGuide) && sizeGuide)
+    sizeGuide = guide_legend()
   
   p = ggplot(data, aes_string(x=x, y=y, size=z, label=label, fill=fill), guide=F) +
     geom_point(colour=shapeColour, shape=shape, show.legend=TRUE) +
@@ -579,14 +581,14 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                 vjust=labelVJust, hjust=labelHJust, angle=labelAngle, alpha=labelAlpha, 
                 show.legend=FALSE)) +
     (if (scaleSize)
-       scale_size_continuous(range=shapeSizeRange, guide=FALSE)
+       scale_radius(range=shapeSizeRange, guide=sizeGuide)
      else
-       scale_size_area(max_size=shapeMaxSize, guide=FALSE)) +
+       scale_size_area(max_size=shapeMaxSize, guide=sizeGuide)) +
     (if(!missing(fill))
       if(!missing(paletteValues))
-        scale_fill_manual(values = paletteValues)
+        scale_fill_manual(values = paletteValues, guide = fillGuide)
       else if(!missing(palette))
-        scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))))
+        scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))), guide = fillGuide)
     ) +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +
@@ -859,6 +861,8 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", 
 #'   or two-element numeric vector). "none" is no legend.
+#' @param fillGuide Name of guide object, or object itself for \code{divideBy}. Typically \code{"legend"} name
+#'   or object \code{\link[ggplot2]{guide_legend}}.
 #' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 #'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
 #'   and \code{\link[ggthemes]{ggthemes}}.
@@ -919,7 +923,7 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
                              baseSize = 12, baseFamily = "sans", 
                              title=paste("Population Pyramid Histogram by", divideBy), 
                              xlab = bin, ylab = count,
-                             legendPosition = "right",
+                             legendPosition = "right", fillGuide = "legend",
                              defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                              themeExtra = NULL) {
   if (missing(values)) {
@@ -933,6 +937,7 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
   p = ggplot(data, aes_string(x=bin, y=count, fill=divideBy)) +
     geom_bar(data=data1, stat="identity", colour=mainColour, fill=fillColours[[1]]) +
     geom_bar(data=data2, stat="identity", colour=mainColour, fill=fillColours[[2]]) +
+    guides(fill = fillGuide) +
     coord_flip() +
     defaultTheme +
     labs(title=title, x=xlab, y=ylab) +

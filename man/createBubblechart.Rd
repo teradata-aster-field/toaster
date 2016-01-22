@@ -12,8 +12,9 @@ createBubblechart(data, x, y, z, label = z, fill = NULL, facet = NULL,
   fill), xlab = x, ylab = y, labelSize = 5, labelFamily = "",
   labelFontface = "plain", labelColour = "black", labelVJust = 0.5,
   labelHJust = 0.5, labelAlpha = 1, labelAngle = 0,
-  legendPosition = "right", defaultTheme = theme_tufte(base_size = baseSize,
-  base_family = baseFamily), themeExtra = NULL)
+  legendPosition = "right", sizeGuide = FALSE, fillGuide = "colorbar",
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains data computed for bubblechart}
@@ -89,6 +90,12 @@ if FALSE then scale the area.}
 
 \item{legendPosition}{the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
 vector). "none" is no legend.}
+
+\item{sizeGuide}{Name of guide object, or object itself for the \code{z} (bubble size). Typically \code{"legend"} name
+or object \code{\link[ggplot2]{guide_legend}}.}
+
+\item{fillGuide}{Name of guide object, or object itself for the \code{fill}. Typically \code{"colorbar"} name
+or object \code{\link[ggplot2]{guide_colourbar}}.}
 
 \item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 

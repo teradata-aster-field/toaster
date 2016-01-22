@@ -1,4 +1,40 @@
 
+toaster 0.4.2
+----------------------------------------------------------------
+
+MINOR FEATURES
+
+* `createMap` support for:
+    - locationName is a vector of the column names containing address, 
+      name, etc. suitable to geocode (find latitude and longitude). 
+      The columns are used in order of appearance: geocoding tries 
+      1st column's values first, then, for the data points that didn't 
+      get resolved, it tries the 2d column's values, and so on.
+    - shape's fill using 2d metric with argument `metrics`. This deprecates 
+      parameter `metricName` (#25);
+    - transparency control argument `shapeAlpha` for the shapes on 
+      the map (#24);
+    - new shape and stroke arguments `shape` and `shapeStroke` to manage 
+      appearance of artifacts on the map.
+      
+* all plotting functions gain new guide parameter(s) that control 
+  appearance of fill, size and other legend(s) using ggplot2 
+  guide object name or object itself.
+  
+BUG FIXES
+
+* Kmeans cluster and total within sum of squares calculations now
+  work when `scale=FALSE`. (fixes #23)
+  
+* Kmeans SQL is correct now when `id` is exactly one of the table columns 
+  and default `aliasId`. (fixes #22)
+  
+* `showData` now uses same default theme_tufte as the rest of plotting 
+  functions (missed it 0.4.1).
+
+* fixed histograms in `showData` after upgrading to ggplot2 2.0.0 
+  (missed it 0.4.1).
+
 toaster 0.4.1
 ----------------------------------------------------------------
 

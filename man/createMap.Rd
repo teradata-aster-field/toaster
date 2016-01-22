@@ -54,9 +54,11 @@ from data locations.}
 to 21 (building), default value 10 (city). Properly setting \code{zoom} for each map is 
 responsibility of a caller. Zoom is optional when using bounding box location specification.}
 
-\item{locationName}{name of the column with strings to be geocoded to determine longitude and
-latitude for each data point. If this value is specified then parameters \code{lonName} and 
-\code{latName} are ignored.}
+\item{locationName}{vector of the column names with address or name to geocode its location (find 
+latitude and longitude) using \code{\link{geocode}} (see package \pkg{ggmap}). 
+When \code{locationName} is specified then parameters \code{lonName} and \code{latName} are ignored. 
+Multiple column names are used in order of appearance: geocoding tries 1st column's values first, 
+then, for the data points that didn't get resolved, it tries the 2d column's values, and so on.}
 
 \item{lonName}{name of the column with longitude value. This value (in combination with value 
 from column \code{latName}) is used to place each data point on the map. This parameter is 
@@ -66,11 +68,11 @@ ignored if \code{locationName} is defined.}
 from column \code{lonName}) is used to place each data point on the map. This parameter is 
 ignored if \code{locationName} is defined.}
 
-\item{metricName}{(deprecated) name of the column to use when scaling artifact shapes 
-(also see \code{scaleSize} and \code{shapeStroke}). Use parameter \code{metrics} instead.}
+\item{metricName}{(deprecated) Use parameter \code{metrics} instead.}
 
 \item{metrics}{character vector of column names with metric values to scale shapes placed on map. First 
-metric corresponds to the size (or area depending on \code{scaleSize}), second to the fill gradient.}
+metric corresponds to the size (or area depending on \code{scaleSize}), second to the fill gradient.
+See also \code{scaleSize} and \code{shapeStroke}.}
 
 \item{labelName}{name of the column to use for the artifact label text when displaying data.}
 
@@ -192,21 +194,22 @@ if(interactive()){
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
-data = computeAggregates(asterConn, "pitching",
-               columns = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"),
-               aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
-                              "avg(attendance) attendance")
-               )
+data = computeAggregates(channel = conn, "teams_enh",
+                aggregates = c("min(name) name", "min(park) park", "avg(rank) rank", 
+                               "avg(attendance) attendance"),
+                by = c("name || ', ' || park teamname", "lgid", "teamid", "decadeid"))
                
-geocodeMem = memoise(geocode)
+geocodeFun = memoise::memoise(ggmap::geocode)
+getMapFun = memoise::memoise(ggmap::get_map)
 
 createMap(data=data[data$decadeid>=2000,], 
           source = "stamen", maptype = "watercolor", zoom=4, 
           facet=c("lgid", "decadeid"),
-          locationName='teamname', locationNameBak='park', metrics='attendance', 
+          locationName=c('teamname','name'), 
+          metrics=c('rank', 'attendance'), shape = 21,
           labelName='name', shapeColour="blue", scaleRange = c(2,12), textColour="black",
           title='Game Attendance by Decade and League (yearly, 2000-2012)',
-          geocodeFun=geocodeMem)
+          geocodeFun=geocodeFun, getmapFun = getMapFun)
 }
 }
 

@@ -583,7 +583,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
     (if (scaleSize)
        scale_radius(range=shapeSizeRange, guide=sizeGuide)
      else
-       scale_size(max_size=shapeMaxSize, guide=sizeGuide)) +
+       scale_size_area(max_size=shapeMaxSize, guide=sizeGuide)) +
     (if(!missing(fill))
       if(!missing(paletteValues))
         scale_fill_manual(values = paletteValues, guide = fillGuide)

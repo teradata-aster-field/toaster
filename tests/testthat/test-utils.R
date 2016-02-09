@@ -69,6 +69,18 @@ test_that("getNullCounts sql is correct", {
                                         where='yearid > 2000', test=TRUE),
                           "SELECT COUNT(1) - COUNT(lgid) AS lgid, COUNT(1) - COUNT(yearid) AS yearid FROM pitching 
                              WHERE yearid > 2000 ")
+  
+  expect_equal_normalized(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info, 
+                                        percent=TRUE, test=TRUE),
+                          "SELECT (COUNT(1) - COUNT(lgid) + 1.0)/(COUNT(1) + 1.0) AS lgid, 
+                                  (COUNT(1) - COUNT(yearid) + 1.0)/(COUNT(1) + 1.0) AS yearid FROM pitching  ")
+  
+  expect_equal_normalized(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info, 
+                                        percent=TRUE, where='yearid > 2000', test=TRUE),
+                          "SELECT (COUNT(1) - COUNT(lgid) + 1.0)/(COUNT(1) + 1.0) AS lgid, 
+                                  (COUNT(1) - COUNT(yearid) + 1.0)/(COUNT(1) + 1.0) AS yearid FROM pitching
+                             WHERE yearid > 2000  ")
 
   
 })
+

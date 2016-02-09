@@ -751,6 +751,10 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 #'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
 #' @param output Default output is a data frame in \code{'long'} format. Other options include 
 #'   \code{'wide'} format and \code{'matrix'}.
+#' @param percent logical: if TRUE then percent of NULL values instead of absolute count returned. To avoid
+#'   division by zero small error is introduced by incrementing by 1 total count of rows in the table.
+#' @param stringsAsFactors logical: should data frame returned have column with variables 
+#'   (table column names) as factor? Applies only when the output is in \code{long} format.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @export
@@ -766,7 +770,8 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 #' 
 #' }
 getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, 
-                          schema=NULL, output='long', where=NULL, test=FALSE){
+                          output='long', percent=FALSE, schema=NULL, where=NULL, 
+                          stringsAsFactors=FALSE, test=FALSE){
   
   # match argument values
   output = match.arg(output, c('long', 'wide', 'matrix'))
@@ -794,7 +799,7 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
     columnNames <- includeExcludeColumns(tableInfo, include, except)$COLUMN_NAME
     
     ## per column name, construct count nulls SQL
-    columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL)
+    columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL, percent)
     
     where_clause <- makeWhereClause(where)
 
@@ -815,7 +820,8 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
       ## transpose results
       nullCountsLongMatrix <- t(nullCountsWide)
       nullCountsLong <- data.frame(variable = row.names(nullCountsLongMatrix),
-                                   nullcount = as.integer(nullCountsLongMatrix))
+                                   nullcount = as.numeric(nullCountsLongMatrix),
+                                   stringsAsFactors = stringsAsFactors)
       return (nullCountsLong)
     }else
       return (as.matrix(t(nullCountsWide)))
@@ -823,7 +829,14 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
 }
 
 ## construct count nulls string -- used in getNullCounts
-constructCountNullsSQL <- function(variableName){
-    sqlString <- paste0('COUNT(1) - COUNT(',variableName,') AS ', variableName)
-    return(sqlString)
+constructCountNullsSQL <- function(variableName, percent){
+  
+  if(percent)
+    sqlString = paste0('(COUNT(1) - COUNT(',variableName,') + 1.0)/(COUNT(1) + 1.0)')
+  else
+    sqlString = paste0('COUNT(1) - COUNT(',variableName,')')
+  
+  sqlString = paste0(sqlString, ' AS ', variableName)
+  
+  return(sqlString)
 }

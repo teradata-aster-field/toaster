@@ -81,6 +81,27 @@ test_that("getNullCounts sql is correct", {
                                   (COUNT(1) - COUNT(yearid) + 1.0)/(COUNT(1) + 1.0) AS yearid FROM pitching
                              WHERE yearid > 2000  ")
 
-  
 })
 
+
+all_tables = data.frame(TABLE_CAT=c("beehive","beehive","beehive","beehive"),
+                        TABLE_SCHEM=c("public","graph","graph","public"),
+                        TABLE_NAME=c("batting","edges","vertices","pitching"),
+                        TABLE_TYPE=c("TABLE","TABLE","TABLE","TABLE"),
+                        stringsAsFactors = FALSE)
+
+test_that("isTable is correct", {
+  
+  expect_equal(isTable(NULL, c(edges="graph.edges", vertices="graph.vertices"), 
+                       allTables = all_tables),
+               c(edges=TRUE, vertices=TRUE))
+  
+  expect_equal(isTable(NULL, c("graph.edges", "graph.vertices", "pitching", "non.existing", "select * from batting"),
+                       allTables = all_tables),
+               c(graph.edges=TRUE, graph.vertices=TRUE, pitching=TRUE, non.existing=FALSE, `select * from batting`=NA))
+  
+  expect_equal(isTable(NULL, c('1'="pitching", '2'="batting", '3'="SELECT source, target, COUNT(*) FROM data GROUP BY 1,2"),
+                       allTables = all_tables),
+               c('1'=TRUE, '2'=TRUE, '3'=NA))
+  
+})

@@ -78,7 +78,7 @@
 #'   (similar to parameter \code{test} in \link{RODBC} functions like \link{sqlQuery}
 #'   and \link{sqlSave}). Doesn't apply when no sql expected to run, e.g. format
 #'   is \code{'boxplot'}.
-#' @return A ggplot visual object.
+#' @return a ggplot object
 #' @export
 #' @examples
 #' if(interactive()){

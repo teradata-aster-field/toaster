@@ -13,4 +13,5 @@
 #' @importFrom memoise memoise
 #' @importFrom ggthemes theme_tufte
 #' @importFrom ggmap get_map geocode ggmap
+#' @importFrom network network
 NULL

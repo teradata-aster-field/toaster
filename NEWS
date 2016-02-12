@@ -1,4 +1,19 @@
 
+toaster 0.5.0
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* New graph functions 
+
+MINOR FEATURES
+
+* `getNullCounts()` new argument support percent and data frame
+   with no factors (#29).
+   
+* `isTable` now supports schema in table name, queries (by returning
+  NA), and expanded result format.
+
 toaster 0.4.2
 ----------------------------------------------------------------
 

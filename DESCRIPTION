@@ -1,7 +1,7 @@
 Package: toaster
 Type: Package
 Title: Big Data in-Database Analytics with Teradata Aster
-Version: 0.4.2.900
+Version: 0.5.0.900
 Authors@R: c(
     person("Gregory", "Kanevsky", , "gregory.kanevsky@teradata.com", c("aut","cre")),
     person("Nick", "Switanek", , "nicholas.switanek@teradata.com", "aut")
@@ -31,11 +31,12 @@ Imports:
     grid,
     wordcloud (>= 2.5),
     ggmap (>= 2.6),
-    GGally (>= 0.5.0),
+    GGally (>= 1.0.1),
     memoise,
     slam (>= 0.1-32),
     foreach (>= 1.4.3),
-    stats
+    stats,
+    network
 Suggests:
     testthat (>= 0.9.1-1),
     tm,
@@ -63,4 +64,6 @@ Collate:
     'computeKmeans.R'
     'plotting.R'
     'plottingKmeans.R'
+    'showGraph.R'
+    'computeGraph.R'
 RoxygenNote: 5.0.1

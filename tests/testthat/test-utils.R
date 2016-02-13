@@ -25,6 +25,12 @@ test_that("exceptions are properly handled by utility functions", {
   expect_error(getTableSummary(NULL, tableName="pitching", except=pitching_info$COLUMN_NAME, mock=TRUE), 
                "No columns specified found in the table 'pitching'")
   
+  expect_error(getTableSummary(NULL, tableName="pitching", percentiles=c(TRUE,TRUE), mock=TRUE),
+               ".*Percentiles must be either a numeric vector or a logical flag.*")
+  
+  expect_error(getTableSummary(NULL, tableName="pitching", percentiles="FALSE", mock=TRUE),
+               ".*Percentiles must be either a numeric vector or a logical flag.*")
+  
   expect_error(getTableSummary(NULL, tableName="pitching", percentiles=-1, mock=TRUE),
                "Invalid percentile value\\(s\\) passed \\(below 0 or above 100\\): -1")
   

@@ -356,3 +356,22 @@ makeFromClause <- function(name, flag, alias = 't') {
     stop(paste0("Table ", name, " not found"))
   
 }
+
+
+
+#' Determine window function to use
+#' 
+#' @param rankFunction one of rank function codes to map to one of SQL window
+#'   functions for ranking.
+#'
+getWindowFunction <- function(rankFunction) {
+  windowFunction = switch(tolower(rankFunction),
+                          rank="RANK()",
+                          row="ROW_NUMBER()",
+                          rownumber="ROW_NUMBER()",
+                          denserank="DENSE_RANK()",
+                          percentrank = "PERCENT_RANK()"
+  )
+  
+  return(windowFunction)
+}

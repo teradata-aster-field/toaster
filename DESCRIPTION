@@ -24,19 +24,19 @@ Depends:
 Imports:
     plyr (>= 1.8.3),
     reshape2 (>= 1.4.1),
-    ggplot2 (>= 2.0.0),
-    ggthemes (>= 3.0.0),
+    ggplot2 (>= 2.1.0),
+    ggthemes (>= 3.0.2),
     scales,
     RColorBrewer (>= 1.1-2),
     grid,
     wordcloud (>= 2.5),
-    ggmap (>= 2.6),
+    ggmap (>= 2.6.1),
     GGally (>= 1.0.1),
-    memoise,
+    memoise (>= 1.0.0),
     slam (>= 0.1-32),
     foreach (>= 1.4.3),
     stats,
-    network
+    network (>= 1.13.0)
 Suggests:
     testthat (>= 0.9.1-1),
     tm,

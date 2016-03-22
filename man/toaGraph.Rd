@@ -47,4 +47,17 @@ Both vertices and edges tables may contain additional columns representing
 optional attributes. For example if edges table has column 'weight' it can
 correspond a graph with edge weights.
 }
+\examples{
+# undirected graph
+policeGraphUn = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_edges_un", 
+     directed = FALSE, key = "officer", source = "officer1", target = "officer2", 
+     vertexAttrnames = c("offense_count"), edgeAttrnames = c("weight"))
+                         
+# directed graph with the vertex filter
+policeGraphDi = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_edges_di", 
+     directed = TRUE, key = "officer", source = "officer1", target = "officer2", 
+     vertexAttrnames = c("offense_count"), edgeAttrnames = c("weight"),
+     vertexWhere = "officer ~ '[A-Z].*'")
+     
+}
 

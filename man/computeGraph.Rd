@@ -13,11 +13,12 @@ computeGraph(channel, graph, v = NULL, vertexWhere = graph$vertexWhere,
 \item{graph}{an object of class \code{'toagraph'} referencing graph 
 tables in Aster database.}
 
-\item{v}{vector or list of keys (corresponds to \code{vertex.names} attribute) of the vertices 
-to include in the graph. When not null this guarentees that no vertices outside of this list
-and no edges between vertices outsidef of this list will be included in the resulting network.}
+\item{v}{a SQL \code{SELECT} that returns key values or a list of key values (corresponding 
+to the \code{vertex.names} attribute) of the vertices to include in the graph. 
+When not \code{NULL} this guarentees that no other vertices or edges between other vertices 
+are included in the resulting network.}
 
-\item{vertexWhere}{optionally, a \code{SQL WHERE} clause to subset vertex tablet. When not \code{NULL}
+\item{vertexWhere}{optionally, a \code{SQL WHERE} clause to subset vertex table. When not \code{NULL}
 it overrides \code{vertexWhere} condition from the \code{graph}.}
 
 \item{edgeWhere}{optionally, a \code{SQL WHERE} clause to subset edge table. When not \code{NULL}
@@ -37,5 +38,41 @@ using a pair of vertice and edge tables.
 Use caution when computing network objects stored in Aster with this function 
 as data may include considerable amount of vertices and edges which are too large to
 load into a memory.
+}
+\examples{
+if(interactive()) {
+library(GGally)
+
+policeGraphUn = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_edges_un", 
+                         directed = FALSE, key = "officer", 
+                         source = "officer1", target = "officer2", 
+                         vertexAttrnames = c("offense_count"), edgeAttrnames = c("weight"))
+               
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                             
+# create network object and visualize with ggplot2
+net1 = computeGraph(conn, policeGraphUn)
+ggnet2(net1, node.label="vertex.names", node.size="offense_count", 
+       legend.position="none")
+       
+# network object with filters and color attribute
+net2 = computeGraph(conn, policeGraphUn, vertexWhere = "officer ~ '[A-Z].*'", 
+                    edgeWhere = "weight > 0.36")
+net2 \%v\% "color" = substr(get.vertex.attribute(net2, "vertex.names"), 1, 1)
+ggnet2(net2, node.label="vertex.names", node.size="offense_count", 
+       size.cut=TRUE, node.color="color", legend.position="none", 
+       palette = "Set2")
+
+# networ object for subgraph of top degree vertices
+topDegree = computeGraphMetric(conn, policeGraphUn, type="degree", top=50)
+net3 = computeGraph(conn, policeGraphUn, v=as.list(as.character(topDegree$key)))
+net3 \%v\% "degree" = topDegree[match(get.vertex.attribute(net3, "vertex.names"), 
+                                            topDegree$key), "degree"]
+ggnet2(net3, node.label="vertex.names", node.size="degree", 
+       legend.position="none")
+                         
+}                          
 }
 

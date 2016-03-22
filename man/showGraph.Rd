@@ -4,13 +4,27 @@
 \alias{showGraph}
 \title{Plot an Aster graph object comprised of the vertice and edge tables.}
 \usage{
-showGraph(channel, graph, allTables = NULL, test = FALSE)
+showGraph(channel, graph, v = NULL, vertexWhere = graph$vertexWhere,
+  edgeWhere = graph$edgeWhere, ..., allTables = NULL, test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}}
 
 \item{graph}{an object of class \code{'toagraph'} referencing graph 
 tables in Aster database.}
+
+\item{v}{a SQL \code{SELECT} that returns key values or a list of key values (corresponding 
+to the \code{vertex.names} attribute) of the vertices to include in the graph. 
+When not \code{NULL} this guarentees that no other vertices or edges between other vertices 
+are included in the resulting network.}
+
+\item{vertexWhere}{optionally, a \code{SQL WHERE} clause to subset vertex table. When not \code{NULL}
+it overrides \code{vertexWhere} condition from the \code{graph}.}
+
+\item{edgeWhere}{optionally, a \code{SQL WHERE} clause to subset edge table. When not \code{NULL}
+it overrides \code{edgeWhere} condition from the \code{graph}.}
+
+\item{...}{Other arguments passed on to \code{\link[GGally]{ggnet2}} visualization function.}
 
 \item{allTables}{pre-built information about existing tables.}
 
@@ -29,7 +43,18 @@ if(interactive()) {
 conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
 
-showGraph(conn, "graph.films_vertices", "graph.films_edges")
+policeGraphUn = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_edges_un", 
+                         directed = FALSE, key = "officer", 
+                         source = "officer1", target = "officer2", 
+                         vertexAttrnames = c("offense_count"), edgeAttrnames = c("weight"))
+
+# visualize the whole graph                         
+showGraph(conn, policeGraphUn, node.label = "vertex.names", node.size="offense_count")
+
+# visualize subgraph using both vertex and edge filters
+showGraph(conn, policeGraphUn, 
+          vertexWhere = "officer ~ '[A-Z ].*'", edgeWhere = "weight > 0.10", 
+          node.label = "vertex.names", node.size="offense_count")
 
 }
 }

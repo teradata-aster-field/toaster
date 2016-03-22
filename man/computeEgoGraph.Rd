@@ -5,10 +5,10 @@
 \title{Find the vertices not farther than a given limit from another fixed vertex, 
 and create egographs (subgraphs) with the given order parameter.}
 \usage{
-computeEgoGraph(channel, graph, ego, order = 1, mode = c("in", "out",
-  "both", "all"), createDistanceAttr = TRUE,
-  distanceAttrname = "ego.distance", vertexWhere = graph$vertexWhere,
-  edgeWhere = graph$edgeWhere, allTables = NULL, test = FALSE)
+computeEgoGraph(channel, graph, ego, order = 1, mode = "all",
+  createDistanceAttr = TRUE, distanceAttrname = "ego.distance",
+  vertexWhere = graph$vertexWhere, edgeWhere = graph$edgeWhere,
+  allTables = NULL, test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}}
@@ -16,7 +16,7 @@ computeEgoGraph(channel, graph, ego, order = 1, mode = c("in", "out",
 \item{graph}{an object of class \code{'toagraph'} referencing graph 
 tables in Aster database.}
 
-\item{ego}{the vertices for which the calculation of corresponding ego graphs is performed.}
+\item{ego}{list of vertices for which the calculation of corresponding ego graphs is performed.}
 
 \item{order}{integer giving the order of the ego graph neighborhood.}
 
@@ -47,5 +47,46 @@ functions: \link{sqlQuery} and \link{sqlSave}).}
 \description{
 Find the vertices not farther than a given limit from another fixed vertex, 
 and create egographs (subgraphs) with the given order parameter.
+}
+\examples{
+if(interactive()) {
+library(GGally)
+
+policeGraphDi = toaGraph(vertices = "dallaspolice_officer_vertices", 
+                         edges = "dallaspolice_officer_edges_di", 
+                         directed = TRUE,
+                         key = "officer", source = "officer1", target = "officer2", 
+                         vertexAttrnames = c("offense_count"),
+                         edgeAttrnames = c("weight"))
+               
+# initialize connection to Lahman baseball database in Aster 
+conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+                         server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+                         
+setVertexColor <- function(graph, vertex, color="red", default="grey") {
+  graph \%v\% "color" = 
+  ifelse(get.vertex.attribute(graph, "vertex.names") == as.character(vertex),
+         color, default)
+  
+  return(graph)
+}
+
+topPagerankPolice = computeGraphMetric(conn, policeGraphDi, type='pagerank', top=3)
+egoCenters = as.list(as.character(topPagerankPolice$key))
+
+egoGraphsTopPagerank = computeEgoGraph(conn, policeGraphDi, order = 1, ego = egoCenters)
+
+egoGraph = setVertexColor(egoGraphsTopPagerank[[1]], egoCenters[[1]])
+ggnet2(egoGraph, node.label="vertex.names",  node.size="offense_count",
+       legend.position="none", color="color")
+
+egoGraph = setVertexColor(egoGraphsTopPagerank[[2]], egoCenters[[2]])
+ggnet2(egoGraph, node.label="vertex.names",  node.size="offense_count",
+       legend.position="none", color="color")
+
+egoGraph = setVertexColor(egoGraphsTopPagerank[[3]], egoCenters[[3]])
+ggnet2(egoGraph, node.label="vertex.names",  node.size="offense_count",
+       legend.position="none", color="color")
+}
 }
 

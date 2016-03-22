@@ -10,6 +10,12 @@ test_that("computeEgoGraph throws errors", {
   expect_error(computeEgoGraph(NULL, toaGraph("vs", "es"), test=TRUE),
                "Must provide allTables when test==TRUE.")
   
+  expect_error(computeEgoGraph(NULL, toaGraph("vs","es"), ego=list("Tom Cruz"), 
+                               allTables = data.frame(TABLE_SCHEM=c("graph","graph"),
+                                                              TABLE_NAME=c("films_vertices","films_edges")),
+                               test=TRUE),
+               "Both vertices and edges must exist as tables or views.")
+  
   expect_error(computeEgoGraph(NULL, toaGraph("vs", "es"), ego=list()),
                "Must have at least one ego vertex defined.")
   
@@ -18,28 +24,26 @@ test_that("computeEgoGraph throws errors", {
 })
 
 
+
+filmGraph = toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
+                     "name", "name1", "name2")
+
 test_that("computeEgoGraph works properly", {
   
-  expect_equal_normalized(computeEgoGraph(NULL, 
-                                          toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
-                                                   "name", "name1", "name2"), 
+  expect_equal_normalized(computeEgoGraph(NULL, filmGraph, 
                                           ego=list('Keanu Reeves'), 
                                           createDistanceAttr = FALSE,
                                           allTables = data.frame(TABLE_SCHEM=c("graph","graph"),
                                                               TABLE_NAME=c("films_vertices","films_edges")),
                                           test=TRUE),
-                          computeEgoGraph(NULL, 
-                                          toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
-                                                   "name", "name1", "name2"), 
+                          computeEgoGraph(NULL, filmGraph, 
                                           ego=list('Keanu Reeves'), mode='both',
                                           createDistanceAttr = FALSE,
                                           allTables = data.frame(TABLE_SCHEM=c("graph","graph"),
                                                               TABLE_NAME=c("films_vertices","films_edges")),
                                           test=TRUE))
   
-  expect_equal_normalized(computeEgoGraph(NULL, 
-                                          toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
-                                                   "name", "name1", "name2"), 
+  expect_equal_normalized(computeEgoGraph(NULL, filmGraph, 
                                           ego=list('Keanu Reeves'), createDistanceAttr = FALSE,
                                           allTables = data.frame(TABLE_SCHEM=c("graph","graph"),
                                                               TABLE_NAME=c("films_vertices","films_edges")),
@@ -80,9 +84,7 @@ END",
                           label="With Keanu Reeves without distance attr"
 )
   
-  expect_equal_normalized(computeEgoGraph(NULL, 
-                                          toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
-                                                   "name", "name1", "name2"), 
+  expect_equal_normalized(computeEgoGraph(NULL, filmGraph, 
                                           ego=list('Keanu Reeves'),
                                           allTables = data.frame(TABLE_SCHEM=c("graph","graph"),
                                                               TABLE_NAME=c("films_vertices","films_edges")),
@@ -134,7 +136,7 @@ SELECT v.*, eg.distance __distance_attr__
 END",
                           label="With Keanu Reeves with distance attr")
   
-  expect_equal_normalized(computeEgoGraph(conn, 
+  expect_equal_normalized(computeEgoGraph(NULL, 
                                           toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
                                                    "name", "name1", "name2",
                                                    vertexAttrnames = "role", edgeAttrnames = c("weight","years")),

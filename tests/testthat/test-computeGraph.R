@@ -21,6 +21,10 @@ test_that("computeGraph throws errors", {
                "Must provide allTables when test==TRUE.")
   
   expect_error(computeGraph(NULL, toaGraph("vs", "es"), v=list(logical(1)), 
+                            allTables = data.frame(TABLE_NAME=c("vs","_es_"), stringsAsFactors = FALSE), test=TRUE),
+               "Both vertices and edges must exist as tables or views.")
+  
+  expect_error(computeGraph(NULL, toaGraph("vs", "es"), v=list(logical(1)), 
                             allTables = data.frame(TABLE_NAME=c("vs","es"), stringsAsFactors = FALSE), test=TRUE),
                ".*Values must be either numeric or character only.")
 })
@@ -62,7 +66,9 @@ test_that("computeGraph works properly", {
                           "-- Edges Select
                             SELECT source, target FROM edges 
                             WHERE source IN (SELECT id FROM vertices WHERE state='TX' )
-                              AND target IN (SELECT id FROM vertices WHERE state='TX' ) ")
+                              AND target IN (SELECT id FROM vertices WHERE state='TX' ) ;
+                           -- -- Vertices Select 
+                           SELECT id FROM vertices WHERE state='TX' ")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list(1,2,3),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
@@ -70,15 +76,19 @@ test_that("computeGraph works properly", {
                           "-- Edges Select
                             SELECT source, target FROM edges 
                             WHERE source IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) )
-                              AND target IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) ) ")
+                              AND target IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) ) ;
+                           -- -- Vertices Select 
+                           SELECT id FROM vertices WHERE id IN (1, 2, 3) ")
   
-  expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list(1,2,3),
+  expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list('1','2','3'),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
                                        test=TRUE),
                           "-- Edges Select
                             SELECT source, target FROM edges 
-                            WHERE source IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) )
-                              AND target IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) ) ")
+                            WHERE source IN (SELECT id FROM vertices WHERE id IN ('1', '2', '3') )
+                              AND target IN (SELECT id FROM vertices WHERE id IN ('1', '2', '3') ) ;
+                           -- -- Vertices Select 
+                           SELECT id FROM vertices WHERE id IN ('1', '2', '3') ")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list('a','b','c'),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
@@ -86,7 +96,9 @@ test_that("computeGraph works properly", {
                           "-- Edges Select
                             SELECT source, target FROM edges 
                             WHERE source IN (SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') )
-                              AND target IN (SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') ) ")
+                              AND target IN (SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') ) ;
+                          -- -- Vertices Select 
+                           SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') ")
   
   expect_equal_normalized(computeGraph(NULL, 
              toaGraph("graph.films_vertices", "graph.films_edges", FALSE, "name", "name1", "name2",

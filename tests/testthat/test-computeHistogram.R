@@ -5,6 +5,9 @@ start_end_test_info = dget("_startEndTestInfo.dat")
 
 test_that("computeHistogram throws errors", {
   
+  expect_error(computeHistogram(binMethod = 'not a method'),
+               ".*'arg' should be one of \"manual\", \"Sturges\", \"Scott\"")
+  
   expect_error(computeHistogram(channel=NULL),
                "Must provide table and column names.")
   

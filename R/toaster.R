@@ -13,5 +13,5 @@
 #' @importFrom memoise memoise
 #' @importFrom ggthemes theme_tufte
 #' @importFrom ggmap get_map geocode ggmap
-#' @importFrom network network get.vertex.attribute set.vertex.attribute
+#' @importFrom network network get.vertex.attribute set.vertex.attribute add.vertices
 NULL

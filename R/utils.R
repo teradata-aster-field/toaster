@@ -668,11 +668,24 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 
 #' Test if table present in the database.
 #' 
+#' Tests each element if a table or a view exists in one of database schemas.
+#' Names could be just table name of schema followed by table name via '.'.
+#';
+#' 
 #' @param channel object as returned by \code{\link{odbcConnect}}.
-#' @param names vector of table names. Name may contain SQL wildcard 
-#'   characters but it should not contain schema prefix. All visible schemas 
-#'   will be checked for table name specified.
+#' @param tables vector of table names. Name may contain schema name
+#'   followed by dot and table name. All visible schemas are checked 
+#'   when table specified without a schema.
+#' @param withNames logical indicates if table components included in the
+#'   results.
+#' @param allTables a data frame containing table-like objects accessible from
+#'   Aster. Usually obtained with \code{\link{sqlTables}}.
 #' @return logical vector indicating if corresponding name is table in Aster database.
+#'   Special case when name contains a SQL query triggers \code{NA} value instead.
+#'   This behavior is handy when checking if a table name corresponds to a table 
+#'   (or a view) or a SQL query instead. For example, to test if all names are
+#'   either existing tables or views or SQL queries use something like this:
+#'   \code{result = isTable(...); if(all(result | is.na(result)) ...}
 #' @seealso \code{\link{getTableSummary}}
 #' @export
 #' @examples 
@@ -685,10 +698,52 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 #' isTable(conn, "pitch%")          # TRUE
 #' isTable(conn, "public.pitching") # FALSE
 #' }
-isTable <- function(channel, names) {
-  if (is.null(names) || length(names) < 1) return(logical(0))
+isTable <- function(channel, tables, withNames=FALSE, allTables=NULL) {
   
-  vapply(names, FUN=function(x) nrow(sqlTables(channel, tableName=x))>0, FUN.VALUE=logical(1))
+  if (is.null(tables) || length(tables) < 1) return(logical(0))
+  
+  # trim leading and trailing spaces
+  tables = gsub("^[[:blank:]]+|[[:blank:]]+$", "", tables)
+  
+  if(is.null(names(tables))) 
+     row_names = tables
+  else
+     row_names = names(tables)
+  
+  df = data.frame(candidate = !grepl("[[:blank:]]", tables),
+                  schema = substr(tables, 1, regexpr("\\.[^\\.]*$", tables)-1), 
+                  table = substr(tables, regexpr("[^\\.]*$", tables), nchar(tables)), 
+                  stringsAsFactors = FALSE)
+  
+  # all tables and views
+  if(is.null(allTables)) {
+    isValidConnection(channel, FALSE)
+    allTables = sqlTables(channel)
+  }
+  
+  result = mapply(FUN = function(name, fullname, candidate, schema, table) {
+    if (!candidate) return(NA)
+    if (nchar(schema)>0) {
+      if(nrow(allTables[allTables$TABLE_NAME == table &
+                         allTables$TABLE_SCHEM == schema &
+                         paste0(allTables$TABLE_SCHEM, '.', allTables$TABLE_NAME) == fullname, ]) > 0)
+        return(TRUE)
+      else
+        return(FALSE)
+    }else {
+      if(any(allTables$TABLE_NAME == table))
+        return(TRUE)
+      else
+        return(FALSE)
+    }
+  }, row_names, tables, df$candidate, df$schema, df$table, SIMPLIFY = TRUE)
+  
+  if(withNames) {
+    result = data.frame(isTable=result, schema=df$schema, table=df$table,
+                        row.names = row_names, stringsAsFactors = FALSE)
+  }
+  
+  return(result)
 }
 
 
@@ -751,6 +806,10 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 #'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
 #' @param output Default output is a data frame in \code{'long'} format. Other options include 
 #'   \code{'wide'} format and \code{'matrix'}.
+#' @param percent logical: if TRUE then percent of NULL values instead of absolute count returned. To avoid
+#'   division by zero small error is introduced by incrementing by 1 total count of rows in the table.
+#' @param stringsAsFactors logical: should data frame returned have column with variables 
+#'   (table column names) as factor? Applies only when the output is in \code{long} format.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @export
@@ -766,7 +825,8 @@ grantExecuteOnFunction <- function(conn, name='%', owner='db_superuser', user) {
 #' 
 #' }
 getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, except=NULL, 
-                          schema=NULL, output='long', where=NULL, test=FALSE){
+                          output='long', percent=FALSE, schema=NULL, where=NULL, 
+                          stringsAsFactors=FALSE, test=FALSE){
   
   # match argument values
   output = match.arg(output, c('long', 'wide', 'matrix'))
@@ -794,7 +854,7 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
     columnNames <- includeExcludeColumns(tableInfo, include, except)$COLUMN_NAME
     
     ## per column name, construct count nulls SQL
-    columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL)
+    columnNameNullSQL <- sapply(columnNames, constructCountNullsSQL, percent)
     
     where_clause <- makeWhereClause(where)
 
@@ -815,7 +875,8 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
       ## transpose results
       nullCountsLongMatrix <- t(nullCountsWide)
       nullCountsLong <- data.frame(variable = row.names(nullCountsLongMatrix),
-                                   nullcount = as.integer(nullCountsLongMatrix))
+                                   nullcount = as.numeric(nullCountsLongMatrix),
+                                   stringsAsFactors = stringsAsFactors)
       return (nullCountsLong)
     }else
       return (as.matrix(t(nullCountsWide)))
@@ -823,7 +884,14 @@ getNullCounts <- function(channel, tableName, tableInfo=NULL, include=NULL, exce
 }
 
 ## construct count nulls string -- used in getNullCounts
-constructCountNullsSQL <- function(variableName){
-    sqlString <- paste0('COUNT(1) - COUNT(',variableName,') AS ', variableName)
-    return(sqlString)
+constructCountNullsSQL <- function(variableName, percent){
+  
+  if(percent)
+    sqlString = paste0('(COUNT(1) - COUNT(',variableName,') + 1.0)/(COUNT(1) + 1.0)')
+  else
+    sqlString = paste0('COUNT(1) - COUNT(',variableName,')')
+  
+  sqlString = paste0(sqlString, ' AS ', variableName)
+  
+  return(sqlString)
 }

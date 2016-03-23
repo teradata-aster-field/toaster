@@ -21,7 +21,8 @@ getTableSummary(channel, tableName, include = NULL, except = NULL,
 
 \item{percentiles}{list of percentiles (integers between 0 and 100) to collect (always collects 25th and 75th 
 for IQR calculation). There is no penalty in specifying more percentiles as they get calculated in a single call 
-for each column - no matter how many different values are requested.}
+for each column - no matter how many different values are requested. When FALSE then percentiles 
+calculations are skipped and result wil have no percentile and IQR columns.}
 
 \item{where}{SQL WHERE clause limiting data from the table (use SQL as if in WHERE clause but omit keyword WHERE).}
 

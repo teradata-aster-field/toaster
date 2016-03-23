@@ -8,9 +8,10 @@
 #' 
 #' @name toaster
 #' @docType package
-#' @import RODBC plyr reshape2 ggplot2 RColorBrewer wordcloud foreach
+#' @import RODBC plyr reshape2 ggplot2 RColorBrewer wordcloud foreach scales 
 #' @importFrom scales muted 
 #' @importFrom memoise memoise
 #' @importFrom ggthemes theme_tufte
 #' @importFrom ggmap get_map geocode ggmap
+#' @importFrom network network get.vertex.attribute set.vertex.attribute add.vertices
 NULL

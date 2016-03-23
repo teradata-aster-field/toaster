@@ -4,20 +4,33 @@
 \alias{isTable}
 \title{Test if table present in the database.}
 \usage{
-isTable(channel, names)
+isTable(channel, tables, withNames = FALSE, allTables = NULL)
 }
 \arguments{
 \item{channel}{object as returned by \code{\link{odbcConnect}}.}
 
-\item{names}{vector of table names. Name may contain SQL wildcard 
-characters but it should not contain schema prefix. All visible schemas 
-will be checked for table name specified.}
+\item{tables}{vector of table names. Name may contain schema name
+followed by dot and table name. All visible schemas are checked 
+when table specified without a schema.}
+
+\item{withNames}{logical indicates if table components included in the
+results.}
+
+\item{allTables}{a data frame containing table-like objects accessible from
+Aster. Usually obtained with \code{\link{sqlTables}}.}
 }
 \value{
 logical vector indicating if corresponding name is table in Aster database.
+  Special case when name contains a SQL query triggers \code{NA} value instead.
+  This behavior is handy when checking if a table name corresponds to a table 
+  (or a view) or a SQL query instead. For example, to test if all names are
+  either existing tables or views or SQL queries use something like this:
+  \code{result = isTable(...); if(all(result | is.na(result)) ...}
 }
 \description{
-Test if table present in the database.
+Tests each element if a table or a view exists in one of database schemas.
+Names could be just table name of schema followed by table name via '.'.
+;
 }
 \examples{
 if(interactive()){

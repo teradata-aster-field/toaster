@@ -128,7 +128,7 @@
 #'   \code{\link[ggplot2]{guide_colorbar}} objects.
 #' @param defaultTheme plot theme to use, default is \code{theme_bw}.
 #' @param themeExtra any additional \code{ggplot2} theme attributes to add.
-#' 
+#' @return a ggplot object
 #' @export  
 #' @examples
 #' if(interactive()){

@@ -346,17 +346,6 @@ makeSimpleTripletMatrix <- function(result_set, weight_name, weighting = "tf") {
   return(m)
 }
 
-getWindowFunction <- function(rankFunction) {
-  windowFunction = switch(tolower(rankFunction),
-                          rank="RANK()",
-                          row="ROW_NUMBER()",
-                          rownumber="ROW_NUMBER()",
-                          denserank="DENSE_RANK()",
-                          percentrank = "PERCENT_RANK()"
-  )
-  
-  return(windowFunction)
-}
 
 makeRankFilter <- function(top) {
   

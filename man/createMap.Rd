@@ -140,6 +140,9 @@ guides are \code{"legend"} or \code{"colorbar"} names and \code{\link[ggplot2]{g
 
 \item{themeExtra}{any additional \code{ggplot2} theme attributes to add.}
 }
+\value{
+a ggplot object
+}
 \description{
 createMap is a smart function that places data artifact on the map. If 
 necessary it geocodes the data, locates map that fits all data artifacts, 

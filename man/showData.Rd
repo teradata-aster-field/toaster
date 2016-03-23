@@ -110,7 +110,7 @@ and \link{sqlSave}). Doesn't apply when no sql expected to run, e.g. format
 is \code{'boxplot'}.}
 }
 \value{
-A ggplot visual object.
+a ggplot object
 }
 \description{
 \code{showData} is the basic plotting function in the \code{toaster} package, designed to produce set of 

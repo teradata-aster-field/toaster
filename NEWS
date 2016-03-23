@@ -1,4 +1,36 @@
 
+toaster 0.5.1
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* New graph functionality expands toaster's reach to Aster graph
+  engine and SQL/GR functions (#32). 
+  
+  Simply define a metadata 'toagraph' object that describes a graph 
+  data in Aster (one object per graph) to compute various graph 
+  metrics and distributions:
+   - `computeGraphHistogram` returns degree, clustering, 
+   shortest path, and various centrality measure distributions;
+   - `computeGraphMetric` returns top graph vertices for 
+   given graph metric including degree, local clustering, and
+   various centrality measures.
+  
+  New functions `computeGraph`, 'showGraph`, and `computeEgoGraph`
+  query Aster graph data to filter, inspect and visualize whole 
+  or sub-graphs, including ego graphs (neighborhood graphs).
+
+MINOR FEATURES
+
+* `getTableSummary` can skip computing percentiles by setting
+  percentiles value to logical \code{FALSE} (#31).
+
+* `getNullCounts()` new argument support percent and data frame
+   with no factors (#29).
+   
+* `isTable` now supports schema in table name, queries (by returning
+  NA), and expanded result format (#30).
+
 toaster 0.4.2
 ----------------------------------------------------------------
 

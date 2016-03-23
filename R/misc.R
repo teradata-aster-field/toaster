@@ -240,6 +240,18 @@ makeSqlMrColumnList <- function(columns) {
 }
 
 
+makeSqlValueList <- function(values) {
+  
+  if(is.numeric(values))
+    paste0(values, collapse = ", ")
+  else if(is.character(values))
+    paste0("'", paste(values, collapse = "', '"), "'")
+  else
+    stop("Values must be either numeric or character only.")
+  
+}
+
+
 makeSqlAggregateColumnList <- function(columns, sqlAggFun, includeFunInAlias=TRUE, cast="") {
   
   if (includeFunInAlias)
@@ -316,4 +328,50 @@ makeTempTableName <- function(prefix=NULL, n=20, schema=NULL) {
   
   schema = ifelse(is.null(schema), "", paste0(schema,"."))
   return(paste0(schema, prefix, paste0(sample(c(letters,0:9), n-length(prefix), replace=TRUE), collapse="")))
+}
+
+
+#' Make SQL FROM clause 
+#' 
+#' @param name table or view name or a SQL query.
+#' @param flag logical indicates if a table or a query is visible.
+#'   Special value \code{NA} indicates that \code{name} is
+#'   a SQL query.
+#' @param alias query alias to use. Ignored if \code{name} is 
+#'   a table or a view.
+#'  
+makeFromClause <- function(name, flag, alias = 't') {
+  
+  if (is.null(name)) 
+    stop("Table name or query is NULL.")
+  
+  if (is.null(flag)) 
+    stop("")
+  
+  if(is.na(flag))
+    paste0("(", name, ")", ifelse(is.null(alias), "", paste0(" ", alias)))
+  else if(flag)
+    name
+  else
+    stop(paste0("Table ", name, " not found"))
+  
+}
+
+
+
+#' Determine window function to use
+#' 
+#' @param rankFunction one of rank function codes to map to one of SQL window
+#'   functions for ranking.
+#'
+getWindowFunction <- function(rankFunction) {
+  windowFunction = switch(tolower(rankFunction),
+                          rank="RANK()",
+                          row="ROW_NUMBER()",
+                          rownumber="ROW_NUMBER()",
+                          denserank="DENSE_RANK()",
+                          percentrank = "PERCENT_RANK()"
+  )
+  
+  return(windowFunction)
 }

@@ -5,8 +5,8 @@
 \title{Counts nulls per column in the table.}
 \usage{
 getNullCounts(channel, tableName, tableInfo = NULL, include = NULL,
-  except = NULL, schema = NULL, output = "long", where = NULL,
-  test = FALSE)
+  except = NULL, output = "long", percent = FALSE, schema = NULL,
+  where = NULL, stringsAsFactors = FALSE, test = FALSE)
 }
 \arguments{
 \item{channel}{object as returned by \code{\link{odbcConnect}}.}
@@ -20,15 +20,21 @@ See \code{\link{sqlColumns}} or \code{\link{getTableSummary}}.}
 
 \item{except}{a vector of column names to exclude. Output never contains attributes from the list.}
 
+\item{output}{Default output is a data frame in \code{'long'} format. Other options include 
+\code{'wide'} format and \code{'matrix'}.}
+
+\item{percent}{logical: if TRUE then percent of NULL values instead of absolute count returned. To avoid
+division by zero small error is introduced by incrementing by 1 total count of rows in the table.}
+
 \item{schema}{NULL or character: optional schema to restric table search to signle schema. In general,
 table search performed across whole database. Including \code{schema} restricts it to this single 
 schema only.}
 
-\item{output}{Default output is a data frame in \code{'long'} format. Other options include 
-\code{'wide'} format and \code{'matrix'}.}
-
 \item{where}{specifies criteria to satisfy by the table rows before applying computation. 
 The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).}
+
+\item{stringsAsFactors}{logical: should data frame returned have column with variables 
+(table column names) as factor? Applies only when the output is in \code{long} format.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 functions like \link{sqlQuery} and \link{sqlSave}).}

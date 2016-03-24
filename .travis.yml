@@ -37,10 +37,11 @@ install:
   - ./travis-tool.sh r_binary_install slam
   - ./travis-tool.sh r_binary_install doParallel
   - ./travis-tool.sh r_binary_install testthat
+  - ./travis-tool.sh r_binary_install network
   - ./travis-tool.sh install_r libcurl
   - ./travis-tool.sh install_deps
+  - ./travis-tool.sh install_github jimhester/covr
   
-r_packages:
-  - covr
 after_success:
-  - Rscript -e 'library(covr); codecov(token="3ca242db-ca18-4c99-a62c-adee107b583d")'
+  - Rscript -e 'library(covr);codecov()'
+#  - Rscript -e 'library(covr); codecov(token="3ca242db-ca18-4c99-a62c-adee107b583d")'

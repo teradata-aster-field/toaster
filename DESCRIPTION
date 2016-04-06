@@ -64,4 +64,5 @@ Collate:
     'plottingKmeans.R'
     'showGraph.R'
     'computeGraph.R'
+    'validateGraph.R'
 RoxygenNote: 5.0.1

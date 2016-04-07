@@ -1,4 +1,9 @@
 
+BUG FIXES
+
+* `getTableSummary` fails when table has one or more temporal column
+  types (#37)
+  
 toaster 0.5.1
 ----------------------------------------------------------------
 

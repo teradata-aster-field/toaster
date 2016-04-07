@@ -500,7 +500,7 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                          else
                            presults = NULL
                          
-                         makeTemporalMetrics(idx, column_stats, total_count, presults, percentileNames, percentileStrNames)
+                         makeTemporalMetrics(idx, column_stats, total_count, percentileFlag, presults, percentileNames, percentileStrNames)
                        }
                      }
     
@@ -527,7 +527,7 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                          
                          close(parChan)
                          
-                         makeTemporalMetrics(idx, column_stats, total_count, presults, percentileNames, percentileStrNames)
+                         makeTemporalMetrics(idx, column_stats, total_count, percentileFlag, presults, percentileNames, percentileStrNames)
                        }  
                      }
   }

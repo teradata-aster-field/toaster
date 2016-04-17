@@ -4,6 +4,9 @@ BUG FIXES
 * `getTableSummary` fails when table has one or more temporal column
   types (#37)
   
+* `getTablesummary` fails when numerical data contains 'NaN' special
+  values (#39)
+  
 toaster 0.5.1
 ----------------------------------------------------------------
 

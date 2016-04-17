@@ -1,4 +1,4 @@
-#' List Aster numeric data types.
+#' List Aster all numeric data types.
 #' 
 #' @return character vector with names of Aster numeric data types
 #' @export
@@ -7,15 +7,53 @@
 #' getNumericTypes()
 #' 
 getNumericTypes <- function () {
+  
+  return(c(getIntegerTypes(), getFloatingPointTypes(), getArbitraryPrecisionTypes()))
+}
+
+#' List Aster integer data types.
+#' 
+#' @return character vector with names of Aster integer data types
+#' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getFloatingPointTypes}}, \code{\link{getArbitraryPrecisionTypes}}
+#' @examples
+#' getIntegerTypes()
+#' 
+getIntegerTypes <- function() {
+  
   return( c('integer',
-            'numeric',
             'bigint',
             'smallint',
-            'real',
-            'double precision',
             'serial',
-            'bigserial',
-            'float',
+            'bigserial')
+  )
+}
+
+#' List Aster floating piont numeric data types.
+#' 
+#' @return character vector with names of Aster floating point numeric data types
+#' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getIntegerTypes}}, \code{\link{getArbitraryPrecisionTypes}}
+#' @examples 
+#' getFloatingPointTypes()
+#' 
+getFloatingPointTypes <- function() {
+  return( c('real',
+            'double precision',
+            'float')
+  )
+}
+
+#' List Aster arbitrary precision number data types.
+#' 
+#' @return character vector with names of Aster arbitrary precision numeric data types
+#' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getFloatingPointTypes}}, \code{\link{getIntegerTypes}}
+#' @examples 
+#' getArbitraryPrecisionTypes()
+#' 
+getArbitraryPrecisionTypes <- function() {
+  return( c('numeric',
             'decimal')
   )
 }

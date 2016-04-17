@@ -4,20 +4,17 @@ batting_info = dget("_battingInfo.dat")
 pitching_info = dget("_pitchingInfo.dat")
 
 test_that("type functions work", {
-  expect_equal(getNumericTypes(), c('integer',
-                                    'numeric',
-                                    'bigint',
-                                    'smallint',
-                                    'real',
-                                    'double precision',
-                                    'serial',
-                                    'bigserial',
-                                    'float',
-                                    'decimal'))
+  expect_equal(getNumericTypes(), c('integer','bigint','smallint','serial','bigserial',
+                                    'real','double precision','float',
+                                    'numeric','decimal'))
   
-  expect_equal(getCharacterTypes(), c('varchar',
-                                      'char',
-                                      'character'))
+  expect_equal(getIntegerTypes(), c('integer','bigint','smallint','serial','bigserial'))
+  
+  expect_equal(getFloatingPointTypes(), c('real','double precision','float'))
+  
+  expect_equal(getArbitraryPrecisionTypes(), c('numeric','decimal'))
+  
+  expect_equal(getCharacterTypes(), c('varchar','char','character'))
   
   expect_equal(getTemporalTypes(), c('date', 
                                      'timestamp without time zone', 

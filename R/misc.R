@@ -354,15 +354,15 @@ normalizeTableName <- function (name) {
 #'
 makeTempTableName <- function(prefix=NULL, n=20, schema=NULL) {
   
-  if(!is.null(prefix) && !grepl("^[a-z0-9]+$", prefix, ignore.case=TRUE))
-    stop("Prefix may contain alpha-numeric characters only")
+  if(!is.null(prefix) && !grepl("^[[:alnum:]_]+$", prefix, ignore.case=TRUE))
+    stop("Prefix may contain alphanumeric including underscore characters only.")
   
   prefix = paste0("toa_temp_", prefix, ifelse(is.null(prefix), "", "_"))
   if (nchar(prefix) + n > 63)
-    stop("Too long prefix: 63 characters is Aster limit on table name length")
+    stop("Too long prefix: 63 characters is Aster limit on table name length.")
   
-  if(!is.null(schema) && !grepl("^[a-z0-9]+$", schema, ignore.case=TRUE))
-    stop("Schema may contain alpha-numeric characters only")
+  if(!is.null(schema) && !grepl("^[[:alnum:]_]+$", schema, ignore.case=TRUE))
+    stop("Schema may contain alphanumeric including underscore characters only.")
   
   schema = ifelse(is.null(schema), "", paste0(schema,"."))
   return(paste0(schema, prefix, paste0(sample(c(letters,0:9), n-length(prefix), replace=TRUE), collapse="")))

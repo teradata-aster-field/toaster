@@ -33,11 +33,11 @@ test_that("type functions work", {
 
 test_that("temporary table name function", {
   
-  expect_error(makeTempTableName("$"), "Prefix may contain alpha-numeric characters only")
+  expect_error(makeTempTableName("$"), "Prefix may contain alphanumeric including underscore characters only.")
   
-  expect_error(makeTempTableName("tooobig", 60), "Too long prefix: 63 characters is Aster limit on table name length")
+  expect_error(makeTempTableName("tooobig", 60), "Too long prefix: 63 characters is Aster limit on table name length.")
   
-  expect_error(makeTempTableName("prefix", 10, "$%^^schema01"), "Schema may contain alpha-numeric characters only")
+  expect_error(makeTempTableName("prefix", 10, "$%^^schema01"), "Schema may contain alphanumeric including underscore characters only.")
   
   expect_equal(nchar(makeTempTableName()), 28)
   

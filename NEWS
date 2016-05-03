@@ -1,4 +1,11 @@
 
+toaster 0.5.2
+----------------------------------------------------------------
+
+NEW FEATURES
+* Function `computeSample` now supports sample stratum based on 
+  table column or custom stratum condition (#28).
+  
 BUG FIXES
 
 * `getTableSummary` fails when table has one or more temporal column

@@ -290,6 +290,12 @@ makeSqlValueList <- function(values) {
 }
 
 
+makeSqlMrValueList <- function(values) {
+  
+  paste0("'", paste(values, collapse="', '"), "'")
+}
+
+
 makeSqlAggregateColumnList <- function(columns, sqlAggFun, includeFunInAlias=TRUE, cast="") {
   
   if (includeFunInAlias)

@@ -1,12 +1,38 @@
 #' Randomly sample data from the table.
 #' 
-#' Draws a sample of rows from the table randomly. The function offers two 
-#' sampling schemes:
-#'   - a simple binomial (Bernoulli) sampling on a row-by-row basis with
-#'     given sample rate(s)
-#'   - sampling a given number of rows without replacement
-#' The sampling can be applied to the entire table or can be refined with 
-#' conditions.
+#' Draws a sample of rows from the table randomly. The function offers two sampling approaches and three stratum strategies.
+#' Sampling approaches by
+#' \itemize{
+#'   \item \emph{sample fraction}: a simple binomial (Bernoulli) sampling on a row-by-row basis with given sample rate(s) (see \code{sampleFraction})
+#'   \item \emph{sample size}: sampling a given number of rows without replacement (see \code{sampleSize})
+#' }
+#' Stratum strategies:
+#' \itemize{
+#'   \item \emph{single stratum}: the whole table or its subset (defined using \code{where}).
+#'   \item \emph{by column values}: using \code{conditionColumn} and \code{conditionValues} arguments define stratum per value in the table column.
+#'   \item \emph{by SQL expression}: using \code{conditionStratum} and \code{conditionValues} arguments define stratum using SQL 
+#'     expression (with SQL \code{CASE} function but not necessarily) per value.
+#' }
+#' 
+#' The sampling can be applied to the entire table or can be refined with either \code{conditionColumn} or \code{conditionStratum}.
+#' In each case a subset of the table defined with \code{where} argument may apply too. The resulting stratum models are:
+#' \itemize{
+#'   \item \emph{Single Sample Fraction}: provide only one value in \code{sampleFraction}, this single fraction is 
+#'     targeted throughout the whole population or across all the strata defined by the sample conditions 
+#'     \code{conditionColumn} or \code{conditionStrata} in combination with \code{conditionValues}. 
+#'   \item \emph{Variable Sample Fractions}: provide multiple values in \code{sampleFraction}, each of them is used for 
+#'     sampling a particular stratum defined by the \code{conditionColumn} or \code{conditionStratum} arguments in
+#'     combination with \code{conditionValues}. Number of values in \code{sampleFraction} and \code{conditionValues} must
+#'     be the same.
+#'   \item \emph{Total Sample Size}: provide only one value in \code{sampleSize} for the total sample size for the 
+#'     entire population. If in addition you specify the \code{conditionColumn} or \code{conditionStratum} arguments, 
+#'     the function proportionally generates sample units for each stratum defined by the \code{conditionColumn} or \code{conditionStratum} 
+#'     arguments in combination with \code{conditionValues}. 
+#'   \item \emph{Variable Sample Sizes}: provide multiple sizes in \code{sampleSize} so that each size corresponds 
+#'     to a stratum defined by \code{conditionColumn} or \code{conditionStratum} arguments in combination with \code{conditionValues}.
+#'     The sample function generates sample units directly for each stratum based on the supplied sizes. Number of values 
+#'     in \code{sampleSize} and \code{conditionValues} must be the same.
+#' }
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name

@@ -153,16 +153,12 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize, condit
   if (xor(is.null(conditionColumn), is.null(conditionValues)))
       stop("Both condition column and condition values must be either present or NULLs.")
   
-  if (!is.null(conditionColumn)) {
+  if (!missing(sampleFraction) && length(sampleFraction) > 1 && length(sampleFraction) != length(conditionValues)) 
+    stop("Number of fractions must match the number of condition values.")
     
-    if (!missing(sampleFraction) && length(sampleFraction) > 1 && length(sampleFraction) != length(conditionValues)) 
-      stop("Number of fractions must match the number of condition values.")
+  if (!missing(sampleSize) && length(sampleSize) > 1 && length(sampleSize) != length(conditionValues))
+    stop("Number of sample sizes must match the number of condition values.")
     
-    if (!missing(sampleSize) && length(sampleSize) > 1 && length(sampleSize) != length(conditionValues))
-      stop("Number of sample sizes must match the number of condition values.")
-    
-  } 
-  
   isValidConnection(channel, test)
   
   columnList = paste(columns, collapse = ", ")

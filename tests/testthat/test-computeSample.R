@@ -51,6 +51,14 @@ test_that("computeSample throws errors", {
                              test=FALSE),
                "Number of sample sizes must match the number of condition values.")
   
+  expect_error(computeSample(channel=NULL, tableName="faketable", sampleSize=c(1,3),
+                             test=FALSE),
+               "Number of sample sizes must match the number of condition values.")
+  
+  expect_error(computeSample(channel=NULL, tableName="faketable", sampleFraction=c(0.1,0.3),
+                             test=FALSE),
+               "Number of fractions must match the number of condition values.")
+  
   expect_error(computeSample(channel=NULL, tableName="faketable", sampleFraction=0.000001),
                "Connection is not valid RODBC object.")
   

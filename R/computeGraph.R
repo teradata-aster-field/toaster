@@ -1100,6 +1100,12 @@ makeEgoSelfEdgeWhereSql <- function(graph, key, mode) {
 
 
 makeNetworkResult <- function(graph, v, e){
+  
+  # validate resulting graph data
+  if (!is.null(v) && nrow(v) == 0)
+    stop("Graph object may not have 0 vertices.")
+  if (nrow(e) == 0) 
+    stop("Graph object may not have 0 edges.")
 
   # this step is necessary to eliminate integer values which are processed 
   # not like character values by network constructor

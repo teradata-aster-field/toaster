@@ -2,8 +2,10 @@
 #' 
 #' In Aster Database, to process graphs using SQL-GR, it is recommended to represent
 #' a graph using two tables:
-#' - Vertices table
-#' - Edges table
+#' \enumerate{
+#'   \item Vertices table
+#'   \item edges table
+#' }
 #' Vertices table must contain a unique key so that each row represents a vertex.
 #' Edges table must contain a pair of source and target keys (from vertices table)
 #' so that each row represents an edge.
@@ -162,18 +164,14 @@ computeGraph <- function(channel, graph, v=NULL,
     e = toaSqlQuery(channel, edgesSql, stringsAsFactors=FALSE)
   
   # Vertices select
-  if ((!is.null(graph$vertexAttrnames) && length(graph$vertexAttrnames) > 0) ||
-      !is.null(vertexWhere)) {
-    sqlComment = "-- Vertices Select"
-    verticesSql = makeVerticesSql(graph, isTableFlag, vertexWhere, FALSE)
+  sqlComment = "-- Vertices Select"
+  verticesSql = makeVerticesSql(graph, isTableFlag, vertexWhere, FALSE, TRUE)
       
-    if(test)
-      sqlText = paste(sqlText, paste(emptyLine, sqlComment, verticesSql, sep='\n'), sep=';\n')
-    else
-      vx = toaSqlQuery(channel, verticesSql, stringsAsFactors=FALSE)
-  }else
-    vx = NULL
-  
+  if(test)
+    sqlText = paste(sqlText, paste(emptyLine, sqlComment, verticesSql, sep='\n'), sep=';\n')
+  else
+    vx = toaSqlQuery(channel, verticesSql, stringsAsFactors=FALSE)
+
   # result
   if (test) {
     return(sqlText)
@@ -1043,7 +1041,7 @@ addVerticesInVertexWhere <- function(graph, v, vertexWhere) {
 }
 
 
-makeVerticesSql <- function(graph, isTableFlag, vertexWhere, keyOnlyFlag) {
+makeVerticesSql <- function(graph, isTableFlag, vertexWhere, keyOnlyFlag, ordered=FALSE) {
   
   if(keyOnlyFlag) 
     selectList = graph$key
@@ -1053,7 +1051,8 @@ makeVerticesSql <- function(graph, isTableFlag, vertexWhere, keyOnlyFlag) {
   paste0(
     "SELECT ", selectList, " 
        FROM ", makeFromClause(graph$vertices, isTableFlag[['vertices']], "t"),
-    makeWhereClause(vertexWhere)
+    makeWhereClause(vertexWhere),
+    ifelse(ordered, paste0(" ORDER BY ", graph$key), "")
   )
 }
  

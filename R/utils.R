@@ -931,3 +931,107 @@ constructCountNullsSQL <- function(variableName, percent){
   
   return(sqlString)
 }
+
+
+#' Counts number of rows and columns in the database tables.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param schema character vector with schemas to restric tables to one or more schemas. 
+#'   If \code{NULL} table search performed across whole database. Including \code{schema} restricts 
+#'   it to the specified schemas only.
+#' @param tableType can specify zero or more types in separate elements of a character 
+#'   vector (one or more of \code{"TABLE", "VIEW", "SYSTEM TABLE", "ALIAS", "SYNONYM"}).
+#' @param pattern character string containing \link{regular expression} to match table names (without
+#'   schema).
+#' @param columns logical directs to include a column count for each table in the result.
+#' @param where specifies criteria to satisfy by the table rows before applying computation. 
+#'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
+#' @param tables optional pre-built list of tables (data frame returned by \code{\link{sqlTables}}).
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).   
+#'   
+#' @return a data frame returned by \code{\link{sqlTables}} augmented with \code{rowcount} (number of rows)
+#'   and optinal \code{colcount} (number of columns) columns for each table.
+#' @export
+#' @examples 
+#' if (interactive()) {
+#' 
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'
+#' table_counts = getTableCounts(conn, 'public')
+#' 
+#' library(reshape2)
+#' library(ggplot2)
+#' library(ggthemes)
+#' 
+#' data = melt(table_counts, id.vars='TABLE_NAME', measure.vars=c('rowcount','colcount'))
+#' ggplot(data) +
+#'   geom_bar(aes(TABLE_NAME, rowcount, fill=TABLE_NAME), stat='identity') +
+#'   facet_wrap(~variable, scales = "free_y", ncol=1) +
+#'   theme_tufte(ticks=FALSE) +
+#'   theme(axis.text.x=element_text(size=12, angle=315, hjust=0),
+#'         legend.position="none")
+#' }
+getTableCounts <- function(channel, schema=NULL, tableType="TABLE", pattern=NULL, 
+                           columns=FALSE, where=NULL, tables=NULL, test=FALSE) {
+  
+  # match argument values
+  tableType = match.arg(tableType, c("TABLE", "VIEW", "SYSTEM TABLE", "ALIAS", "SYNONYM"))
+  
+  if (is.null(tables) && test) {
+    stop("Must provide tables when test==TRUE.")
+  }
+  
+  schema = unique(schema)
+  
+  if (is.null(tables)) {
+    tables = sqlTables(channel, schema = NULL, tableType = tableType)
+  }
+  
+  # schema filter
+  if (!is.null(schema))
+    tables = tables[tables$TABLE_SCHEM %in% schema, ]
+  
+  # table name pattern filter
+  if(!is.null(pattern)) {
+    tables = tables[grepl(pattern, tables$TABLE_NAME, ignore.case = TRUE), ]
+  }
+  
+  where_clause = makeWhereClause(where)
+  
+  if(test) {
+    sqlText = "--"
+  }
+  
+  rowcount = integer(0)
+  colcount = integer(0)
+  for(tname in paste0(tables$TABLE_SCHEM,'.',tables$TABLE_NAME)) {
+    
+    sql = paste("SELECT COUNT(*) cnt FROM", tname, where_clause)
+    
+    if (test) {
+      sqlText = paste(sqlText, sql, sep=';\n')
+    }else {
+      result = toaSqlQuery(channel, sql)
+      rowcount = c(rowcount, result$cnt)
+      
+      if (columns) {
+        result = dim(sqlColumns(channel, tname, schema = schema))[[1]]
+        colcount = c(colcount, result)
+      }
+    }
+    
+  }
+  
+  if (test) {
+    sqlText = paste(sqlText, ";")
+    return(sqlText)
+  }else{
+    if (columns)
+      return(cbind(tables, rowcount = rowcount, colcount = colcount))
+    else
+      return(cbind(tables, rowcount = rowcount))
+  }
+}

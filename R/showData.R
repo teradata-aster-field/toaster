@@ -162,7 +162,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
                      corrLabel = 'none', digits = 2, 
                      shape = 21, shapeSizeRange = c(1,10),
                      facet = ifelse(format == 'overview', TRUE, FALSE), 
-                     scales = ifelse(facet & format %in% c('boxplot','overview'),"free", "fixed"),
+                     scales = ifelse(facet & format == 'boxplot',"free",
+                                     ifelse(facet & format == 'overview', "free_y", "fixed")),
                      ncol = 4, coordFlip = FALSE, paletteName = "Set1", 
                      baseSize = 12, baseFamily = "sans",
                      legendPosition = "none",
@@ -218,6 +219,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   
   getPalette = getDiscretePaletteFactory(paletteName)
   
+  f = theme_void()
+  
   if (format=='boxplot') {
     if (type != 'numeric') {
       warning("Automatically regressing to numerical types for format 'boxplot'")
@@ -245,6 +248,15 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     if (!missing(extraPoints))
       for (point in extraPoints)
         p = p + geom_point(aes_string(x = 'COLUMN_NAME', y = point), shape=extraPointShape)
+    
+    # add formatting
+    f = theme(axis.title = element_blank(),
+              axis.ticks = element_blank()) +
+      if(facet)
+        theme(strip.text = element_text(size=baseSize, face="bold"),
+              axis.text.x = element_blank())
+      else
+        theme(axis.text.x = element_text(size=baseSize, angle = 315))
 
   }
   else if (format=='corr') {
@@ -267,12 +279,14 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     p = createBubblechart(corrmat, "metric1", "metric2", "value", label=unlist(corrLabelName), fill="sign",
                           shape=shape, shapeSizeRange=shapeSizeRange, labelSize=5, labelVJust=0,
                           title=title, legendPosition=legendPosition,
-                          defaultTheme=defaultTheme, 
-                          themeExtra=theme(axis.title = element_blank()))
+                          defaultTheme=NULL, themeExtra=NULL)
     
     # remove fill legend 
     if (legendPosition == "none") 
       p = p + guides(fill = FALSE)
+    
+    f = theme(axis.ticks = element_blank(),
+              axis.title = element_blank())
     
     # force parameter facet to FALSE
     facet = FALSE
@@ -306,6 +320,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
       # remove fill legend 
       if (legendPosition == "none") 
         p = p + guides(fill = FALSE)
+      
+      f = theme(axis.ticks = element_blank())
       
       # force parameter facet to FALSE
       facet = FALSE
@@ -370,6 +386,8 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     else 
       p = p + guides(colour = guide_legend())
     
+    f = theme(axis.title = element_text(size=baseSize, face="bold"))
+    
     facet = FALSE
   }
   else if (format=='overview') {
@@ -399,6 +417,12 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
     if (legendPosition == "none") 
       p = p + guides(fill = FALSE)
     
+    # add formatting
+    f = theme(axis.title.y = element_blank(),
+              axis.ticks = element_blank(),
+              strip.text = element_text(size=baseSize, face="bold"),
+              axis.text.x = element_text(size=baseSize, angle = 315))
+    
     # force facet to FALSE
     facet = FALSE
   }
@@ -410,6 +434,11 @@ showData <- function(channel = NULL, tableName = NULL, tableInfo = NULL,
   if (coordFlip) {
     p = p + coord_flip()
   }
+  
+  if (is.null(themeExtra)) 
+      themeExtra = f
+    else
+      themeExtra = f + themeExtra
   
   p = p +
     defaultTheme + themeExtra

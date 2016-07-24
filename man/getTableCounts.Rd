@@ -6,7 +6,7 @@
 \usage{
 getTableCounts(channel, schema = NULL, tableType = "TABLE",
   pattern = NULL, columns = FALSE, where = NULL, tables = NULL,
-  test = FALSE)
+  test = FALSE, parallel = FALSE)
 }
 \arguments{
 \item{channel}{object as returned by \code{\link{odbcConnect}}.}
@@ -31,7 +31,10 @@ The creteria are expressed in the form of SQL predicates (inside \code{WHERE} cl
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 functions like \link{sqlQuery} and \link{sqlSave}).}
 
-\item{tableName}{name of the table in Aster.}
+\item{parallel}{logical: enable parallel calls to Aster database. This option requires parallel 
+backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel} 
+obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or 
+\code{\link{odbcDriverConnect}} calls, but not with \code{\link{odbcConnect}(dsn, user, password)}.}
 }
 \value{
 a data frame returned by \code{\link{sqlTables}} augmented with \code{rowcount} (number of rows)

@@ -24,6 +24,11 @@ test_that("computeGraphHistogram throws errors", {
                                      test=TRUE),
                "No edge attribute 'weight' found in graph.")
   
+  expect_error(computeGraphHistogram(NULL, toaGraph("vs", "es"), weight='weight',
+                                     allTables = data.frame(TABLE_NAME=c("vs","es"), stringsAsFactors = FALSE), 
+                                     test=TRUE),
+               "No edge attribute 'weight' found in graph.")
+  
   expect_error(computeGraphHistogram(NULL, toaGraph("vs", "es"), weight="notweight",
                                      allTables = data.frame(TABLE_NAME=c("vs","es"), stringsAsFactors = FALSE), 
                                      test=TRUE),
@@ -42,12 +47,12 @@ test_that("computeGraphHistogram throws errors", {
                "End value should be greater than start value.")
 })
 
-policeGraphUn = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_edges_un", FALSE,
-                         "officer", "officer1", "officer2", vertexAttrnames = c("offense_count"),
-                         edgeAttrnames = c("weight"))
-policeGraphDi = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_edges_di", TRUE,
-                         "officer", "officer1", "officer2", vertexAttrnames = c("offense_count"),
-                         edgeAttrnames = c("weight"))
+policeGraphUn = toaGraph(vertices="dallaspolice_officer_vertices", edges="dallaspolice_officer_edges_un", 
+                         directed=FALSE, key="officer", source="officer1", target="officer2", 
+                         vertexAttrnames = c("offense_count"), edgeAttrnames = c("weight"))
+policeGraphDi = toaGraph(vertices="dallaspolice_officer_vertices", edges="dallaspolice_officer_edges_di", 
+                         directed=TRUE, key="officer", source="officer1", target="officer2", 
+                         vertexAttrnames = c("offense_count"), edgeAttrnames = c("weight"))
 
 test_that("computeGraphHistogram for degree works properly", {
 

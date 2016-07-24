@@ -92,6 +92,8 @@ toaGraph <- function(vertices, edges, directed=FALSE,
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).
 #'   
+#' @return \code{\link{network}} class object materializing an Aster graph represented by \code{\link{toaGraph}}.
+#'   
 #' @export
 #' @examples 
 #' if(interactive()) {
@@ -127,10 +129,10 @@ toaGraph <- function(vertices, edges, directed=FALSE,
 #' ggnet2(net3, node.label="vertex.names", node.size="degree", 
 #'        legend.position="none")
 #'                          
-#' }                          
+#' }
 computeGraph <- function(channel, graph, v=NULL,
-                         vertexWhere=graph$vertexWhere, 
-                         edgeWhere=graph$edgeWhere, 
+                         vertexWhere=graph$vertexWhere,
+                         edgeWhere=graph$edgeWhere,
                          allTables=NULL, test=FALSE) {
   
   if (missing(graph) || !is.object(graph) || !inherits(graph, "toagraph"))
@@ -142,6 +144,16 @@ computeGraph <- function(channel, graph, v=NULL,
   isValidConnection(channel, test)
   
   isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+
+  return(computeGraphInternal(channel, graph, v, vertexWhere, edgeWhere,
+                              isTableFlag, test, closeOnError=FALSE))
+    
+} 
+
+computeGraphInternal <- function(channel, graph, v=NULL,
+                         vertexWhere=graph$vertexWhere, 
+                         edgeWhere=graph$edgeWhere, 
+                         isTableFlag, test=FALSE, closeOnError=FALSE) {
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
@@ -161,7 +173,7 @@ computeGraph <- function(channel, graph, v=NULL,
   if(test)
     sqlText = paste(sqlComment, edgesSql, sep='\n')
   else
-    e = toaSqlQuery(channel, edgesSql, stringsAsFactors=FALSE)
+    e = toaSqlQuery(channel, edgesSql, stringsAsFactors=FALSE, closeOnError=closeOnError)
   
   # Vertices select
   sqlComment = "-- Vertices Select"
@@ -170,7 +182,7 @@ computeGraph <- function(channel, graph, v=NULL,
   if(test)
     sqlText = paste(sqlText, paste(emptyLine, sqlComment, verticesSql, sep='\n'), sep=';\n')
   else
-    vx = toaSqlQuery(channel, verticesSql, stringsAsFactors=FALSE)
+    vx = toaSqlQuery(channel, verticesSql, stringsAsFactors=FALSE, closeOnError=closeOnError)
 
   # result
   if (test) {
@@ -797,7 +809,7 @@ makeGraphFunctionArgumentsSql <- function(...) {
   argNames = names(args)
   result = ""
   for(i in 1:length(args)) {
-      result = paste(result, "
+      result = paste0(result, "
            ", argNames[[i]],"('",args[[i]],"')")
   }
   

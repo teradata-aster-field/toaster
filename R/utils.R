@@ -329,7 +329,7 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
                                   where_clause, total_count, parallel=FALSE) {
   
   # non-functional: eliminates NOTE 'no visible binding for global variable'
-  column_name = idx = NULL
+  column_name = idx = column_type = NULL
   
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
@@ -951,7 +951,11 @@ constructCountNullsSQL <- function(variableName, percent){
 #'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
 #' @param tables optional pre-built list of tables (data frame returned by \code{\link{sqlTables}}).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
-#'   functions like \link{sqlQuery} and \link{sqlSave}).   
+#'   functions like \link{sqlQuery} and \link{sqlSave}).  
+#' @param parallel logical: enable parallel calls to Aster database. This option requires parallel 
+#'   backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel} 
+#'   obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or 
+#'   \code{\link{odbcDriverConnect}} calls, but not with \code{\link{odbcConnect}(dsn, user, password)}.
 #'   
 #' @return a data frame returned by \code{\link{sqlTables}} augmented with \code{rowcount} (number of rows)
 #'   and optinal \code{colcount} (number of columns) columns for each table.
@@ -978,10 +982,15 @@ constructCountNullsSQL <- function(variableName, percent){
 #'         legend.position="none")
 #' }
 getTableCounts <- function(channel, schema=NULL, tableType="TABLE", pattern=NULL, 
-                           columns=FALSE, where=NULL, tables=NULL, test=FALSE) {
+                           columns=FALSE, where=NULL, tables=NULL, 
+                           test=FALSE, parallel=FALSE) {
   
   # match argument values
   tableType = match.arg(tableType, c("TABLE", "VIEW", "SYSTEM TABLE", "ALIAS", "SYNONYM"))
+  
+  # check if parallel option is valid
+  if (parallel && !getDoParRegistered())
+    stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
   
   if (is.null(tables) && test) {
     stop("Must provide tables when test==TRUE.")
@@ -1004,37 +1013,47 @@ getTableCounts <- function(channel, schema=NULL, tableType="TABLE", pattern=NULL
   
   where_clause = makeWhereClause(where)
   
-  if(test) {
-    sqlText = "--"
+  sqlToExecute = character()
+  for(tname in paste0(tables$TABLE_SCHEM,'.',tables$TABLE_NAME)) {
+    sqlToExecute = c(sqlToExecute, paste("SELECT COUNT(*) cnt FROM", tname, where_clause))
   }
   
-  rowcount = integer(0)
-  colcount = integer(0)
-  for(tname in paste0(tables$TABLE_SCHEM,'.',tables$TABLE_NAME)) {
-    
-    sql = paste("SELECT COUNT(*) cnt FROM", tname, where_clause)
-    
-    if (test) {
-      sqlText = paste(sqlText, sql, sep=';\n')
-    }else {
-      result = toaSqlQuery(channel, sql)
-      rowcount = c(rowcount, result$cnt)
-      
+  
+  if(test) {
+    sqlText = paste0("--;\n", paste(sqlToExecute, collapse = ';\n'), ";")
+    return(sqlText)
+  }
+  
+  sql = idx = NULL
+  
+  if (!parallel) {
+    result = foreach(sql = sqlToExecute, idx = seq_along(tables$TABLE_NAME),
+                     .combine='rbind', .packages=c('RODBC')) %do% {
+      rowcount = toaSqlQuery(channel, sql)$cnt
       if (columns) {
-        result = dim(sqlColumns(channel, tname, schema = schema))[[1]]
-        colcount = c(colcount, result)
+        colcount = nrow(sqlColumns(channel, tables$TABLE_NAME[[idx]], schema = tables$TABLE_SCHEM[[idx]]))
+        cbind(tables[idx,], rowcount=rowcount, colcount=colcount)
+      }else
+        cbind(tables[idx,], rowcount=rowcount)
+    }
+  }else {
+    # parallel mode compute 
+    result = foreach(sql = sqlToExecute, idx = seq_along(tables$TABLE_NAME),
+                     .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
+              
+      parChan = odbcReConnect(channel)
+      rowcount = toaSqlQuery(parChan, sql, closeOnError=TRUE)$cnt
+
+      if (columns) {
+        colcount = nrow(sqlColumns(parChan, tables$TABLE_NAME[[idx]], schema = tables$TABLE_SCHEM[[idx]]))
+        close(parChan)
+        cbind(tables[idx,], rowcount=rowcount, colcount=colcount)
+      }else {
+        close(parChan)
+        cbind(tables[idx,], rowcount=rowcount)
       }
     }
-    
   }
   
-  if (test) {
-    sqlText = paste(sqlText, ";")
-    return(sqlText)
-  }else{
-    if (columns)
-      return(cbind(tables, rowcount = rowcount, colcount = colcount))
-    else
-      return(cbind(tables, rowcount = rowcount))
-  }
+  return(result)
 }

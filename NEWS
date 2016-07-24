@@ -9,6 +9,11 @@ NEW FEATURES
 * Function `getTableCounts` is handy when first looking at the 
   database to see number of rows and columns in each table (#50).
   
+MINOR FEATURES
+
+* Graph vertices table is now always read when constructing R 
+  network object (#46).
+  
 BUG FIXES
 
 * `getTableSummary` fails when table has one or more temporal column

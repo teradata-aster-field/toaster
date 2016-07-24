@@ -40,25 +40,41 @@ test_that("computeGraph works properly", {
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
                                        test=TRUE),
                           "-- Edges Select
-                           SELECT source, target FROM edges ")
+                           SELECT source, target FROM edges ;
+                           --
+                           -- Vertices Select
+                           SELECT id 
+                             FROM vertices  ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=character(0),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
                                        test=TRUE),
                           "-- Edges Select
-                           SELECT source, target FROM edges ")
+                           SELECT source, target FROM edges ;
+                           --
+                           -- Vertices Select
+                           SELECT id 
+                             FROM vertices  ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list(),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
                                        test=TRUE),
                           "-- Edges Select
-                           SELECT source, target FROM edges ")
+                           SELECT source, target FROM edges ;
+                           --
+                           -- Vertices Select
+                           SELECT id 
+                             FROM vertices  ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraphWithEdgeAttrs,
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
                                        test=TRUE),
                           "-- Edges Select
-                           SELECT source, target, weight, cost FROM edges ")
+                           SELECT source, target, weight, cost FROM edges ;
+                           --
+                           -- Vertices Select
+                           SELECT id 
+                             FROM vertices  ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, vertexWhereGraph,
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
@@ -68,7 +84,7 @@ test_that("computeGraph works properly", {
                             WHERE source IN (SELECT id FROM vertices WHERE state='TX' )
                               AND target IN (SELECT id FROM vertices WHERE state='TX' ) ;
                            -- -- Vertices Select 
-                           SELECT id FROM vertices WHERE state='TX' ")
+                           SELECT id FROM vertices WHERE state='TX' ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list(1,2,3),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
@@ -78,7 +94,7 @@ test_that("computeGraph works properly", {
                             WHERE source IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) )
                               AND target IN (SELECT id FROM vertices WHERE id IN (1, 2, 3) ) ;
                            -- -- Vertices Select 
-                           SELECT id FROM vertices WHERE id IN (1, 2, 3) ")
+                           SELECT id FROM vertices WHERE id IN (1, 2, 3) ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list('1','2','3'),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
@@ -88,7 +104,7 @@ test_that("computeGraph works properly", {
                             WHERE source IN (SELECT id FROM vertices WHERE id IN ('1', '2', '3') )
                               AND target IN (SELECT id FROM vertices WHERE id IN ('1', '2', '3') ) ;
                            -- -- Vertices Select 
-                           SELECT id FROM vertices WHERE id IN ('1', '2', '3') ")
+                           SELECT id FROM vertices WHERE id IN ('1', '2', '3') ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, simplestGraph, v=list('a','b','c'),
                                        allTables = data.frame(TABLE_NAME=c("vertices","edges"), stringsAsFactors = FALSE),
@@ -98,7 +114,7 @@ test_that("computeGraph works properly", {
                             WHERE source IN (SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') )
                               AND target IN (SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') ) ;
                           -- -- Vertices Select 
-                           SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') ")
+                           SELECT id FROM vertices WHERE id IN ('a', 'b', 'c') ORDER BY id")
   
   expect_equal_normalized(computeGraph(NULL, 
              toaGraph("graph.films_vertices", "graph.films_edges", FALSE, "name", "name1", "name2",
@@ -112,7 +128,7 @@ test_that("computeGraph works properly", {
                FROM graph.films_edges ;
              --
              -- Vertices Select
-             SELECT name, role FROM graph.films_vertices ")
+             SELECT name, role FROM graph.films_vertices ORDER BY name")
   
   expect_equal_normalized(computeGraph(NULL,
                                        toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
@@ -131,7 +147,8 @@ test_that("computeGraph works properly", {
                       --
                       -- Vertices Select
                       SELECT name, role FROM graph.films_vertices
-                       WHERE role = 'Actor' ")
+                       WHERE role = 'Actor' 
+                       ORDER BY name")
   
   expect_equal_normalized(computeGraph(NULL,
                                        toaGraph("graph.films_vertices", "graph.films_edges", FALSE,
@@ -153,7 +170,8 @@ test_that("computeGraph works properly", {
                       --
                       -- Vertices Select
                       SELECT name, role FROM graph.films_vertices
-                       WHERE (role = 'Actor') AND name IN ('Cruz', 'Pacino', 'Beluci', 'Portman') ",
+                       WHERE (role = 'Actor') AND name IN ('Cruz', 'Pacino', 'Beluci', 'Portman')
+                       ORDER BY name",
                       label="With vertex attr, vertex where, v list")
   
   expect_equal_normalized(computeGraph(NULL,
@@ -178,7 +196,8 @@ test_that("computeGraph works properly", {
                       --
                       -- Vertices Select
                       SELECT name, role FROM graph.films_vertices
-                       WHERE (role = 'Actor') AND name IN ('Cruz', 'Pacino', 'Beluci', 'Portman') ",
+                       WHERE (role = 'Actor') AND name IN ('Cruz', 'Pacino', 'Beluci', 'Portman')
+                       ORDER BY name",
                       label="With vertex attr, vertex where, edge where, v list")
   
   expect_equal_normalized(computeGraph(NULL,
@@ -200,7 +219,8 @@ test_that("computeGraph works properly", {
                       --
                       -- Vertices Select
                       SELECT name, role FROM graph.films_vertices
-                       WHERE name IN (SELECT name FROM graph.films_vertices WHERE name like '%Bill%' or name like '%Tom%') ",
+                       WHERE name IN (SELECT name FROM graph.films_vertices WHERE name like '%Bill%' or name like '%Tom%')
+                       ORDER BY name",
                       label="With vertex attr, v SELECT")
   
   expect_equal_normalized(computeGraph(NULL,
@@ -226,7 +246,8 @@ test_that("computeGraph works properly", {
                       -- Vertices Select
                       SELECT name, role FROM graph.films_vertices
                        WHERE (role = 'Actor') 
-                         AND name IN (SELECT name FROM graph.films_vertices WHERE name like '%Bill%' or name like '%Tom%') ",
+                         AND name IN (SELECT name FROM graph.films_vertices WHERE name like '%Bill%' or name like '%Tom%')
+                       ORDER BY name",
                       label="With vertex attr, vertex where, v SELECT")
   
 })

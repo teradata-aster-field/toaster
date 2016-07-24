@@ -276,7 +276,10 @@ addNumericFilterToWhereClause <- function(where_clause, column_type) {
     }else {
       where_clause = paste(where_clause, " AND ")
     }
-    where_clause = paste0(where_clause, "( <%%%column__name%%%> NOT IN ('NaN','Infinity','-Infinity') )" )
+    if (column_type %in% getFloatingPointTypes())
+      where_clause = paste0(where_clause, "( <%%%column__name%%%> NOT IN ('NaN','Infinity','-Infinity') )" )
+    else # arbitrary prcision types
+      where_clause = paste0(where_clause, "( <%%%column__name%%%> != 'NaN' )")
   }
   
   return(where_clause)

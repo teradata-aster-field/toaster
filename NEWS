@@ -16,6 +16,8 @@ BUG FIXES
   
 * `getTablesummary` fails when numerical data contains 'NaN' special
   values (#39)
+* `getTablesummary` fails when numerical data contains 'NaN' or other
+  special values (#39, #51)
   
 toaster 0.5.1
 ----------------------------------------------------------------

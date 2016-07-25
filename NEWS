@@ -1,4 +1,35 @@
 
+toaster 0.5.2
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* Graph function `computeGraphClusters` performs various types
+  of graph decomposition including connected components, 
+  modularity (#33).
+  
+* Function `validateGraph` checks graph data in Aster for 
+  validity and consistency (#34).
+  
+* Function `computeSample` now supports sample stratum based on 
+  table column or custom stratum condition (#28).
+  
+* Function `getTableCounts` is handy when first looking at the 
+  database to see number of rows and columns in each table (#50).
+  
+MINOR FEATURES
+
+* Graph vertices table is now always read when constructing R 
+  network object (#46).
+  
+BUG FIXES
+
+* `getTableSummary` fails when table has one or more temporal column
+  types (#37)
+  
+* `getTablesummary` fails when numerical data contains 'NaN' or other
+  special values (#39, #51)
+  
 toaster 0.5.1
 ----------------------------------------------------------------
 

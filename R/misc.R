@@ -1,4 +1,4 @@
-#' List Aster numeric data types.
+#' List Aster all numeric data types.
 #' 
 #' @return character vector with names of Aster numeric data types
 #' @export
@@ -7,15 +7,53 @@
 #' getNumericTypes()
 #' 
 getNumericTypes <- function () {
+  
+  return(c(getIntegerTypes(), getFloatingPointTypes(), getArbitraryPrecisionTypes()))
+}
+
+#' List Aster integer data types.
+#' 
+#' @return character vector with names of Aster integer data types
+#' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getFloatingPointTypes}}, \code{\link{getArbitraryPrecisionTypes}}
+#' @examples
+#' getIntegerTypes()
+#' 
+getIntegerTypes <- function() {
+  
   return( c('integer',
-            'numeric',
             'bigint',
             'smallint',
-            'real',
-            'double precision',
             'serial',
-            'bigserial',
-            'float',
+            'bigserial')
+  )
+}
+
+#' List Aster floating piont numeric data types.
+#' 
+#' @return character vector with names of Aster floating point numeric data types
+#' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getIntegerTypes}}, \code{\link{getArbitraryPrecisionTypes}}
+#' @examples 
+#' getFloatingPointTypes()
+#' 
+getFloatingPointTypes <- function() {
+  return( c('real',
+            'double precision',
+            'float')
+  )
+}
+
+#' List Aster arbitrary precision number data types.
+#' 
+#' @return character vector with names of Aster arbitrary precision numeric data types
+#' @export
+#' @seealso \code{\link{getNumericTypes}}, \code{\link{getFloatingPointTypes}}, \code{\link{getIntegerTypes}}
+#' @examples 
+#' getArbitraryPrecisionTypes()
+#' 
+getArbitraryPrecisionTypes <- function() {
+  return( c('numeric',
             'decimal')
   )
 }
@@ -252,6 +290,12 @@ makeSqlValueList <- function(values) {
 }
 
 
+makeSqlMrValueList <- function(values) {
+  
+  paste0("'", paste(values, collapse="', '"), "'")
+}
+
+
 makeSqlAggregateColumnList <- function(columns, sqlAggFun, includeFunInAlias=TRUE, cast="") {
   
   if (includeFunInAlias)
@@ -316,15 +360,15 @@ normalizeTableName <- function (name) {
 #'
 makeTempTableName <- function(prefix=NULL, n=20, schema=NULL) {
   
-  if(!is.null(prefix) && !grepl("^[a-z0-9]+$", prefix, ignore.case=TRUE))
-    stop("Prefix may contain alpha-numeric characters only")
+  if(!is.null(prefix) && !grepl("^[[:alnum:]_]+$", prefix, ignore.case=TRUE))
+    stop("Prefix may contain alphanumeric including underscore characters only.")
   
   prefix = paste0("toa_temp_", prefix, ifelse(is.null(prefix), "", "_"))
   if (nchar(prefix) + n > 63)
-    stop("Too long prefix: 63 characters is Aster limit on table name length")
+    stop("Too long prefix: 63 characters is Aster limit on table name length.")
   
-  if(!is.null(schema) && !grepl("^[a-z0-9]+$", schema, ignore.case=TRUE))
-    stop("Schema may contain alpha-numeric characters only")
+  if(!is.null(schema) && !grepl("^[[:alnum:]_]+$", schema, ignore.case=TRUE))
+    stop("Schema may contain alphanumeric including underscore characters only.")
   
   schema = ifelse(is.null(schema), "", paste0(schema,"."))
   return(paste0(schema, prefix, paste0(sample(c(letters,0:9), n-length(prefix), replace=TRUE), collapse="")))

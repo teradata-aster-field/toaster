@@ -267,48 +267,86 @@ makeNumericMetrics <- function(idx, column_stats, total_count, percentileFlag, p
   return (df)
 }
 
-computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns,
-                                  percentileFlag, percentileNames, percentileStr, 
-                                  where_clause, total_count, parallel=FALSE) {
+# add filter for 'NaN','Infinity','-Infinity' if necessary
+addNumericFilterToWhereClause <- function(where_clause, column_type) {
+  
+  if (column_type %in% c(getFloatingPointTypes(), getArbitraryPrecisionTypes())) {
+    if (nchar(where_clause) < 6) {
+      where_clause = " WHERE "
+    }else {
+      where_clause = paste(where_clause, " AND ")
+    }
+    if (column_type %in% getFloatingPointTypes())
+      where_clause = paste0(where_clause, "( <%%%column__name%%%> NOT IN ('NaN','Infinity','-Infinity') )" )
+    else # arbitrary prcision types
+      where_clause = paste0(where_clause, "( <%%%column__name%%%> != 'NaN' )")
+  }
+  
+  return(where_clause)
+  
+}
+
+getNumericMetricsSql <- function(column_name, column_type, tableName, where_clause) {
+  
+  # add filter for 'NaN','Infinity','-Infinity' special values in non-integer numerics
+  where_clause = addNumericFilterToWhereClause(where_clause, column_type)
   
   metricsSql = 
-    paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
-           "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
-           "       min((%%%column__name%%%)) as minimum, ",
-           "       max((%%%column__name%%%)) as maximum, ",
-           "       avg((%%%column__name%%%)::numeric) as average, ",
-           "       stddev((%%%column__name%%%)::numeric) as deviation ",
+    paste0("SELECT cast(count(distinct <%%%column__name%%%>) as bigint) as distinct_count, ",
+           "       cast(count(<%%%column__name%%%>) as bigint) as not_null_count, ",
+           "       min(<%%%column__name%%%>) as minimum, ",
+           "       max(<%%%column__name%%%>) as maximum, ",
+           "       avg(<%%%column__name%%%>::numeric) as average, ",
+           "       stddev(<%%%column__name%%%>::numeric) as deviation ",
            "  FROM ", tableName, where_clause)
+  
+  metricSql = gsub('<%%%column__name%%%>', column_name, metricsSql, fixed=TRUE)
+}
+
+getNumericPercentileSql <- function(column_name, column_type, tableName, where_clause, percentileStr) {
+  
+  # add filter for 'NaN','Infinity','-Infinity' special values in non-integer numerics
+  where_clause = addNumericFilterToWhereClause(where_clause, column_type)
   
   percentileSql = 
     paste0("SELECT * FROM approxPercentileReduce(
                                   ON (
                                   SELECT * FROM approxPercentileMap(
-                                  ON  ( SELECT * FROM " , tableName, where_clause, " ) ",
-           " TARGET_COLUMN( '(%%%column__name%%%)' )
+                                  ON  ( SELECT <%%%column__name%%%> FROM " , tableName, where_clause, " ) ",
+           " TARGET_COLUMN( '<%%%column__name%%%>' )
                                   ERROR( 1 )
                                   )
                                   )
                                   PARTITION BY 1
                                   PERCENTILE( ", percentileStr, " ))")
   
+  percentileSql = gsub('<%%%column__name%%%>', column_name, percentileSql, fixed=TRUE)
+  
+}
+  
+computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns,
+                                  percentileFlag, percentileNames, percentileStr, 
+                                  where_clause, total_count, parallel=FALSE) {
+  
   # non-functional: eliminates NOTE 'no visible binding for global variable'
-  column_name = idx = NULL
+  column_name = idx = column_type = NULL
   
   if (!parallel) {
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     column_type = tableInfo$TYPE_NAME,
                      .combine='rbind', .packages=c('RODBC')) %do% {
                        
                if (column_name %in% numeric_columns) {
                  
                  # Compute SELECT aggregate statistics on each numeric column
-                 column_stats = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, metricsSql, 
-                                                          fixed=TRUE), stringsAsFactors = FALSE)
+                 column_stats = toaSqlQuery(channel, getNumericMetricsSql(column_name, column_type, tableName, where_clause),
+                                            stringsAsFactors = FALSE)
                          
                  # compute all percentiles at once with SQL/MR approximate percentile function
                  if (percentileFlag)
-                   presults = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, 
-                                                        fixed=TRUE), stringsAsFactors = FALSE)
+                   presults = toaSqlQuery(channel, 
+                                          getNumericPercentileSql(column_name, column_type, tableName, where_clause, percentileStr),
+                                          stringsAsFactors = FALSE)
                  else
                    presults = NULL
                          
@@ -318,20 +356,21 @@ computeNumericMetrics <- function(channel, tableName, tableInfo, numeric_columns
   }else {
     # parallel mode compute
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
+                     column_type = tableInfo$TYPE_NAME,
                      .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
                        
                if (column_name %in% numeric_columns) {
                          
                  parChan = odbcReConnect(channel)
                  # Compute SELECT aggregate statistics on each numeric column
-                 column_stats = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, metricsSql, 
-                                                          fixed=TRUE), 
+                 column_stats = toaSqlQuery(parChan, getNumericMetricsSql(column_name, column_type, tableName, where_clause), 
                                          stringsAsFactors = FALSE, closeOnError=TRUE)
                          
                  # compute all percentiles at once with SQL/MR approximate percentile function
                  if (percentileFlag)
-                   presults = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, percentileSql, 
-                                                        fixed=TRUE), stringsAsFactors = FALSE, 
+                   presults = toaSqlQuery(parChan, 
+                                          getNumericPercentileSql(column_name, column_type, tableName, where_clause, percentileStr), 
+                                          stringsAsFactors = FALSE, 
                                           closeOnError=TRUE)
                  else
                    presults = NULL
@@ -361,10 +400,10 @@ computeCharacterMetrics <- function(channel, tableName, tableInfo, character_col
                                      where_clause, total_count, parallel=FALSE) {
   
   sql =
-    paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
-           "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
-           "       min((%%%column__name%%%)) as minimum, ",
-           "       max((%%%column__name%%%)) as maximum ",
+    paste0("SELECT cast(count(distinct <%%%column__name%%%>) as bigint) as distinct_count, ",
+           "       cast(count(<%%%column__name%%%>) as bigint) as not_null_count, ",
+           "       min(<%%%column__name%%%>) as minimum, ",
+           "       max(<%%%column__name%%%>) as maximum ",
            "  FROM ", tableName, where_clause)
   
   # non-functional: eliminates NOTE 'no visible binding for global variable'
@@ -375,7 +414,7 @@ computeCharacterMetrics <- function(channel, tableName, tableInfo, character_col
                      .combine='rbind', .packages=c('RODBC')) %do% {
                        
                if (column_name %in% character_columns) {
-                 column_stats = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                 column_stats = toaSqlQuery(channel, gsub('<%%%column__name%%%>', column_name, sql, fixed=TRUE), 
                                          stringsAsFactors = FALSE)
                          
                  makeCharacterMetrics(idx, column_stats, total_count) 
@@ -388,7 +427,7 @@ computeCharacterMetrics <- function(channel, tableName, tableInfo, character_col
       
               if (column_name %in% character_columns) {
                 parChan = odbcReConnect(channel)
-                column_stats = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+                column_stats = toaSqlQuery(parChan, gsub('<%%%column__name%%%>', column_name, sql, fixed=TRUE), 
                                                  stringsAsFactors = FALSE, closeOnError=TRUE)
                 close(parChan)
                          
@@ -442,8 +481,8 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                                    percentileFlag, percentiles, percentileNames, percentileStrNames, percentileStr, 
                                    where_clause, total_count, parallel=FALSE) {
   
-  where_clause = ifelse(length(where_clause)>1, paste0(where_clause, " AND (%%%column__name%%%) IS NOT NULL"),
-                        " WHERE (%%%column__name%%%) IS NOT NULL ")
+  where_clause = ifelse(length(where_clause)>1, paste0(where_clause, " AND <%%%column__name%%%> IS NOT NULL"),
+                        " WHERE <%%%column__name%%%> IS NOT NULL ")
   
   getTemporalMetricsSql <- function(name, type) {
     
@@ -452,29 +491,29 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                       'date','time', 'time with timezone','time without time zone')
     
     sql = 
-      paste0("SELECT cast(count(distinct (%%%column__name%%%)) as bigint) as distinct_count, ",
-             "       cast(count((%%%column__name%%%)) as bigint) as not_null_count, ",
-             "       min((%%%column__name%%%))::varchar as minimum, ",
-             "       max((%%%column__name%%%))::varchar as maximum, ",
+      paste0("SELECT cast(count(distinct <%%%column__name%%%>) as bigint) as distinct_count, ",
+             "       cast(count(<%%%column__name%%%>) as bigint) as not_null_count, ",
+             "       min(<%%%column__name%%%>)::varchar as minimum, ",
+             "       max(<%%%column__name%%%>)::varchar as maximum, ",
              ifelse(grepl("^(timestamp|date)", type, ignore.case=TRUE),
-             "       to_timestamp(avg(extract('EPOCH' FROM (%%%column__name%%%)))) as average ",
-             "       avg((%%%column__name%%%)) as average "),
+             "       to_timestamp(avg(extract('EPOCH' FROM <%%%column__name%%%>))) as average ",
+             "       avg(<%%%column__name%%%>) as average "),
              "  FROM ", tableName, where_clause) 
     
-    gsub('(%%%column__name%%%)', name, sql, fixed=TRUE)
+    gsub('<%%%column__name%%%>', name, sql, fixed=TRUE)
   }
   
   percentileSql = 
-    paste0("SELECT percentile, MAX((%%%column__name%%%))::varchar value, 
-                   MAX(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch  
-              FROM (SELECT (%%%column__name%%%), ntile(100) OVER (ORDER BY (%%%column__name%%%)) AS percentile
+    paste0("SELECT percentile, MAX(<%%%column__name%%%>)::varchar value, 
+                   MAX(EXTRACT('EPOCH' FROM <%%%column__name%%%>)) epoch  
+              FROM (SELECT <%%%column__name%%%>, ntile(100) OVER (ORDER BY <%%%column__name%%%>) AS percentile
                       FROM ", tableName, where_clause, ") t
              WHERE percentile IN ( ", percentileStr, " ) 
              GROUP BY 1 ",
            # performance enhancement: include SELECT belo only when 0 percentile (min) requested
            ifelse(0 %in% percentiles, paste0(
           " UNION  
-            SELECT 0, MIN((%%%column__name%%%)), MIN(EXTRACT('EPOCH' FROM (%%%column__name%%%))) epoch 
+            SELECT 0, MIN(<%%%column__name%%%>), MIN(EXTRACT('EPOCH' FROM <%%%column__name%%%>)) epoch 
               FROM svplan.containertrailerplans ", where_clause),
           " "),
           "  ORDER BY 1")
@@ -495,12 +534,12 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                          
                          # compute all percentiles at once with SQL/MR approximate percentile function
                          if (percentileFlag)
-                           presults = toaSqlQuery(channel, gsub('(%%%column__name%%%)', column_name, percentileSql, 
+                           presults = toaSqlQuery(channel, gsub('<%%%column__name%%%>', column_name, percentileSql, 
                                                               fixed=TRUE), stringsAsFactors = FALSE)
                          else
                            presults = NULL
                          
-                         makeTemporalMetrics(idx, column_stats, total_count, presults, percentileNames, percentileStrNames)
+                         makeTemporalMetrics(idx, column_stats, total_count, percentileFlag, presults, percentileNames, percentileStrNames)
                        }
                      }
     
@@ -519,7 +558,7 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                          
                          # compute all percentiles at once with SQL/MR approximate percentile function
                          if (percentileFlag)
-                           presults = toaSqlQuery(parChan, gsub('(%%%column__name%%%)', column_name, percentileSql, 
+                           presults = toaSqlQuery(parChan, gsub('<%%%column__name%%%>', column_name, percentileSql, 
                                                                 fixed=TRUE), stringsAsFactors = FALSE, 
                                                   closeOnError=TRUE)
                          else
@@ -527,7 +566,7 @@ computeTemporalMetrics <- function(channel, tableName, tableInfo, temporal_colum
                          
                          close(parChan)
                          
-                         makeTemporalMetrics(idx, column_stats, total_count, presults, percentileNames, percentileStrNames)
+                         makeTemporalMetrics(idx, column_stats, total_count, percentileFlag, presults, percentileNames, percentileStrNames)
                        }  
                      }
   }
@@ -542,7 +581,7 @@ makeMode <- function(idx, mode) {
 computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=FALSE) {
   
   sql =
-    paste0("SELECT CAST((%%%column__name%%%) as varchar) val, count(*) cnt ",
+    paste0("SELECT CAST(<%%%column__name%%%> as varchar) val, count(*) cnt ",
                "  FROM ", tableName, where_clause,
                " GROUP BY 1 ORDER BY 2 DESC LIMIT 1")
   
@@ -553,7 +592,7 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
     result = foreach(column_name = tableInfo$COLUMN_NAME, idx = seq_along(tableInfo$COLUMN_NAME),
                      .combine='rbind', .packages=c('RODBC')) %do% {      
               
-              mode = toaSqlQuery(channel, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+              mode = toaSqlQuery(channel, sub('<%%%column__name%%%>', column_name, sql, fixed=TRUE), 
                               stringsAsFactors = FALSE)
               
               makeMode(idx, mode)
@@ -564,7 +603,7 @@ computeModes <- function(channel, tableName, tableInfo, where_clause, parallel=F
                      .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
               
               parChan = odbcReConnect(channel)
-              mode = toaSqlQuery(parChan, sub('(%%%column__name%%%)', column_name, sql, fixed=TRUE), 
+              mode = toaSqlQuery(parChan, sub('<%%%column__name%%%>', column_name, sql, fixed=TRUE), 
                               stringsAsFactors = FALSE, closeOnError=TRUE)
               close(parChan)
               
@@ -894,4 +933,127 @@ constructCountNullsSQL <- function(variableName, percent){
   sqlString = paste0(sqlString, ' AS ', variableName)
   
   return(sqlString)
+}
+
+
+#' Counts number of rows and columns in the database tables.
+#' 
+#' @param channel object as returned by \code{\link{odbcConnect}}.
+#' @param schema character vector with schemas to restric tables to one or more schemas. 
+#'   If \code{NULL} table search performed across whole database. Including \code{schema} restricts 
+#'   it to the specified schemas only.
+#' @param tableType can specify zero or more types in separate elements of a character 
+#'   vector (one or more of \code{"TABLE", "VIEW", "SYSTEM TABLE", "ALIAS", "SYNONYM"}).
+#' @param pattern character string containing \link{regular expression} to match table names (without
+#'   schema).
+#' @param columns logical directs to include a column count for each table in the result.
+#' @param where specifies criteria to satisfy by the table rows before applying computation. 
+#'   The creteria are expressed in the form of SQL predicates (inside \code{WHERE} clause).
+#' @param tables optional pre-built list of tables (data frame returned by \code{\link{sqlTables}}).
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
+#'   functions like \link{sqlQuery} and \link{sqlSave}).  
+#' @param parallel logical: enable parallel calls to Aster database. This option requires parallel 
+#'   backend enabled and registered (see in examples). Parallel execution requires ODBC \code{channel} 
+#'   obtained without explicit password: either with \code{\link{odbcConnect}(dsn)} or 
+#'   \code{\link{odbcDriverConnect}} calls, but not with \code{\link{odbcConnect}(dsn, user, password)}.
+#'   
+#' @return a data frame returned by \code{\link{sqlTables}} augmented with \code{rowcount} (number of rows)
+#'   and optinal \code{colcount} (number of columns) columns for each table.
+#' @export
+#' @examples 
+#' if (interactive()) {
+#' 
+#' # initialize connection to Dallas database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#'
+#' table_counts = getTableCounts(conn, 'public')
+#' 
+#' library(reshape2)
+#' library(ggplot2)
+#' library(ggthemes)
+#' 
+#' data = melt(table_counts, id.vars='TABLE_NAME', measure.vars=c('rowcount','colcount'))
+#' ggplot(data) +
+#'   geom_bar(aes(TABLE_NAME, rowcount, fill=TABLE_NAME), stat='identity') +
+#'   facet_wrap(~variable, scales = "free_y", ncol=1) +
+#'   theme_tufte(ticks=FALSE) +
+#'   theme(axis.text.x=element_text(size=12, angle=315, hjust=0),
+#'         legend.position="none")
+#' }
+getTableCounts <- function(channel, schema=NULL, tableType="TABLE", pattern=NULL, 
+                           columns=FALSE, where=NULL, tables=NULL, 
+                           test=FALSE, parallel=FALSE) {
+  
+  # match argument values
+  tableType = match.arg(tableType, c("TABLE", "VIEW", "SYSTEM TABLE", "ALIAS", "SYNONYM"))
+  
+  # check if parallel option is valid
+  if (parallel && !getDoParRegistered())
+    stop("Please register parallel backend appropriate to your platform to run with parallel=TRUE")
+  
+  if (is.null(tables) && test) {
+    stop("Must provide tables when test==TRUE.")
+  }
+  
+  schema = unique(schema)
+  
+  if (is.null(tables)) {
+    tables = sqlTables(channel, schema = NULL, tableType = tableType)
+  }
+  
+  # schema filter
+  if (!is.null(schema))
+    tables = tables[tables$TABLE_SCHEM %in% schema, ]
+  
+  # table name pattern filter
+  if(!is.null(pattern)) {
+    tables = tables[grepl(pattern, tables$TABLE_NAME, ignore.case = TRUE), ]
+  }
+  
+  where_clause = makeWhereClause(where)
+  
+  sqlToExecute = character()
+  for(tname in paste0(tables$TABLE_SCHEM,'.',tables$TABLE_NAME)) {
+    sqlToExecute = c(sqlToExecute, paste("SELECT COUNT(*) cnt FROM", tname, where_clause))
+  }
+  
+  
+  if(test) {
+    sqlText = paste0("--;\n", paste(sqlToExecute, collapse = ';\n'), ";")
+    return(sqlText)
+  }
+  
+  sql = idx = NULL
+  
+  if (!parallel) {
+    result = foreach(sql = sqlToExecute, idx = seq_along(tables$TABLE_NAME),
+                     .combine='rbind', .packages=c('RODBC')) %do% {
+      rowcount = toaSqlQuery(channel, sql)$cnt
+      if (columns) {
+        colcount = nrow(sqlColumns(channel, tables$TABLE_NAME[[idx]], schema = tables$TABLE_SCHEM[[idx]]))
+        cbind(tables[idx,], rowcount=rowcount, colcount=colcount)
+      }else
+        cbind(tables[idx,], rowcount=rowcount)
+    }
+  }else {
+    # parallel mode compute 
+    result = foreach(sql = sqlToExecute, idx = seq_along(tables$TABLE_NAME),
+                     .combine='rbind', .packages=c('RODBC'), .inorder=FALSE) %dopar% {
+              
+      parChan = odbcReConnect(channel)
+      rowcount = toaSqlQuery(parChan, sql, closeOnError=TRUE)$cnt
+
+      if (columns) {
+        colcount = nrow(sqlColumns(parChan, tables$TABLE_NAME[[idx]], schema = tables$TABLE_SCHEM[[idx]]))
+        close(parChan)
+        cbind(tables[idx,], rowcount=rowcount, colcount=colcount)
+      }else {
+        close(parChan)
+        cbind(tables[idx,], rowcount=rowcount)
+      }
+    }
+  }
+  
+  return(result)
 }

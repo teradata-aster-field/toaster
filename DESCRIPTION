@@ -38,7 +38,8 @@ Imports:
 Suggests:
     testthat (>= 0.9.1-1),
     tm,
-    doParallel
+    doParallel,
+    ggnetwork
 License: GPL-2
 URL: https://github.com/teradata-aster-field/toaster
 BugReports: https://github.com/teradata-aster-field/toaster/issues
@@ -64,4 +65,6 @@ Collate:
     'plottingKmeans.R'
     'showGraph.R'
     'computeGraph.R'
+    'computeGraphClusters.R'
+    'validateGraph.R'
 RoxygenNote: 5.0.1

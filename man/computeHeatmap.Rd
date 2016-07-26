@@ -38,7 +38,7 @@ with aggregate values in designated columns into a molten data frame.}
 computation. The creteria are expressed in the form of SQL predicates (inside
 \code{WHERE} clause).}
 
-\item{by}{for optional grouping by one or more values for faceting or alike}
+\item{by}{for optional grouping by one or more values for faceting or alike.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 functions: \link{sqlQuery} and \link{sqlSave}).}

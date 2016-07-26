@@ -33,7 +33,8 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
-#' @param by for optional grouping by one or more values for faceting or alike
+#' @param by vector of column names to group by one or more table columns 
+#'   for faceting or alike (optional).
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).
 #' @export
@@ -98,16 +99,16 @@ computeHeatmap <- function(channel, tableName, dimension1, dimension2,
   
   aggSelectList = paste(aggregates, collapse=", ")
   
-  if (is.null(by)) {
+  if (is.null(by) || length(by) == 0) {
      sql = paste0("SELECT ", dimension1, ", ", dimension2, ", ", aggSelectList,
                   "  FROM ", tableName, 
                   where_clause,
                   " GROUP BY 1, 2")
   }else {
-     sql = paste0("SELECT ", by, ", ",  dimension1, ", ", dimension2, ", ", aggSelectList,
+     sql = paste0("SELECT ", makeSqlColumnList(by), ", ",  dimension1, ", ", dimension2, ", ", aggSelectList,
                   "  FROM ", tableName, 
                   where_clause,
-                  " GROUP BY 1, 2, 3")  
+                  " GROUP BY 1, 2, ", makeSqlColumnList(3:(length(by) + 2)))  
   }
   
   if (test) {

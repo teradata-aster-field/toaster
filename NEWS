@@ -5,22 +5,29 @@ toaster 0.5.2
 NEW FEATURES
 
 * Graph function `computeGraphClusters` performs various types
-  of graph decomposition including connected components, 
-  modularity (#33).
+  of graph decomposition including connected components and  
+  modularity (future release) (#33).
   
-* Function `validateGraph` checks graph data in Aster for 
-  validity and consistency (#34).
+* Graph function `computeGraphClustersAsGraphs` uses community object
+  produced by `computeGraphClusters` to create graphs corresponding
+  to its components (#33).
+  
+* Function `validateGraph` validates and tests for consistency graph 
+  tables in Aster (#34).
   
 * Function `computeSample` now supports sample stratum based on 
   table column or custom stratum condition (#28).
   
-* Function `getTableCounts` is handy when first looking at the 
-  database to see number of rows and columns in each table (#50).
+* Function `getTableCounts` is handy when reviewing database tables 
+  first time: it reports the number of rows and columns in each 
+  table (#50).
   
 MINOR FEATURES
 
-* Graph vertices table is now always read when constructing R 
-  network object (#46).
+* Graph vertices table is now always read when constructing 
+  corresponding network object (#46).
+  
+* Minimal graph must have single vertex and no edges (#42).
   
 BUG FIXES
 
@@ -30,7 +37,9 @@ BUG FIXES
 * `getTablesummary` fails when numerical data contains 'NaN' or other
   special values (#39, #51)
 
-* `computeHeatmap` argument by now supprts multiple columns (#44).
+* `computeHeatmap` argument by supports multiple columns now (#44).
+
+* Temporary table names allow underscore character now (#40).
   
 toaster 0.5.1
 ----------------------------------------------------------------

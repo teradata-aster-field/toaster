@@ -1115,8 +1115,8 @@ makeNetworkResult <- function(graph, v, e){
   # validate resulting graph data
   if (!is.null(v) && nrow(v) == 0)
     stop("Graph object may not have 0 vertices.")
-  if (nrow(e) == 0) 
-    stop("Graph object may not have 0 edges.")
+  #if (nrow(e) == 0) 
+  #  stop("Graph object may not have 0 edges.")
 
   # this step is necessary to eliminate integer values which are processed 
   # not like character values by network constructor
@@ -1127,25 +1127,32 @@ makeNetworkResult <- function(graph, v, e){
   if (!is.null(v) && is.numeric(v[,graph$key]))
     v[,graph$key] = as.character(v[,graph$key])
   
-  # create network object using edge list
-  net = network(e, directed=graph$directed, matrix.type="edgelist", ignore.eval=FALSE)
-  
-  # handle the case of nodes without edges
-  if (!is.null(v)) {
-    vnames = v[, graph$key]
-    evnames = get.vertex.attribute(net, "vertex.names")
-    if(!all(vnames %in% evnames)) {
-      add.vertices(net, length(v[!vnames %in% evnames, graph$key]), 
-                   lapply(v[!vnames %in% evnames, graph$key], 
-                          FUN = function(x) {list(na=FALSE, vertex.names=x)}))
+  # create network object using the edge list
+  if (nrow(e) > 0) {
+    net = network(e, directed=graph$directed, matrix.type="edgelist", ignore.eval=FALSE)
+    
+    # handle those nodes that has no edges attached
+    if (!is.null(v) && nrow(v) > 0) {
+      vnames = v[, graph$key]
+      evnames = get.vertex.attribute(net, "vertex.names")
+      if(!all(vnames %in% evnames)) {
+        add.vertices(net, length(v[!vnames %in% evnames, graph$key]), 
+                     lapply(v[!vnames %in% evnames, graph$key], 
+                            FUN = function(x) {list(na=FALSE, vertex.names=x)}))
+      }
     }
+  # create network with no edges
+  }else {
+    net = network.initialize(nrow(v), directed=graph$directed)
+    
+    set.vertex.attribute(net, "vertex.names", v[, graph$key], v=1:nrow(v))
   }
   
   # vertex data is optional; if it's not null then it contains vertex attributes
-  if(!is.null(v)) {
-    net.v = data.frame(id=1:length(net$val), vertex.name=matrix(unlist(net$val), ncol=2, byrow=TRUE)[,2],
+  if(!is.null(v) && nrow(v) > 0) {
+    net.v = data.frame(id=1:length(net$val), vertex.names=matrix(unlist(net$val), ncol=2, byrow=TRUE)[,2],
                        stringsAsFactors=FALSE)
-    net.v = merge(net.v, v, by.x="vertex.name", by.y=graph$key, all=FALSE, sort=FALSE)
+    net.v = merge(net.v, v, by.x="vertex.names", by.y=graph$key, all=FALSE, sort=FALSE)
       
     for(attrname in graph$vertexAttrnames) {
       set.vertex.attribute(net, attrname, net.v[, attrname], net.v[, "id"])

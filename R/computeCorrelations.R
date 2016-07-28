@@ -150,7 +150,7 @@ computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, exc
   rs_corrs$metric2 = factor(rs_corrs$metric2, levels=unique(rs_corrs$metric1), ordered=TRUE)
   
   if (output == 'matrix') {
-    f = as.formula(paste0(c(by,'metric1','metric2'), collapse = '~'))
+    f = stats::as.formula(paste0(c(by,'metric1','metric2'), collapse = '~'))
     corrm = acast(rs_corrs[!is.nan(rs_corrs$value),], formula=f, value.var='value')
     corrm = apply(corrm, rev(1:(length(by) + 2)), function(x) {if(is.na(x)) 1. else x})
     return(corrm)

@@ -168,7 +168,7 @@ test_that("showData format 'corr' works", {
          columnpairs( 'bb:ipouts', 'era:ipouts', 'ipouts:so', 'bb:so', 'era:so', 'bb:era')
          key_name('key')
        )
-       partition by key
+       PARTITION BY key
      )")
 })
   

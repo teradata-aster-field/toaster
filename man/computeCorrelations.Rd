@@ -5,8 +5,8 @@
 \title{Compute correlation between pairs of columns.}
 \usage{
 computeCorrelations(channel, tableName, tableInfo, include = NULL,
-  except = NULL, where = NULL, output = c("data.frame", "matrix"),
-  test = FALSE)
+  except = NULL, where = NULL, by = NULL, output = c("data.frame",
+  "matrix"), test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}}
@@ -23,6 +23,9 @@ When missing all columns from \code{tableInfo} included.}
 \item{where}{specifies criteria to satisfy by the table rows before applying
 computation. The creteria are expressed in the form of SQL predicates (inside
 \code{WHERE} clause).}
+
+\item{by}{vector of column names to group results by one or more table columns 
+for faceting or alike (optional).}
 
 \item{output}{Default output is a data frame of column pairs with correlation coefficient (melt format). 
 To return correlation matrix compatible with function \code{\link{cor}} use \code{'matrix'} .}
@@ -66,6 +69,17 @@ cormat = computeCorrelations(channel=conn, "pitching_enh", sqlColumns(conn, "pit
 # remove duplicate correlation values (no symmetry)
 cormat = cormat[cormat$metric1 < cormat$metric2, ]
 createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign")
+
+# Grouped by columns
+cormatByLg = computeCorrelations(channel=conn, "pitching_enh", 
+                                 include=c('w','sv','h','er','hr','bb','so'),
+                                 by=c('lgid','decadeid'), 
+                                 where = "decadeid >= 1990")
+                                 
+createBubblechart(cormatByLg, "metric1", "metric2", "value", 
+                  label=NULL, fill="sign", facet=c('decadeid','lgid'), 
+                  title="Correlations by Leagues and Decades",
+                  defaultTheme = theme_wsj(), legendPosition = 'none')
 }
 }
 \seealso{

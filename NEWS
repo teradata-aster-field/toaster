@@ -22,6 +22,9 @@ NEW FEATURES
   first time: it reports the number of rows and columns in each 
   table (#50).
   
+* Computing correlations now supports group columns (with 
+  argument `by`) (#49).
+  
 MINOR FEATURES
 
 * Graph vertices table is now always read when constructing 
@@ -37,7 +40,7 @@ BUG FIXES
 * `getTablesummary` fails when numerical data contains 'NaN' or other
   special values (#39, #51)
 
-* `computeHeatmap` argument by supports multiple columns now (#44).
+* `computeHeatmap` argument `by` supports multiple columns now (#44).
 
 * Temporary table names allow underscore character now (#40).
   

@@ -4,6 +4,9 @@ pitching_info = dget("_pitchingInfo.dat")
 
 test_that("computeCorrelations throws errors", {
   
+  expect_error(computeCorrelations(NULL, "table", output=c('wrong one')),
+               "'arg' should be one of \"data.frame\", \"matrix\"")
+  
   expect_error(computeCorrelations(test=TRUE),
                "Must provide tableInfo when test==TRUE")
   
@@ -27,7 +30,7 @@ test_that("computeCorrelations SQL is correct", {
                     columnpairs( 'era:w')
                     key_name('key')
                   )
-                  partition by key )")
+                  PARTITION BY key )")
   
   expect_equal_normalized(
     computeCorrelations(channel=conn, tableName="pitching_enh", tableInfo=pitching_info,
@@ -51,7 +54,7 @@ test_that("computeCorrelations SQL is correct", {
                                  'er:fip', 'bb:fip', 'baopp:fip', 'era:fip')
                     key_name('key')
                   )
-                  partition by key )",
+                  PARTITION BY key )",
     "Error in pitching_enh correlations", "compute correlations in pitching_enh SQL")
   
   expect_equal_normalized(
@@ -89,6 +92,35 @@ test_that("computeCorrelations SQL is correct", {
                                  'er:fip', 'bb:fip', 'baopp:fip', 'era:fip', 'bk:fip', 'bfp:fip')
                      key_name('key')
                    )
-    partition by key )")
+    PARTITION BY key )")
+  
+  expect_equal_normalized(
+    computeCorrelations(channel=conn, tableName="pitching_enh", tableInfo=pitching_info,
+                        include = c('w', 'l', 'era'), by='lgid', test=TRUE),
+    "SELECT * FROM corr_reduce(
+                  ON corr_map(
+                    ON ( SELECT lgid, w, l, era FROM pitching_enh  )
+                    PARTITION BY lgid
+                    columnpairs( 'l:w', 'era:w', 'era:l')
+                    key_name('key')
+                    GroupByColumns('lgid')
+                  )
+                  PARTITION BY key, lgid )")
+  
+  
+  
+  expect_equal_normalized(
+    computeCorrelations(channel=conn, tableName="pitching_enh", tableInfo=pitching_info,
+                        include = c('w', 'l', 'era'), by=c('lgid','teamid'), 
+                        where = "decadeid = 2000", test=TRUE),
+    "SELECT * FROM corr_reduce(
+                  ON corr_map(
+                    ON ( SELECT lgid, teamid, w, l, era FROM pitching_enh WHERE decadeid = 2000 )
+                    PARTITION BY lgid, teamid
+                    columnpairs( 'l:w', 'era:w', 'era:l')
+                    key_name('key')
+                    GroupByColumns('lgid', 'teamid')
+                  )
+                  PARTITION BY key, lgid, teamid )")
   
 })

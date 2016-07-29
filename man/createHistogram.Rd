@@ -11,8 +11,8 @@ createHistogram(data, x = "bin_start", y = "bin_count", fill = NULL,
   mainColour = "black", fillColour = "grey", scaleGradient = NULL,
   paletteValues = NULL, palette = "Set1", trend = FALSE,
   trendLinetype = "solid", trendLinesize = 1, trendLinecolour = "black",
-  title = paste("Histgoram by", fill), xlab = x, ylab = y,
-  legendPosition = "right", coordFlip = FALSE,
+  title = paste("Histgoram by", fill), subtitle = NULL, xlab = x,
+  ylab = y, legendPosition = "right", coordFlip = FALSE,
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL)
 }
@@ -76,13 +76,15 @@ e.g use \code{scale_colour_gradient} (if specified then parameter
 
 \item{trend}{logical indicates if trend line is shown.}
 
-\item{trendLinetype}{trend line type}
+\item{trendLinetype}{trend line type.}
 
-\item{trendLinesize}{size of trend line}
+\item{trendLinesize}{size of trend line.}
 
-\item{trendLinecolour}{color of trend line}
+\item{trendLinecolour}{color of trend line.}
 
-\item{title}{plot title}
+\item{title}{plot title.}
+
+\item{subtitle}{plot subtitle.}
 
 \item{xlab}{a label for the x axis, defaults to a description of x.}
 

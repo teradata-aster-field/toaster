@@ -1049,50 +1049,16 @@ getDiscretePaletteFactory <- function(paletteName="Set1") {
 
 #' Creates empty theme.
 #' 
+#' Deprecated. Use \code{\link[ggplot2]{theme_void}} instead. 
 #' Good to use with slopegraphs.
 #' 
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' @seealso \code{\link{createHistogram}} and other visualization functions that start with create.
+#' @seealso \code{\link[ggplot2]{theme_void}} \code{\link{createHistogram}} and other visualization functions that start with create.
 #' @export
 theme_empty <- function (baseSize = 12, baseFamily = "") 
 {
-  theme_bw(base_size = baseSize, base_family = baseFamily) %+replace% 
-    theme(axis.line = element_blank(),
-          axis.text.x = element_text(family = baseFamily, 
-                                     size = baseSize * 0.8, lineheight = 0.9, vjust = 1),
-          axis.text.y = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          axis.ticks.length = grid::unit(0, "lines"),
-          axis.ticks.margin = grid::unit(0, "lines"), 
-          legend.background = element_rect(colour = NA),
-          legend.key = element_rect(colour = "grey80"), 
-          legend.key.size = grid::unit(1.2, "lines"),
-          legend.key.height = grid::unit(NA, "cm"), 
-          legend.key.width = grid::unit(NA, "cm"),
-          legend.text = element_text(family = baseFamily, 
-                                     size = baseSize * 0.8),
-          legend.text.align = 0, 
-          legend.title = element_text(family = baseFamily,
-                                      size = baseSize * 0.8, face = "bold", hjust = 0),
-          legend.title.align = 0, 
-          legend.position = "right",
-          legend.direction = "vertical", 
-          legend.box = 0,
-          panel.background = element_blank(),
-          panel.border = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.margin = grid::unit(0.25, "lines"), 
-          strip.background = element_blank(),
-          strip.text.x = element_text(family = baseFamily,
-                                      size = baseSize * 0.8),
-          strip.text.y = element_blank(),
-          plot.background = element_blank(),
-          plot.title = element_text(family = baseFamily,
-                                    size = baseSize * 1.2),
-          plot.margin = grid::unit(c(1, 0.5, 0.5, 0.5), "lines"))
+  .Deprecated("theme_void", package='ggplot2')
+  theme_void(base_size = baseSize, base_family = baseFamily) 
   
 }

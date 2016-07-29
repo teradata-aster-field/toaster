@@ -9,9 +9,9 @@ createBubblechart(data, x, y, z, label = z, fill = NULL, facet = NULL,
   baseFamily = "sans", shape = 21, shapeColour = "black",
   scaleSize = TRUE, shapeSizeRange = c(3, 10), shapeMaxSize = 100,
   paletteValues = NULL, palette = "Set1", title = paste("Bubble Chart by",
-  fill), xlab = x, ylab = y, labelSize = 5, labelFamily = "",
-  labelFontface = "plain", labelColour = "black", labelVJust = 0.5,
-  labelHJust = 0.5, labelAlpha = 1, labelAngle = 0,
+  fill), subtitle = NULL, xlab = x, ylab = y, labelSize = 5,
+  labelFamily = "", labelFontface = "plain", labelColour = "black",
+  labelVJust = 0.5, labelHJust = 0.5, labelAlpha = 1, labelAngle = 0,
   legendPosition = "right", sizeGuide = FALSE, fillGuide = "colorbar",
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL)
@@ -67,6 +67,8 @@ if FALSE then scale the area.}
 \item{palette}{Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names}
 
 \item{title}{plot title.}
+
+\item{subtitle}{plot subtitle.}
 
 \item{xlab}{a label for the x axis, defaults to a description of x.}
 

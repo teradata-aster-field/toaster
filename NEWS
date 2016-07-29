@@ -22,8 +22,8 @@ NEW FEATURES
   first time: it reports the number of rows and columns in each 
   table (#50).
   
-* Computing correlations now supports group columns (with 
-  argument `by`) (#49).
+* Function `computeCorrelations` now supports group columns in Aster
+  (with argument `by`) (#49).
   
 MINOR FEATURES
 
@@ -31,6 +31,11 @@ MINOR FEATURES
   corresponding network object (#46).
   
 * Minimal graph must have single vertex and no edges (#42).
+
+* All plotting functions now support subtitle (#41).
+
+* Deprecated function theme_empty - use ggplot2::theme_void 
+  instead (#53).
   
 BUG FIXES
 
@@ -40,9 +45,10 @@ BUG FIXES
 * `getTablesummary` fails when numerical data contains 'NaN' or other
   special values (#39, #51)
 
-* `computeHeatmap` argument `by` supports multiple columns now (#44).
+* `computeHeatmap` argument `by` now supports multiple columns 
+  to group results (#44).
 
-* Temporary table names allow underscore character now (#40).
+* Temporary table names allow underscore characters now (#40).
   
 toaster 0.5.1
 ----------------------------------------------------------------

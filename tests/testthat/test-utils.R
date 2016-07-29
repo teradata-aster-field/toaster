@@ -60,6 +60,16 @@ test_that("getNullCounts throws errors", {
 })
 
 
+test_that("getTableCounts throws errors", {
+  
+  expect_error(getTableCounts(NULL, tableType = "XXXX"),
+               ".*'arg' should be one of \"TABLE\", \"VIEW\", \"SYSTEM TABLE\", \"ALIAS\", \"SYNONYM\"")
+  
+  expect_error(getTableCounts(NULL, tables=NULL, test=TRUE),
+               "Must provide tables when test==TRUE.")
+})
+
+
 test_that("getNullCounts sql is correct", {
   
   expect_equal_normalized(getNullCounts(NULL, "pitching", include=c('lgid','yearid'), tableInfo = pitching_info, test=TRUE),
@@ -103,5 +113,52 @@ test_that("isTable is correct", {
   expect_equal(isTable(NULL, c('1'="pitching", '2'="batting", '3'="SELECT source, target, COUNT(*) FROM data GROUP BY 1,2"),
                        allTables = all_tables),
                c('1'=TRUE, '2'=TRUE, '3'=NA))
+  
+})
+
+
+tables_info_df = data.frame(TABLE_SCHEMA=c("public","public","catsanddogs"), TABLE_NAME=c("t1","t2","meoew"),
+                            stringsAsFactors = FALSE)
+
+test_that("getTableCounts sql is correct", {
+  
+  expect_equal_normalized(getTableCounts(NULL, 
+                                         tables=tables_info_df, test=TRUE),
+                          "--;
+                           SELECT COUNT(*) cnt FROM public.t1 ;
+                           SELECT COUNT(*) cnt FROM public.t2 ;
+                           SELECT COUNT(*) cnt FROM catsanddogs.meoew ;")
+  
+  expect_equal_normalized(getTableCounts(NULL, schema=c('public','catsanddogs'),
+                                         tables=tables_info_df, test=TRUE),
+                          "--;
+                           SELECT COUNT(*) cnt FROM public.t1 ;
+                           SELECT COUNT(*) cnt FROM public.t2 ;
+                           SELECT COUNT(*) cnt FROM catsanddogs.meoew ;")
+  
+  expect_equal_normalized(getTableCounts(NULL, schema=c('catsanddogs'),
+                                         tables=tables_info_df, test=TRUE),
+                          "--;
+                           SELECT COUNT(*) cnt FROM catsanddogs.meoew ;")
+  
+  expect_equal_normalized(getTableCounts(NULL, schema=c('nosuchschema','catsanddogs'),
+                                         tables=tables_info_df, test=TRUE),
+                          "--;
+                           SELECT COUNT(*) cnt FROM catsanddogs.meoew ;")
+  
+  expect_equal_normalized(getTableCounts(NULL, columns=TRUE, 
+                                         tables=tables_info_df, test=TRUE),
+                          "--;
+                           SELECT COUNT(*) cnt FROM public.t1 ;
+                           SELECT COUNT(*) cnt FROM public.t2 ;
+                           SELECT COUNT(*) cnt FROM catsanddogs.meoew ;")
+  
+  expect_equal_normalized(getTableCounts(NULL, where="condition = '1'",
+                                         tables=tables_info_df, test=TRUE),
+                          "--;
+                           SELECT COUNT(*) cnt FROM public.t1 WHERE condition = '1' ;
+                           SELECT COUNT(*) cnt FROM public.t2 WHERE condition = '1' ;
+                           SELECT COUNT(*) cnt FROM catsanddogs.meoew WHERE condition = '1' ;")
+  
   
 })

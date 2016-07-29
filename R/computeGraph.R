@@ -2,8 +2,10 @@
 #' 
 #' In Aster Database, to process graphs using SQL-GR, it is recommended to represent
 #' a graph using two tables:
-#' - Vertices table
-#' - Edges table
+#' \enumerate{
+#'   \item Vertices table
+#'   \item edges table
+#' }
 #' Vertices table must contain a unique key so that each row represents a vertex.
 #' Edges table must contain a pair of source and target keys (from vertices table)
 #' so that each row represents an edge.
@@ -90,6 +92,8 @@ toaGraph <- function(vertices, edges, directed=FALSE,
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).
 #'   
+#' @return \code{\link{network}} class object materializing an Aster graph represented by \code{\link{toaGraph}}.
+#'   
 #' @export
 #' @examples 
 #' if(interactive()) {
@@ -125,10 +129,10 @@ toaGraph <- function(vertices, edges, directed=FALSE,
 #' ggnet2(net3, node.label="vertex.names", node.size="degree", 
 #'        legend.position="none")
 #'                          
-#' }                          
+#' }
 computeGraph <- function(channel, graph, v=NULL,
-                         vertexWhere=graph$vertexWhere, 
-                         edgeWhere=graph$edgeWhere, 
+                         vertexWhere=graph$vertexWhere,
+                         edgeWhere=graph$edgeWhere,
                          allTables=NULL, test=FALSE) {
   
   if (missing(graph) || !is.object(graph) || !inherits(graph, "toagraph"))
@@ -140,6 +144,16 @@ computeGraph <- function(channel, graph, v=NULL,
   isValidConnection(channel, test)
   
   isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+
+  return(computeGraphInternal(channel, graph, v, vertexWhere, edgeWhere,
+                              isTableFlag, test, closeOnError=FALSE))
+    
+} 
+
+computeGraphInternal <- function(channel, graph, v=NULL,
+                         vertexWhere=graph$vertexWhere, 
+                         edgeWhere=graph$edgeWhere, 
+                         isTableFlag, test=FALSE, closeOnError=FALSE) {
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
@@ -159,21 +173,17 @@ computeGraph <- function(channel, graph, v=NULL,
   if(test)
     sqlText = paste(sqlComment, edgesSql, sep='\n')
   else
-    e = toaSqlQuery(channel, edgesSql, stringsAsFactors=FALSE)
+    e = toaSqlQuery(channel, edgesSql, stringsAsFactors=FALSE, closeOnError=closeOnError)
   
   # Vertices select
-  if ((!is.null(graph$vertexAttrnames) && length(graph$vertexAttrnames) > 0) ||
-      !is.null(vertexWhere)) {
-    sqlComment = "-- Vertices Select"
-    verticesSql = makeVerticesSql(graph, isTableFlag, vertexWhere, FALSE)
+  sqlComment = "-- Vertices Select"
+  verticesSql = makeVerticesSql(graph, isTableFlag, vertexWhere, FALSE, TRUE)
       
-    if(test)
-      sqlText = paste(sqlText, paste(emptyLine, sqlComment, verticesSql, sep='\n'), sep=';\n')
-    else
-      vx = toaSqlQuery(channel, verticesSql, stringsAsFactors=FALSE)
-  }else
-    vx = NULL
-  
+  if(test)
+    sqlText = paste(sqlText, paste(emptyLine, sqlComment, verticesSql, sep='\n'), sep=';\n')
+  else
+    vx = toaSqlQuery(channel, verticesSql, stringsAsFactors=FALSE, closeOnError=closeOnError)
+
   # result
   if (test) {
     return(sqlText)
@@ -799,7 +809,7 @@ makeGraphFunctionArgumentsSql <- function(...) {
   argNames = names(args)
   result = ""
   for(i in 1:length(args)) {
-      result = paste(result, "
+      result = paste0(result, "
            ", argNames[[i]],"('",args[[i]],"')")
   }
   
@@ -1043,7 +1053,7 @@ addVerticesInVertexWhere <- function(graph, v, vertexWhere) {
 }
 
 
-makeVerticesSql <- function(graph, isTableFlag, vertexWhere, keyOnlyFlag) {
+makeVerticesSql <- function(graph, isTableFlag, vertexWhere, keyOnlyFlag, ordered=FALSE) {
   
   if(keyOnlyFlag) 
     selectList = graph$key
@@ -1053,7 +1063,8 @@ makeVerticesSql <- function(graph, isTableFlag, vertexWhere, keyOnlyFlag) {
   paste0(
     "SELECT ", selectList, " 
        FROM ", makeFromClause(graph$vertices, isTableFlag[['vertices']], "t"),
-    makeWhereClause(vertexWhere)
+    makeWhereClause(vertexWhere),
+    ifelse(ordered, paste0(" ORDER BY ", graph$key), "")
   )
 }
  
@@ -1100,6 +1111,12 @@ makeEgoSelfEdgeWhereSql <- function(graph, key, mode) {
 
 
 makeNetworkResult <- function(graph, v, e){
+  
+  # validate resulting graph data
+  if (!is.null(v) && nrow(v) == 0)
+    stop("Graph object may not have 0 vertices.")
+  #if (nrow(e) == 0) 
+  #  stop("Graph object may not have 0 edges.")
 
   # this step is necessary to eliminate integer values which are processed 
   # not like character values by network constructor
@@ -1110,25 +1127,32 @@ makeNetworkResult <- function(graph, v, e){
   if (!is.null(v) && is.numeric(v[,graph$key]))
     v[,graph$key] = as.character(v[,graph$key])
   
-  # create network object using edge list
-  net = network(e, directed=graph$directed, matrix.type="edgelist", ignore.eval=FALSE)
-  
-  # handle the case of nodes without edges
-  if (!is.null(v)) {
-    vnames = v[, graph$key]
-    evnames = get.vertex.attribute(net, "vertex.names")
-    if(!all(vnames %in% evnames)) {
-      add.vertices(net, length(v[!vnames %in% evnames, graph$key]), 
-                   lapply(v[!vnames %in% evnames, graph$key], 
-                          FUN = function(x) {list(na=FALSE, vertex.names=x)}))
+  # create network object using the edge list
+  if (nrow(e) > 0) {
+    net = network(e, directed=graph$directed, matrix.type="edgelist", ignore.eval=FALSE)
+    
+    # handle those nodes that has no edges attached
+    if (!is.null(v) && nrow(v) > 0) {
+      vnames = v[, graph$key]
+      evnames = get.vertex.attribute(net, "vertex.names")
+      if(!all(vnames %in% evnames)) {
+        add.vertices(net, length(v[!vnames %in% evnames, graph$key]), 
+                     lapply(v[!vnames %in% evnames, graph$key], 
+                            FUN = function(x) {list(na=FALSE, vertex.names=x)}))
+      }
     }
+  # create network with no edges
+  }else {
+    net = network.initialize(nrow(v), directed=graph$directed)
+    
+    set.vertex.attribute(net, "vertex.names", v[, graph$key], v=1:nrow(v))
   }
   
   # vertex data is optional; if it's not null then it contains vertex attributes
-  if(!is.null(v)) {
-    net.v = data.frame(id=1:length(net$val), vertex.name=matrix(unlist(net$val), ncol=2, byrow=TRUE)[,2],
+  if(!is.null(v) && nrow(v) > 0) {
+    net.v = data.frame(id=1:length(net$val), vertex.names=matrix(unlist(net$val), ncol=2, byrow=TRUE)[,2],
                        stringsAsFactors=FALSE)
-    net.v = merge(net.v, v, by.x="vertex.name", by.y=graph$key, all=FALSE, sort=FALSE)
+    net.v = merge(net.v, v, by.x="vertex.names", by.y=graph$key, all=FALSE, sort=FALSE)
       
     for(attrname in graph$vertexAttrnames) {
       set.vertex.attribute(net, attrname, net.v[, attrname], net.v[, "id"])

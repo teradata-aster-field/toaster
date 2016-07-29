@@ -10,10 +10,10 @@ createHeatmap(data, x, y, fill, facet = NULL, ncol = 1, baseSize = 12,
   digits = ifelse(percent, 2, 4), divergingColourGradient = FALSE,
   lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"),
   midGradient = "white", highGradient = ifelse(divergingColourGradient,
-  muted("blue"), "#132B43"), title = paste("Heatmap by", fill), xlab = x,
-  ylab = y, legendPosition = "right", fillGuide = "colorbar",
-  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
-  themeExtra = NULL)
+  muted("blue"), "#132B43"), title = paste("Heatmap by", fill),
+  subtitle = NULL, xlab = x, ylab = y, legendPosition = "right",
+  fillGuide = "colorbar", defaultTheme = theme_tufte(base_size = baseSize,
+  base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains data computed for heatmap}
@@ -52,7 +52,7 @@ directions (grid) based on the column values (uses \code{\link{facet_grid}}).}
 
 \item{divergingColourGradient}{logical diverging colour gradient places emphasize on both low and high leaving
 middle neutral. Use when both end grandient colours represent critical values such as negative and positive 
-extremes (e.g. temprature, outliers, etc.)}
+extremes (e.g. temprature, outliers, etc.).}
 
 \item{lowGradient}{colour for low end of gradient.}
 
@@ -60,7 +60,9 @@ extremes (e.g. temprature, outliers, etc.)}
 
 \item{highGradient}{colour for high end of gradient.}
 
-\item{title}{plot title}
+\item{title}{plot title.}
+
+\item{subtitle}{plot subtitle.}
 
 \item{xlab}{a label for the x axis, defaults to a description of x.}
 

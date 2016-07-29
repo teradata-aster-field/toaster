@@ -38,8 +38,10 @@ as if in \code{WHERE} clause but omit the keyword \code{WHERE}).}
 \description{
 In Aster Database, to process graphs using SQL-GR, it is recommended to represent
 a graph using two tables:
-- Vertices table
-- Edges table
+\enumerate{
+  \item Vertices table
+  \item edges table
+}
 Vertices table must contain a unique key so that each row represents a vertex.
 Edges table must contain a pair of source and target keys (from vertices table)
 so that each row represents an edge.

@@ -28,8 +28,9 @@
 #' @param highGradient colour for high end of gradient.
 #' @param divergingColourGradient logical diverging colour gradient places emphasize on both low and high leaving
 #'   middle neutral. Use when both end grandient colours represent critical values such as negative and positive 
-#'   extremes (e.g. temprature, outliers, etc.)
-#' @param title plot title
+#'   extremes (e.g. temprature, outliers, etc.).
+#' @param title plot title.
+#' @param subtitle plot subtitle.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
@@ -68,7 +69,7 @@ createHeatmap <- function(data, x, y, fill,
                           lowGradient = ifelse(divergingColourGradient, muted("red"), "#56B1F7"), 
                           midGradient = "white",
                           highGradient = ifelse(divergingColourGradient, muted("blue"), "#132B43"), 
-                          title = paste("Heatmap by", fill), xlab = x, ylab = y,
+                          title = paste("Heatmap by", fill), subtitle=NULL, xlab = x, ylab = y,
                           legendPosition = "right", fillGuide = "colorbar",
                           defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                           themeExtra = NULL) {
@@ -89,7 +90,7 @@ createHeatmap <- function(data, x, y, fill,
        scale_fill_gradient(low=lowGradient, high=highGradient, guide=fillGuide)
     ) + 
     defaultTheme +
-    labs(title=title, x=xlab, y=ylab) +
+    labs(title=makeTitle(title, subtitle), x=xlab, y=ylab) +
     theme(legend.position = legendPosition, 
           axis.ticks = element_blank(), 
           #axis.title.x = ifelse(missing(xlab), element_blank(), element_text()),
@@ -104,6 +105,7 @@ createHeatmap <- function(data, x, y, fill,
   
   return(p)
 }
+
 
 #' Create histogram type of plot.
 #' 
@@ -148,10 +150,11 @@ createHeatmap <- function(data, x, y, fill,
 #' @param digits number of digits to use in text
 #' @param textVJust vertical justificaiton of text labels (relative to the top of bar).
 #' @param trend logical indicates if trend line is shown.
-#' @param trendLinetype trend line type 
-#' @param trendLinesize size of trend line
-#' @param trendLinecolour color of trend line
-#' @param title plot title
+#' @param trendLinetype trend line type.
+#' @param trendLinesize size of trend line.
+#' @param trendLinecolour color of trend line.
+#' @param title plot title.
+#' @param subtitle plot subtitle.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", or two-element numeric 
@@ -214,7 +217,8 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
                             scaleGradient = NULL, paletteValues = NULL, palette = "Set1", 
                             trend = FALSE, trendLinetype = "solid", trendLinesize = 1,
                             trendLinecolour = "black",
-                            title = paste("Histgoram by", fill), xlab = x, ylab = y, 
+                            title = paste("Histgoram by", fill), subtitle = NULL, 
+                            xlab = x, ylab = y, 
                             legendPosition = "right",
                             coordFlip = FALSE,
                             defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
@@ -251,7 +255,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
     else
       geom_bar(aes_string(x=x, y=y, fill=fill), colour=mainColour, stat="identity", position=position)) +
     defaultTheme +
-    labs(title=title, x=xlab, y=ylab) +
+    labs(title=makeTitle(title, subtitle), x=xlab, y=ylab) +
     theme(legend.position = legendPosition, 
           axis.ticks = element_blank(), 
           #axis.title.x = element_blank(),
@@ -352,6 +356,7 @@ createHistogram <- function(data, x="bin_start", y="bin_count", fill=NULL, posit
 #'  \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
 #' @param title plot title.
+#' @param subtitle plot subtitle.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y. 
 #' @param baseSize \code{\link{theme}} base font size
@@ -398,7 +403,7 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
                           facet = NULL, ncol = 1, facetScales = "fixed",                          
                           paletteValues = NULL, palette = "Set1",
                           title = paste("Boxplots", ifelse(is.null(x), NULL, paste("by", x))), 
-                          xlab = x, ylab = NULL,
+                          subtitle = NULL, xlab = x, ylab = NULL,
                           legendPosition="right", fillGuide = "legend", coordFlip = FALSE,
                           baseSize = 12, baseFamily = "sans",
                           defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
@@ -439,7 +444,7 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
        scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))), guide = fillGuide)
     ) +
     defaultTheme +
-    labs(title=title, x=xlab, y=ylab) +
+    labs(title=makeTitle(title, subtitle), x=xlab, y=ylab) +
     buildThemeFromParameters(legendPosition, title, xlab, ylab, baseFamily, baseSize) +
     themeExtra 
   
@@ -520,6 +525,7 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
 #'  \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
 #' @param title plot title.
+#' @param subtitle plot subtitle.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param labelSize size of labels
@@ -563,7 +569,8 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
                               shape = 21, shapeColour = "black",
                               scaleSize = TRUE, shapeSizeRange = c(3,10), shapeMaxSize = 100,
                               paletteValues = NULL, palette = "Set1",
-                              title = paste("Bubble Chart by", fill), xlab = x, ylab = y,
+                              title = paste("Bubble Chart by", fill), subtitle = NULL, 
+                              xlab = x, ylab = y,
                               labelSize = 5, labelFamily = "", labelFontface = "plain",
                               labelColour = "black", labelVJust = 0.5, labelHJust = 0.5,
                               labelAlpha = 1, labelAngle = 0, 
@@ -591,7 +598,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
         scale_fill_manual(values = (getDiscretePaletteFactory(palette))(length(unique(data[,fill]))), guide = fillGuide)
     ) +
     defaultTheme +
-    labs(title=title, x=xlab, y=ylab) +
+    labs(title=makeTitle(title, subtitle), x=xlab, y=ylab) +
     theme(legend.position = legendPosition,
           plot.title = element_text(family = baseFamily, face = "bold", size = baseSize * 1.4, vjust = 1),
           axis.text.x = element_text(size = baseSize * 0.8, 
@@ -619,21 +626,22 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 #' @param na.rm logical value indicating whether NA values should be stripped before the visualization 
 #'   proceeds.
 #' @param scaleFactor scale factor applied to all values (-1 can be used instead of \code{reverse} TRUE).
-#' @param fromLabel label for left values (from or before)
-#' @param toLabel label for right values (to or after)
-#' @param classLabels pair of labels for to and from columns (or classes)
-#' @param classTextSize size of text for class labels
-#' @param colour default colour
-#' @param upColour colour of up slope
-#' @param downColour colour of down slope
-#' @param highlights vector with indexes of highlighted points
-#' @param lineSize size of slope lines
-#' @param textSize size of text
-#' @param panelGridColour background panel grid colour
-#' @param panelGridSize background panel grid size
-#' @param title plot title
-#' @param baseSize base font size
-#' @param baseFamily base font family
+#' @param fromLabel label for left values (from or before).
+#' @param toLabel label for right values (to or after).
+#' @param classLabels pair of labels for to and from columns (or classes).
+#' @param classTextSize size of text for class labels.
+#' @param colour default colour.
+#' @param upColour colour of up slope.
+#' @param downColour colour of down slope.
+#' @param highlights vector with indexes of highlighted points.
+#' @param lineSize size of slope lines.
+#' @param textSize size of text.
+#' @param panelGridColour background panel grid colour.
+#' @param panelGridSize background panel grid size.
+#' @param title plot title.
+#' @param subtitle plot subtitle.
+#' @param baseSize base font size.
+#' @param baseFamily base font family.
 #' @param defaultTheme plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 #'   are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 
 #'   and \code{\link[ggthemes]{ggthemes}}.
@@ -643,7 +651,7 @@ createBubblechart <- function(data, x, y, z, label = z, fill = NULL,
 createSlopegraph <- function(data, id, rankFrom, rankTo, 
                              reverse = TRUE, na.rm = FALSE, scaleFactor = 1,
                              fromLabel = rankFrom, toLabel=rankTo,
-                             title = paste("Slopegraph by", rankTo),
+                             title = paste("Slopegraph by", rankTo), subtitle = NULL,
                              baseSize = 12, baseFamily = "sans",
                              classLabels = c(rankFrom, rankTo), classTextSize = 12,
                              colour = "#999999", upColour = "#D55E00", downColour = "#009E73", 
@@ -678,7 +686,7 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
                                 group = id, 
                                 colour = id, 
                                 label = id)) +
-    labs(title=title) +
+    labs(title=makeTitle(title, subtitle)) +
     scale_x_discrete(labels=classLabels) +
     scale_colour_manual(values=sgPalette) +
     defaultTheme +
@@ -857,6 +865,7 @@ createWordcloud <- function(words, freq, title="Wordcloud",
 #' @param baseSize \code{\link{theme}} base font size
 #' @param baseFamily \code{\link{theme}} base font family
 #' @param title plot title.
+#' @param subtitle plot subtitle.
 #' @param xlab a label for the x axis, defaults to a description of x.
 #' @param ylab a label for the y axis, defaults to a description of y.
 #' @param legendPosition the position of legends. ("left", "right", "bottom", "top", 
@@ -922,7 +931,7 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
                              facet = NULL, ncol = 1, facetScales = "fixed",
                              baseSize = 12, baseFamily = "sans", 
                              title=paste("Population Pyramid Histogram by", divideBy), 
-                             xlab = bin, ylab = count,
+                             subtitle = NULL, xlab = bin, ylab = count,
                              legendPosition = "right", fillGuide = "legend",
                              defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily),
                              themeExtra = NULL) {
@@ -940,7 +949,7 @@ createPopPyramid <- function(data, bin = 'bin_start', count = 'bin_count', divid
     guides(fill = fillGuide) +
     coord_flip() +
     defaultTheme +
-    labs(title=title, x=xlab, y=ylab) +
+    labs(title=makeTitle(title, subtitle), x=xlab, y=ylab) +
     theme(legend.position = legendPosition, 
           plot.title = element_text(family = baseFamily, face = "bold", size = baseSize * 1.4, vjust = 1)) +
     themeExtra
@@ -994,6 +1003,15 @@ applyFacet <- function(p, facet=NULL, scales, ncol) {
 }
 
 
+# Make title with or without subtitle
+makeTitle <- function(title, subtitle) {
+  if (!is.null(subtitle) && length(subtitle)>0 && nchar(subtitle[[1]])>0) {
+    return(bquote(atop(bold(.(title)), atop(.(subtitle)),"")))
+  }else
+    return(title)
+}
+
+
 #' Generate gradient palette maker
 #' 
 #' inspired by 
@@ -1031,50 +1049,16 @@ getDiscretePaletteFactory <- function(paletteName="Set1") {
 
 #' Creates empty theme.
 #' 
+#' Deprecated. Use \code{\link[ggplot2]{theme_void}} instead. 
 #' Good to use with slopegraphs.
 #' 
 #' @param baseSize base font size
 #' @param baseFamily base font family
-#' @seealso \code{\link{createHistogram}} and other visualization functions that start with create.
+#' @seealso \code{\link[ggplot2]{theme_void}} \code{\link{createHistogram}} and other visualization functions that start with create.
 #' @export
 theme_empty <- function (baseSize = 12, baseFamily = "") 
 {
-  theme_bw(base_size = baseSize, base_family = baseFamily) %+replace% 
-    theme(axis.line = element_blank(),
-          axis.text.x = element_text(family = baseFamily, 
-                                     size = baseSize * 0.8, lineheight = 0.9, vjust = 1),
-          axis.text.y = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          axis.ticks.length = grid::unit(0, "lines"),
-          axis.ticks.margin = grid::unit(0, "lines"), 
-          legend.background = element_rect(colour = NA),
-          legend.key = element_rect(colour = "grey80"), 
-          legend.key.size = grid::unit(1.2, "lines"),
-          legend.key.height = grid::unit(NA, "cm"), 
-          legend.key.width = grid::unit(NA, "cm"),
-          legend.text = element_text(family = baseFamily, 
-                                     size = baseSize * 0.8),
-          legend.text.align = 0, 
-          legend.title = element_text(family = baseFamily,
-                                      size = baseSize * 0.8, face = "bold", hjust = 0),
-          legend.title.align = 0, 
-          legend.position = "right",
-          legend.direction = "vertical", 
-          legend.box = 0,
-          panel.background = element_blank(),
-          panel.border = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.margin = grid::unit(0.25, "lines"), 
-          strip.background = element_blank(),
-          strip.text.x = element_text(family = baseFamily,
-                                      size = baseSize * 0.8),
-          strip.text.y = element_blank(),
-          plot.background = element_blank(),
-          plot.title = element_text(family = baseFamily,
-                                    size = baseSize * 1.2),
-          plot.margin = grid::unit(c(1, 0.5, 0.5, 0.5), "lines"))
+  .Deprecated("theme_void", package='ggplot2')
+  theme_void(base_size = baseSize, base_family = baseFamily) 
   
 }

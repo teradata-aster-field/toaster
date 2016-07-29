@@ -16,6 +16,8 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
+#' @param by vector of column names to group results by one or more table columns 
+#'   for faceting or alike (optional).
 #' @param output Default output is a data frame of column pairs with correlation coefficient (melt format). 
 #'   To return correlation matrix compatible with function \code{\link{cor}} use \code{'matrix'} .
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
@@ -48,8 +50,20 @@
 #' # remove duplicate correlation values (no symmetry)
 #' cormat = cormat[cormat$metric1 < cormat$metric2, ]
 #' createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign")
+#' 
+#' # Grouped by columns
+#' cormatByLg = computeCorrelations(channel=conn, "pitching_enh", 
+#'                                  include=c('w','sv','h','er','hr','bb','so'),
+#'                                  by=c('lgid','decadeid'), 
+#'                                  where = "decadeid >= 1990")
+#'                                  
+#' createBubblechart(cormatByLg, "metric1", "metric2", "value", 
+#'                   label=NULL, fill="sign", facet=c('decadeid','lgid'), 
+#'                   title="Correlations by Leagues and Decades",
+#'                   defaultTheme = theme_wsj(), legendPosition = 'none')
 #' }
-computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, except=NULL, where=NULL, 
+computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, except=NULL, 
+                                where=NULL, by=NULL,
                                 output=c('data.frame','matrix'), test=FALSE) {
   
   # match argument values
@@ -75,21 +89,41 @@ computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, exc
   correlations = with(correlations, correlations[Var1<Var2,])
   correlations = apply(correlations, 1, function(x) paste(x, collapse=':'))
   
-  sqlmr_correlations = paste(correlations, collapse="', '")
-  sql_corr_columns = paste(columns, collapse=", ")
+  sqlmr_correlations = makeSqlMrColumnList(correlations) #   paste(correlations, collapse="', '")
+  sql_corr_columns = makeSqlColumnList(columns) # paste(columns, collapse=", ")
   
   where_clause = makeWhereClause(where)
   
-  
-  sql = paste0("SELECT * FROM corr_reduce(
-               ON corr_map(
-               ON ( SELECT ", sql_corr_columns, " FROM ", tableName, where_clause, 
-               " )
-               columnpairs( '", sqlmr_correlations, "')
-               key_name('key')
-               )
-               partition by key
+  if (is.null(by) || length(by) == 0) {
+    sql = paste0(
+"SELECT * FROM corr_reduce(
+   ON corr_map(
+     ON ( SELECT ", sql_corr_columns, " FROM ", tableName, where_clause, 
+      " )
+     columnpairs( ", sqlmr_correlations, ")
+     key_name('key')
+   )
+   PARTITION BY key
   )")
+  }else {
+    by_columns = makeSqlColumnList(by)
+    sql_corr_columns = makeSqlColumnList(c(by_columns, sql_corr_columns))
+    sqlmr_by = makeSqlMrColumnList(by)
+    
+    sql = paste0(
+"SELECT * FROM corr_reduce(
+  ON corr_map(
+    ON ( SELECT ", sql_corr_columns, " FROM ", tableName, where_clause,
+     " )
+    PARTITION BY ", by_columns, "
+    columnpairs( ", sqlmr_correlations, ")
+    key_name('key')
+    GroupByColumns(", sqlmr_by ,")
+  )
+  PARTITION BY key, ", by_columns ,"
+ )")
+    
+  }
   
   if (test) {
     return (sql)
@@ -99,8 +133,8 @@ computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, exc
   
   rs_corrs = cbind(rs_corrs, t(sapply(rs_corrs$corr, 
                                       FUN=function(v) unlist(strsplit(toString(v), split=":")))))
-  colnames(rs_corrs)[3] = 'metric1'
-  colnames(rs_corrs)[4] = 'metric2'
+  colnames(rs_corrs)[length(by) + 3] = 'metric1'
+  colnames(rs_corrs)[length(by) + 4] = 'metric2'
   
   # make data frame symmetrical
   temp = rs_corrs
@@ -116,8 +150,9 @@ computeCorrelations <- function(channel, tableName, tableInfo, include=NULL, exc
   rs_corrs$metric2 = factor(rs_corrs$metric2, levels=unique(rs_corrs$metric1), ordered=TRUE)
   
   if (output == 'matrix') {
-    corrm = acast(rs_corrs[!is.nan(rs_corrs$value),], metric1~metric2, value.var='value')
-    corrm = apply(corrm, c(1,2), function(x) {if(is.na(x)) 1. else x})
+    f = stats::as.formula(paste0(c(by,'metric1','metric2'), collapse = '~'))
+    corrm = acast(rs_corrs[!is.nan(rs_corrs$value),], formula=f, value.var='value')
+    corrm = apply(corrm, rev(1:(length(by) + 2)), function(x) {if(is.na(x)) 1. else x})
     return(corrm)
   }else 
     return(rs_corrs)

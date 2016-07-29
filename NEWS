@@ -1,4 +1,55 @@
 
+toaster 0.5.2
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* Graph function `computeGraphClusters` performs various types
+  of graph decomposition including connected components and  
+  modularity (future release) (#33).
+  
+* Graph function `computeGraphClustersAsGraphs` uses community object
+  produced by `computeGraphClusters` to create graphs corresponding
+  to its components (#33).
+  
+* Function `validateGraph` validates and tests for consistency graph 
+  tables in Aster (#34).
+  
+* Function `computeSample` now supports sample stratum based on 
+  table column or custom stratum condition (#28).
+  
+* Function `getTableCounts` is handy when reviewing database tables 
+  first time: it reports the number of rows and columns in each 
+  table (#50).
+  
+* Function `computeCorrelations` now supports group columns in Aster
+  (with argument `by`) (#49).
+  
+MINOR FEATURES
+
+* Graph vertices table is now always read when constructing 
+  corresponding network object (#46).
+  
+* Minimal graph must have single vertex and no edges (#42).
+
+* All plotting functions now support subtitle (#41).
+
+* Deprecated function theme_empty - use ggplot2::theme_void 
+  instead (#53).
+  
+BUG FIXES
+
+* `getTableSummary` fails when table has one or more temporal column
+  types (#37)
+  
+* `getTablesummary` fails when numerical data contains 'NaN' or other
+  special values (#39, #51)
+
+* `computeHeatmap` argument `by` now supports multiple columns 
+  to group results (#44).
+
+* Temporary table names allow underscore characters now (#40).
+  
 toaster 0.5.1
 ----------------------------------------------------------------
 

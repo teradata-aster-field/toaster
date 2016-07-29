@@ -7,10 +7,10 @@
 createBoxplot(data, x = NULL, fill = x, value = "value", useIQR = FALSE,
   facet = NULL, ncol = 1, facetScales = "fixed", paletteValues = NULL,
   palette = "Set1", title = paste("Boxplots", ifelse(is.null(x), NULL,
-  paste("by", x))), xlab = x, ylab = NULL, legendPosition = "right",
-  fillGuide = "legend", coordFlip = FALSE, baseSize = 12,
-  baseFamily = "sans", defaultTheme = theme_tufte(base_size = baseSize,
-  base_family = baseFamily), themeExtra = NULL)
+  paste("by", x))), subtitle = NULL, xlab = x, ylab = NULL,
+  legendPosition = "right", fillGuide = "legend", coordFlip = FALSE,
+  baseSize = 12, baseFamily = "sans", defaultTheme = theme_tufte(base_size
+  = baseSize, base_family = baseFamily), themeExtra = NULL)
 }
 \arguments{
 \item{data}{quartiles precomputed with \code{\link{computePercentiles}}}
@@ -48,6 +48,8 @@ columns (see in \code{facet_wrap} parameter \code{scales} )}
 \item{palette}{Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names}
 
 \item{title}{plot title.}
+
+\item{subtitle}{plot subtitle.}
 
 \item{xlab}{a label for the x axis, defaults to a description of x.}
 

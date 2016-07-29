@@ -8,9 +8,10 @@ createPopPyramid(data, bin = "bin_start", count = "bin_count", divideBy,
   values = NULL, fillColours = c("blue", "red"), mainColour = "black",
   facet = NULL, ncol = 1, facetScales = "fixed", baseSize = 12,
   baseFamily = "sans", title = paste("Population Pyramid Histogram by",
-  divideBy), xlab = bin, ylab = count, legendPosition = "right",
-  fillGuide = "legend", defaultTheme = theme_tufte(base_size = baseSize,
-  base_family = baseFamily), themeExtra = NULL)
+  divideBy), subtitle = NULL, xlab = bin, ylab = count,
+  legendPosition = "right", fillGuide = "legend",
+  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
+  themeExtra = NULL)
 }
 \arguments{
 \item{data}{data frame contains 2 histograms for the same bins. Bins are divided into 2 sets with
@@ -48,6 +49,8 @@ columns (see in \code{facet_wrap} parameter \code{scales} )}
 \item{baseFamily}{\code{\link{theme}} base font family}
 
 \item{title}{plot title.}
+
+\item{subtitle}{plot subtitle.}
 
 \item{xlab}{a label for the x axis, defaults to a description of x.}
 

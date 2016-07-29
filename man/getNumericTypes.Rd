@@ -2,7 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{getNumericTypes}
 \alias{getNumericTypes}
-\title{List Aster numeric data types.}
+\title{List Aster all numeric data types.}
 \usage{
 getNumericTypes()
 }
@@ -10,7 +10,7 @@ getNumericTypes()
 character vector with names of Aster numeric data types
 }
 \description{
-List Aster numeric data types.
+List Aster all numeric data types.
 }
 \examples{
 getNumericTypes()

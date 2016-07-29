@@ -6,7 +6,7 @@
 \usage{
 createSlopegraph(data, id, rankFrom, rankTo, reverse = TRUE, na.rm = FALSE,
   scaleFactor = 1, fromLabel = rankFrom, toLabel = rankTo,
-  title = paste("Slopegraph by", rankTo), baseSize = 12,
+  title = paste("Slopegraph by", rankTo), subtitle = NULL, baseSize = 12,
   baseFamily = "sans", classLabels = c(rankFrom, rankTo),
   classTextSize = 12, colour = "#999999", upColour = "#D55E00",
   downColour = "#009E73", highlights = integer(0), lineSize = 0.15,
@@ -30,35 +30,37 @@ proceeds.}
 
 \item{scaleFactor}{scale factor applied to all values (-1 can be used instead of \code{reverse} TRUE).}
 
-\item{fromLabel}{label for left values (from or before)}
+\item{fromLabel}{label for left values (from or before).}
 
-\item{toLabel}{label for right values (to or after)}
+\item{toLabel}{label for right values (to or after).}
 
-\item{title}{plot title}
+\item{title}{plot title.}
 
-\item{baseSize}{base font size}
+\item{subtitle}{plot subtitle.}
 
-\item{baseFamily}{base font family}
+\item{baseSize}{base font size.}
 
-\item{classLabels}{pair of labels for to and from columns (or classes)}
+\item{baseFamily}{base font family.}
 
-\item{classTextSize}{size of text for class labels}
+\item{classLabels}{pair of labels for to and from columns (or classes).}
 
-\item{colour}{default colour}
+\item{classTextSize}{size of text for class labels.}
 
-\item{upColour}{colour of up slope}
+\item{colour}{default colour.}
 
-\item{downColour}{colour of down slope}
+\item{upColour}{colour of up slope.}
 
-\item{highlights}{vector with indexes of highlighted points}
+\item{downColour}{colour of down slope.}
 
-\item{lineSize}{size of slope lines}
+\item{highlights}{vector with indexes of highlighted points.}
 
-\item{textSize}{size of text}
+\item{lineSize}{size of slope lines.}
 
-\item{panelGridColour}{background panel grid colour}
+\item{textSize}{size of text.}
 
-\item{panelGridSize}{background panel grid size}
+\item{panelGridColour}{background panel grid colour.}
+
+\item{panelGridSize}{background panel grid size.}
 
 \item{defaultTheme}{plot theme settings with default value \code{\link[ggthemes]{theme_tufte}}. More themes
 are available here: \code{\link[ggplot2]{ggtheme}} (by \href{http://ggplot2.org/}{ggplot2}) 

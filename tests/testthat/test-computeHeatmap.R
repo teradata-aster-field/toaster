@@ -72,8 +72,8 @@ test_that("computeHeatmap SQL is correct", {
   
   expect_equal_normalized(computeHeatmap(channel=NULL, tableName="teams_enh", 
                                          dimension1='franchid', dimension2='decadeid', 
-                                         aggregates='avg(w) w', by='lgid',
-                                         test=TRUE),
+                                         aggregates='avg(w) w', 
+                                         by='lgid', test=TRUE),
                           "SELECT lgid, franchid, decadeid, avg(w) w
                              FROM teams_enh
                             GROUP BY 1, 2, 3"
@@ -81,17 +81,17 @@ test_that("computeHeatmap SQL is correct", {
   
   expect_equal_normalized(computeHeatmap(channel=NULL, tableName="teams_enh", 
                                          dimension1='franchid', dimension2='decadeid', 
-                                         aggregates='avg(w) w',
-                                         by='lgid',
-                                         test=TRUE),
-                          "SELECT lgid, franchid, decadeid, avg(w) w
+                                         aggregates='avg(w) w', 
+                                         by=c('active','lgid','franchname'), test=TRUE),
+                          "SELECT active, lgid, franchname, franchid, decadeid, avg(w) w
                              FROM teams_enh
-                            GROUP BY 1, 2, 3"
+                            GROUP BY 1, 2, 3, 4, 5"
   )
   
   expect_equal_normalized(computeHeatmap(channel=NULL, tableName="teams_enh", 
                                          dimension1='franchid', dimension2='decadeid', 
-                                         aggregates='avg(w) w', where="decadeid >= 1950", 
+                                         aggregates='avg(w) w', 
+                                         where="decadeid >= 1950", 
                                          by='lgid', test=TRUE),
                           "SELECT lgid, franchid, decadeid, avg(w) w
                              FROM teams_enh
@@ -102,12 +102,12 @@ test_that("computeHeatmap SQL is correct", {
   expect_equal_normalized(computeHeatmap(channel=NULL, tableName="teams_enh", 
                                          dimension1='franchid', dimension2='decadeid', 
                                          aggregates='avg(w) w', 
-                                         where="decadeid >= 1950", by='lgid',
-                                         test=TRUE),
-                          "SELECT lgid, franchid, decadeid, avg(w) w
+                                         where="decadeid >= 1950", 
+                                         by=c('active','lgid','franchname'), test=TRUE),
+                          "SELECT active, lgid, franchname, franchid, decadeid, avg(w) w
                              FROM teams_enh
                             WHERE decadeid >= 1950
-                            GROUP BY 1, 2, 3"
+                            GROUP BY 1, 2, 3, 4, 5"
   )
   
 })

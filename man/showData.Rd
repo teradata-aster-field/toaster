@@ -12,9 +12,9 @@ showData(channel = NULL, tableName = NULL, tableInfo = NULL,
   pointColour = NULL, facetName = NULL, regressionLine = FALSE,
   corrLabel = "none", digits = 2, shape = 21, shapeSizeRange = c(1, 10),
   facet = ifelse(format == "overview", TRUE, FALSE), scales = ifelse(facet &
-  format \%in\% c("boxplot", "overview"), "free", "fixed"), ncol = 4,
-  coordFlip = FALSE, paletteName = "Set1", baseSize = 12,
-  baseFamily = "sans", legendPosition = "none",
+  format == "boxplot", "free", ifelse(facet & format == "overview", "free_y",
+  "fixed")), ncol = 4, coordFlip = FALSE, paletteName = "Set1",
+  baseSize = 12, baseFamily = "sans", legendPosition = "none",
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily),
   themeExtra = NULL, where = NULL, test = FALSE)
 }

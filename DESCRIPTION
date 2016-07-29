@@ -1,23 +1,21 @@
 Package: toaster
 Type: Package
 Title: Big Data in-Database Analytics with Teradata Aster
-Version: 0.5.1
+Version: 0.5.2
 Authors@R: c(
-    person("Gregory", "Kanevsky", , "gregory.kanevsky@teradata.com", c("aut","cre")),
-    person("Nick", "Switanek", , "nicholas.switanek@teradata.com", "aut")
+    person("Gregory", "Kanevsky", , "gregory.kanevsky@teradata.com", c("aut","cre"))
     )
 Description: A consistent set of tools to perform in-database analytics
     on Teradata Aster Big Data Discovery Platform. toaster (a.k.a 'to Aster')
     embraces simple 2-step approach: compute in Aster - visualize and analyze
-    in R. Its `compute` functions use combination of SQL and
-    SQL/MR functions running in Aster database - highly scalable parallel
+    in R. Its `compute` functions use combination of parallel SQL, SQL-MR and
+    SQL-GR executing in Aster database - highly scalable parallel
     and distributed analytical platform. Then `create` functions visualize
     results with boxplots, scatterplots, histograms, heatmaps, word clouds,
-    maps, or slope graphs. Advanced options such as faceting, coloring,
-    labeling, and others are supported with most functions.
-SystemRequirements: Teradata Aster Database 5.10 (AD5.10) or higher,
-    Teradata Aster Analytical Foundation 5.10 (AA5.10) or higher
-    (5.11 or higher is recommended)
+    maps, networks, or slope graphs. Advanced options such as faceting, coloring,
+    labeling, and others are supported with most visualizations.
+SystemRequirements: Teradata Aster Database 5.20 (AD5.20) or higher,
+    Teradata Aster Analytical Foundation 5.20 (AA5.20) or higher.
 Depends:
     R (>= 3.0),
     RODBC (>= 1.3-12)
@@ -40,7 +38,8 @@ Imports:
 Suggests:
     testthat (>= 0.9.1-1),
     tm,
-    doParallel
+    doParallel,
+    ggnetwork
 License: GPL-2
 URL: https://github.com/teradata-aster-field/toaster
 BugReports: https://github.com/teradata-aster-field/toaster/issues
@@ -66,4 +65,6 @@ Collate:
     'plottingKmeans.R'
     'showGraph.R'
     'computeGraph.R'
+    'computeGraphClusters.R'
+    'validateGraph.R'
 RoxygenNote: 5.0.1

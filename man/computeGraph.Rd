@@ -29,6 +29,9 @@ it overrides \code{edgeWhere} condition from the \code{graph}.}
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 functions: \link{sqlQuery} and \link{sqlSave}).}
 }
+\value{
+\code{\link{network}} class object materializing an Aster graph represented by \code{\link{toaGraph}}.
+}
 \description{
 Results in \code{\link{network}} object representation of the graph 
 stored in Aster tables. Usually in Aster database a graph is represented
@@ -73,6 +76,6 @@ net3 \%v\% "degree" = topDegree[match(get.vertex.attribute(net3, "vertex.names")
 ggnet2(net3, node.label="vertex.names", node.size="degree", 
        legend.position="none")
                          
-}                          
+}
 }
 

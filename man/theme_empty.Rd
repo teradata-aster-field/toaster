@@ -12,9 +12,10 @@ theme_empty(baseSize = 12, baseFamily = "")
 \item{baseFamily}{base font family}
 }
 \description{
+Deprecated. Use \code{\link[ggplot2]{theme_void}} instead. 
 Good to use with slopegraphs.
 }
 \seealso{
-\code{\link{createHistogram}} and other visualization functions that start with create.
+\code{\link[ggplot2]{theme_void}} \code{\link{createHistogram}} and other visualization functions that start with create.
 }
 

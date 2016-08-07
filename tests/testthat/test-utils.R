@@ -34,6 +34,8 @@ test_that("exceptions are properly handled by utility functions", {
   expect_error(getTableSummary(NULL, tableName="pitching", percentiles=-1, mock=TRUE),
                "Invalid percentile value\\(s\\) passed \\(below 0 or above 100\\): -1")
   
+  expect_error(getTableSummary(NULL, tableName="batting", percentiles=c(-1, 0, 2, 101, 99), mock=TRUE),
+               "Invalid percentile value\\(s\\) passed \\(below 0 or above 100\\): -1Invalid percentile value\\(s\\) passed \\(below 0 or above 100\\): 101")
 })
 
 

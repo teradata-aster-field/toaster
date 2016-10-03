@@ -78,8 +78,9 @@ computeBarchart <- function(channel, tableName, category,
   
   isValidConnection(channel, test)
   
-  if (!exists("stringsAsFactors"))
-    stringsAsFactors = FALSE
+  dots = list(...)
+  if (is.null(dots[["stringsAsFactors"]]))
+    dots$stringsAsFactors = FALSE
   
   where_clause = makeWhereClause(where)
   
@@ -110,7 +111,7 @@ computeBarchart <- function(channel, tableName, category,
   if (test) {
     return(sql)
   }else {
-    df = toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors, ...)
+    df = do.call(toaSqlQuery, c(list(channel=channel, sql=sql), dots))
     
     if (withMelt) {
       df = melt(df, id.vars=c(category, by))

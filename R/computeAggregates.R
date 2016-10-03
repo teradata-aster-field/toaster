@@ -64,8 +64,9 @@ computeAggregates <- function(channel, tableName,
   
   isValidConnection(channel, test)
   
-  if (!exists("stringsAsFactors"))
-    stringsAsFactors = FALSE
+  dots = list(...)
+  if (is.null(dots[["stringsAsFactors"]]))
+    dots$stringsAsFactors = FALSE
   
   where_clause = makeWhereClause(where)
   
@@ -83,7 +84,7 @@ computeAggregates <- function(channel, tableName,
   if (test) {
     return(sql)
   }else {
-    return(toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors, ...))
+    return(do.call(toaSqlQuery, c(list(channel=channel, sql=sql), dots)))
   }
   
 }

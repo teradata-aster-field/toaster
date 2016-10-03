@@ -162,8 +162,9 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize, condit
     
   isValidConnection(channel, test)
   
-  if (!exists("stringsAsFactors"))
-    stringsAsFactors = FALSE
+  dots = list(...)
+  if (is.null(dots[["stringsAsFactors"]]))
+    dots$stringsAsFactors = FALSE
   
   columnList = paste(columns, collapse = ", ")
   
@@ -209,7 +210,7 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize, condit
   if(test) {
     return(sql)
   }else {
-    return(toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors, ...))
+    return(do.call(toaSqlQuery, c(list(channel=channel, sql=sql), dots)))
   }
   
 }

@@ -5,7 +5,7 @@
 \title{Compute aggregate values.}
 \usage{
 computeAggregates(channel, tableName, aggregates = c("COUNT(*) cnt"),
-  by = vector(), where = NULL, stringsAsFactors = FALSE, test = FALSE)
+  by = vector(), where = NULL, ..., test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}}
@@ -23,7 +23,8 @@ with otional alias separated by space (e.g. \code{"UPPER(car_make) make"}).}
 computation. The creteria are expressed in the form of SQL predicates (inside
 \code{WHERE} clause).}
 
-\item{stringsAsFactors}{logical: should character vectors returned as part of results be converted to factors?}
+\item{...}{additional arguments to be passed to \code{\link{sqlQuery}} for more control over
+performance and data type conversion. By default, \code{stringsAsFactors} is set to \code{FALSE}.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 functions like \link{sqlQuery} and \link{sqlSave}).}
@@ -33,6 +34,11 @@ Compute aggregates using SQL \code{SELECT...GROUP BY} in Aster. Aggregates may b
 valid SQL expressions (including SQL \code{WINDOW} functions) in context of group 
 columns (parameter \code{by}). Neither SQL \code{ORDER BY} nor \code{LIMIT} clauses
 are supported (use \code{\link{computeBarchart}} when they are required).
+}
+\details{
+No columns returned as character and not excluded by \code{as.is} are 
+converted to factors by default, i.e. \code{stringsAsFactors = FALSE} when calling
+\code{sqlQuery} if not specified when calling this function.
 }
 \examples{
 if(interactive()){

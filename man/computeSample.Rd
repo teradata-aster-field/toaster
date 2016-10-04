@@ -6,8 +6,7 @@
 \usage{
 computeSample(channel, tableName, sampleFraction, sampleSize,
   conditionColumn = NULL, conditionStratum = NULL, conditionValues = NULL,
-  include = NULL, except = NULL, where = NULL, as.is = FALSE,
-  stringsAsFactors = FALSE, test = FALSE)
+  include = NULL, except = NULL, where = NULL, ..., test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}}
@@ -45,11 +44,8 @@ are mutually exclusive: the former is ignored if both are defined.}
 computation. The creteria are expressed in the form of SQL predicates (inside
 \code{WHERE} clause).}
 
-\item{as.is}{which (if any) columns returned as character should be converted to another type? 
-Allowed values are as for \code{\link{read.table}}. See also \code{\link{sqlQuery}}.}
-
-\item{stringsAsFactors}{logical: should columns returned as character and not excluded by \code{as.is}
-and not converted to anything else be converted to factors?}
+\item{...}{additional arguments to be passed to \code{\link{sqlQuery}} for more control over
+performance and data type conversion. By default, \code{stringsAsFactors} is set to \code{FALSE}.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 functions like \link{sqlQuery} and \link{sqlSave}).}
@@ -89,6 +85,10 @@ In each case a subset of the table defined with \code{where} argument may apply 
     The sample function generates sample units directly for each stratum based on the supplied sizes. Number of values 
     in \code{sampleSize} and \code{conditionValues} must be the same.
 }
+
+No columns returned as character and not excluded by \code{as.is} are 
+converted to factors by default, i.e. \code{stringsAsFactors = FALSE} when calling
+\code{sqlQuery} if not specified when calling this function.
 }
 \examples{
 if(interactive()){

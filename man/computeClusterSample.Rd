@@ -5,7 +5,7 @@
 \title{Random sample of clustered data}
 \usage{
 computeClusterSample(channel, km, sampleFraction, sampleSize, scaled = FALSE,
-  includeId = FALSE, test = FALSE)
+  includeId = TRUE, test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}.}
@@ -19,8 +19,8 @@ sampling fractions are not yet supported.)}
 
 \item{scaled}{logical: indicates if original (default) or scaled data returned.}
 
-\item{includeId}{logical indicates if sample should include the key uniquely identifying
-each data row.}
+\item{includeId}{logical indicates if sample should include key attribute identifying
+each data point.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 functions: \link{sqlQuery} and \link{sqlSave}).}

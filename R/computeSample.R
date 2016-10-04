@@ -34,6 +34,10 @@
 #'     in \code{sampleSize} and \code{conditionValues} must be the same.
 #' }
 #' 
+#' No columns returned as character and not excluded by \code{as.is} are 
+#' converted to factors by default, i.e. \code{stringsAsFactors = FALSE} when calling
+#' \code{sqlQuery} if not specified when calling this function.
+#' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
 #' @param sampleFraction one or more sample fractions to use in the sampling of data. Multipe 
@@ -59,10 +63,8 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
-#' @param as.is which (if any) columns returned as character should be converted to another type? 
-#'   Allowed values are as for \code{\link{read.table}}. See also \code{\link{sqlQuery}}.
-#' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
-#'   and not converted to anything else be converted to factors? 
+#' @param ... additional arguments to be passed to \code{\link{sqlQuery}} for more control over
+#'   performance and data type conversion. By default, \code{stringsAsFactors} is set to \code{FALSE}.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' 
@@ -108,8 +110,7 @@
 #' }
 computeSample <- function(channel, tableName, sampleFraction, sampleSize, conditionColumn = NULL,
                           conditionStratum = NULL, conditionValues = NULL, include = NULL, except = NULL, 
-                          where = NULL, as.is = FALSE, stringsAsFactors = FALSE, 
-                          test = FALSE) {
+                          where = NULL, ..., test = FALSE) {
   
   if (missing(tableName)) {
     stop("Table name must be specified.")
@@ -161,6 +162,10 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize, condit
     
   isValidConnection(channel, test)
   
+  dots = list(...)
+  if (is.null(dots[["stringsAsFactors"]]))
+    dots$stringsAsFactors = FALSE
+  
   columnList = paste(columns, collapse = ", ")
   
   where_clause = makeWhereClause(where)
@@ -205,7 +210,7 @@ computeSample <- function(channel, tableName, sampleFraction, sampleSize, condit
   if(test) {
     return(sql)
   }else {
-    return(toaSqlQuery(channel, sql, as.is=as.is, stringsAsFactors=stringsAsFactors))
+    return(do.call(toaSqlQuery, c(list(channel=channel, sql=sql), dots)))
   }
   
 }

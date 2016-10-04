@@ -5,6 +5,10 @@
 #' columns (parameter \code{by}). Neither SQL \code{ORDER BY} nor \code{LIMIT} clauses
 #' are supported (use \code{\link{computeBarchart}} when they are required).  
 #' 
+#' No columns returned as character and not excluded by \code{as.is} are 
+#' converted to factors by default, i.e. \code{stringsAsFactors = FALSE} when calling
+#' \code{sqlQuery} if not specified when calling this function.
+#' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
 #' @param by character vecotr of column names and/or expressions on which grouping is performed 
@@ -15,7 +19,8 @@
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
-#' @param stringsAsFactors logical: should character vectors returned as part of results be converted to factors? 
+#' @param ... additional arguments to be passed to \code{\link{sqlQuery}} for more control over
+#'   performance and data type conversion. By default, \code{stringsAsFactors} is set to \code{FALSE}.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @examples
@@ -43,7 +48,7 @@
 computeAggregates <- function(channel, tableName, 
                               aggregates = c("COUNT(*) cnt"), 
                               by = vector(), where = NULL, 
-                              stringsAsFactors = FALSE, test = FALSE) {
+                              ..., test = FALSE) {
   
   if (missing(tableName)) {
     stop("Must have table name.")
@@ -58,6 +63,10 @@ computeAggregates <- function(channel, tableName,
   }
   
   isValidConnection(channel, test)
+  
+  dots = list(...)
+  if (is.null(dots[["stringsAsFactors"]]))
+    dots$stringsAsFactors = FALSE
   
   where_clause = makeWhereClause(where)
   
@@ -75,7 +84,7 @@ computeAggregates <- function(channel, tableName,
   if (test) {
     return(sql)
   }else {
-    return(toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors))
+    return(do.call(toaSqlQuery, c(list(channel=channel, sql=sql), dots)))
   }
   
 }

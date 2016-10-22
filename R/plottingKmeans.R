@@ -271,13 +271,13 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
   
   if(is.null(km$data))
     stop("Kmeans object is missing sample data.")
-  
-  kms = km$data
+
+  kms = km$data[, setdiff(names(km$data), km$idAlias)]
   
   if (!is.factor(kms$clusterid)) 
     kms$clusterid = factor(kms$clusterid)
   
-  p = GGally::ggpairs(kms, color='clusterid', title=title, ...) +
+  p = GGally::ggpairs(kms, aes(color=clusterid), title=title, ...) +
     defaultTheme +
     themeExtra
   

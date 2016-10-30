@@ -29,8 +29,8 @@
 #'   standard deviation for each of input variables. when \code{FALSE} then function only removes incomplete
 #'   data before clustering (conaining \code{NULL}s).
 #' @param persist logical if TRUE then function saves clustered data in the table \code{clusteredTableName} 
-#'   (when defined) with cluster id assigned. With Aster Analytics Foundation 6.20 or earlier 
-#'   must set argument \code{version = '6.20'} to avoid errors when \code{persisit=TRUE}.
+#'   (when defined) with cluster id assigned. Aster Analytics Foundation 6.20 or earlier 
+#'   can't support this option and so must use \code{persisit=TRUE}.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
 #'   \code{WHERE} clause).
@@ -47,7 +47,7 @@
 #'   contain schema in its name.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 #'   functions: \link{sqlQuery} and \link{sqlSave}).
-#' @param version version of Aster Analytics Foundation functions (required when \code{test=TRUE}, ignored otherwise).
+#' @param version version of Aster Analytics Foundation functions applicable when \code{test=TRUE}, ignored otherwise.
 #' @return \code{computeKmeans} returns an object of class \code{"toakmeans"} (compatible with class \code{"kmeans"}).
 #' It is a list with at least the following components:
 #' \describe{
@@ -100,10 +100,12 @@
 #'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
 #'                    id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
 #'                    include=c('g','r','h'), 
-#'                    persist = TRUE, scaledTableName='kmeans_test_scaled', 
+#'                    persist = TRUE, 
+#'                    scaledTableName='kmeans_test_scaled', 
 #'                    centroidTableName='kmeans_test_centroids', 
 #'                    clusteredTableName = 'kmeans_test_clustered',
-#'                    where="yearid > 2000", tableInfo = batting_info, version = '6.22', test=FALSE)
+#'                    tempTableName = 'kmeans_test_temp',
+#'                    where="yearid > 2000")
 #' createCentroidPlot(kmc)
 #' createCentroidPlot(kmc, format="bar_dodge")
 #' createCentroidPlot(kmc, format="heatmap", coordFlip=TRUE)
@@ -123,13 +125,16 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
                           idAlias=gsub("[^0-9a-zA-Z]+", "_", id), where=NULL,
                           scaledTableName=NULL, centroidTableName=NULL, 
                           clusteredTableName=NULL, tempTableName=NULL,
-                          schema=NULL, test=FALSE, version) {
+                          schema=NULL, test=FALSE, version="6.21") {
   
   ptm = proc.time()
   
-  if (test && (missing(tableInfo) || missing(version))) {
-    stop("Must provide tableInfo and version when test==TRUE")
+  if (test && missing(tableInfo)) {
+    stop("Must provide tableInfo when test==TRUE")
   }
+  
+  if (persist && compareVersion(version, "6.21") < 0)
+    stop("Persisting clustered data with versions before AAF 6.21 is not supported.")
   
   isValidConnection(channel, test)
   
@@ -222,13 +227,12 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
     toaSqlQuery(channel, sql)
   }
     
-  
   # run kmeans
   sqlComment = "-- Run k-means"
   sqlDrop = paste("DROP TABLE IF EXISTS", centroidTableName)
   if (persist)
     sqlDrop2 = paste("DROP TABLE IF EXISTS", tempTableName)
-  sql = getKmeansSql(!missing(version) && ifelse(compareVersion(version, "6.20") <= 0, FALSE, persist), 
+  sql = getKmeansSql(persist, 
                      scaledTableName, centroidTableName, tempTableName, centers, threshold, iterMax)
   if(test) {
     sqlText = paste(sqlText, 
@@ -239,9 +243,12 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
     kmeans_version = version
   }else {
     toaSqlQuery(channel, sqlDrop)
+    if (persist)
+      toaSqlQuery(channel, sqlDrop2)
     kmeansResultStr = toaSqlQuery(channel, sql, stringsAsFactors=FALSE)
     # kmeans output prior to AAF 6.21
     if ('message' %in% names(kmeansResultStr)) {
+      warning("This version of kmeans is no longer supported. Please, upgrade to AAF 6.21 or higher, otherwise, running at your own risk.")
       kmeans_version = "6.20"
       if (kmeansResultStr[2,'message'] == "Successful!" &&
           kmeansResultStr[3,'message'] == "Algorithm converged.") {
@@ -323,7 +330,6 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
     totss = rs$totss[[1]]
   }
 
-  
   # return sql
   if(test) {
     sqlText = paste0(sqlText, ';')
@@ -612,7 +618,7 @@ makeKmeansResult <- function(data, K, totss, iter, tableName, columns, scale,
       clusteredTableName = NULL
       delta = 0
     }
-    centers_str = output[1:K, paste0(columns, collapse = ' ')]
+    centers_str = output[1:K, 2]
     tot_withinss = as.numeric(gsub("[^0-9\\.]", "", output[K + 6 + delta, 2]))
     withinss = as.numeric(output$withinss[1:K])
     sizes = as.integer(output$size[1:K])

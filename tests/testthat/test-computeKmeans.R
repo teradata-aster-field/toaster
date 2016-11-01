@@ -16,7 +16,7 @@ test_that("computeKmeans throws errors", {
   
   expect_error(computeKmeans(NULL, tableName='XXXXX', centers="a", 
                              tableInfo=batting_info, test=TRUE),
-               "Parameter centers must be numeric.")
+               "Parameter centers must be one of following: number of clusters, numeric matrix of initial centroids, or canopy object.")
   
   expect_error(computeKmeans(NULL, tableName='XXXXX', centers=0.1, 
                              tableInfo=batting_info, test=TRUE),
@@ -1021,11 +1021,11 @@ test_that("computeKmeans SQL is correct", {
                           "kmeans for 1 cluster with aggregates without COUNT with default id and WHERE clause")
   
   expect_equal_normalized(computeKmeans(NULL, "batting", centers=1, tableInfo=batting_info, 
-                                        include=c('g','ab','r','h'), scale = FALSE,
+                                        include=c('g','ab','r','h'), scale=FALSE,
                                         id="playerid || '-' || stint || '-' || teamid || '-' || yearid", idAlias="id",
                                         scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', 
                                         where="yearid > 2000", test=TRUE, version="5.20"),
-                         "-- Data Prep: scale
+                         "-- Data Prep: omit nulls
 DROP TABLE IF EXISTS kmeans_test_scaled;
 CREATE FACT TABLE kmeans_test_scaled DISTRIBUTE BY HASH(id) AS 
        SELECT * FROM (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, ab, g, h, r FROM batting WHERE yearid > 2000  ) d

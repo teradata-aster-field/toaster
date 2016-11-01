@@ -9,15 +9,23 @@
 #' \code{aggregates} are calculated again in-database.
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}.
-#' @param tableName Aster table name.
+#' @param tableName Aster table name. This argument is ignored if \code{centers} is a canopy object.
 #' @param tableInfo pre-built summary of data to use (require when \code{test=TRUE}). See \code{\link{getTableSummary}}.
-#' @param id column name or SQL expression containing unique table key.
-#' @param idAlias SQL alias for table id. This is required when SQL expression is given for \code{id}.
+#' @param id column name or SQL expression containing unique table key. This argument is ignored if \code{centers} 
+#'   is a canopy object.
+#' @param idAlias SQL alias for table id. This is required when SQL expression is given for \code{id}. 
+#'   This argument is ignored if \code{centers} is a canopy object.
 #' @param include a vector of column names with variables (must be numeric). Model never contains variables other than in the list.
+#'   This argument is ignored if \code{centers} is a canopy object.
 #' @param except a vector of column names to exclude from variables. Model never contains variables from the list.
-#' @param centers either the number of clusters, say \code{k}, or a matrix of initial (distinct) cluster centres. 
-#'   If a number, a random set of (distinct) rows in x is chosen as the initial centres. If a matrix then number 
-#'   of rows determines the number of clusters as each row determines initial center.
+#'   This argument is ignored if \code{centers} is a canopy object.
+#' @param centers either the number of clusters, say \code{k}, a matrix of initial (distinct) cluster centres, 
+#'   or an object of class \code{"toacanopy"} obtained with \code{computeCanopy}. 
+#'   If a number, a random set of (distinct) rows in x is chosen as the initial centers. 
+#'   If a matrix then number of rows determines the number of clusters as each row determines initial center.
+#'   if a canopy object then number of centers it contains determines the number of clusters, plust it provides
+#'   (and overrides) the following arguments: \code{tableName}, \code{id}, \code{idAlias}, \code{include},
+#'   \code{except}, \code{scale}, \code{where}, \code{scaledTableName}, \code{schema}
 #' @param threshold the convergence threshold. When the centroids move by less than this amount, 
 #'   the algorithm has converged.
 #' @param iterMax the maximum number of iterations the algorithm will run before quitting if the convergence 
@@ -27,18 +35,18 @@
 #'   Subsequently, used in \code{\link{createClusterPlot}} as cluster properties.
 #' @param scale logical if TRUE then scale each variable in-database before clustering. Scaling performed results in 0 mean and unit
 #'   standard deviation for each of input variables. when \code{FALSE} then function only removes incomplete
-#'   data before clustering (conaining \code{NULL}s).
+#'   data before clustering (conaining \code{NULL}s). This argument is ignored if \code{centers} is a canopy object.
 #' @param persist logical if TRUE then function saves clustered data in the table \code{clusteredTableName} 
 #'   (when defined) with cluster id assigned. Aster Analytics Foundation 6.20 or earlier 
 #'   can't support this option and so must use \code{persisit=TRUE}.
 #' @param where specifies criteria to satisfy by the table rows before applying
 #'   computation. The creteria are expressed in the form of SQL predicates (inside
-#'   \code{WHERE} clause).
-#' @param scaledTableName the name of the Aster table with results of scaling
-#' @param centroidTableName the name of the Aster table with centroids found by kmeans 
+#'   \code{WHERE} clause). This argument is ignored if \code{centers} is a canopy object.
+#' @param scaledTableName the name of the Aster table with results of scaling. This argument is ignored if \code{centers} is a canopy object.
+#' @param centroidTableName the name of the Aster table with centroids found by kmeans.
 #' @param clusteredTableName the name of the Aster table in which to store the clustered output. If omitted 
-#'   but argument \code{persist = TRUE} then random table name is generated (always saved in the 
-#'   resulting \code{toakmeans} object. If \code{persist = FALSE} then the name is ignored and
+#'   and argument \code{persist = TRUE} the random table name is generated (always saved in the 
+#'   resulting \code{toakmeans} object). If \code{persist = FALSE} then the name is ignored and
 #'   function does not generate a table of clustered output.
 #' @param tempTableName name of the temporary Aster table to use to store intermediate results. This table
 #'   always gets dropped when function executes successfully.
@@ -78,7 +86,7 @@
 #' }
 #' 
 #' @export
-#' @seealso \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}
+#' @seealso \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}, \code{\link{computeCanopy}}
 #' @examples 
 #' if(interactive()){
 #' # initialize connection to Lahman baseball database in Aster 
@@ -139,53 +147,70 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   isValidConnection(channel, test)
   
   # validate centers (initial clusters)
+  useCanopy = FALSE
   if (is.matrix(centers)) 
     K = nrow(centers)
   else if (is.numeric(centers)) 
     K = as.integer(centers)
-  else 
-    stop("Parameter centers must be numeric.")
+  else if (inherits(centers, 'toacanopy')) {
+    useCanopy = TRUE
+    canopy = centers
+    centers = canopy$centers
+    K = nrow(canopy$centers)
+  } else 
+    stop("Parameter centers must be one of following: number of clusters, numeric matrix of initial centroids, or canopy object.")
   
   if (K < 1) 
     stop("Number of clusters must be greater or equal to 1.")
   
-  tableName = normalizeTableName(tableName)
-  
-  if (missing(tableInfo)) {
-    tableInfo = sqlColumns(channel, tableName)
+  if (useCanopy) {
+    tableName=canopy$tableName
+    columns=canopy$columns
+    id=canopy$id
+    idAlias=canopy$idAlias
+    scale=canopy$scale
+    scaledTableName=canopy$scaledTableName
+    if (is.null(schema))
+      schema=canopy$schema
+    where_clause=canopy$whereClause
+  }else {
+    tableName = normalizeTableName(tableName)
+    
+    if (missing(tableInfo)) {
+      tableInfo = sqlColumns(channel, tableName)
+    }
+    
+    columns = getNumericColumns(tableInfo, names.only=TRUE, include=include, except=except)
+    columns = sort(setdiff(columns, id))
+    
+    if (is.null(columns) || length(columns) < 1) {
+      stop("Kmeans operates on one or more numeric variables.")
+    }
+    
+    # check if id alias is not one of independent variables
+    if(idAlias %in% columns)
+      stop(paste0("Id alias '", idAlias, "' can't be one of variable names."))
+    
+    # adjust id alias if it's exactly one of the table columns
+    if(idAlias %in% tableInfo$COLUMN_NAME)
+      idAlias = paste("_", idAlias, "_", sep="_")
+    
+    # scale data table name
+    if (is.null(scaledTableName))
+      scaledTableName = makeTempTableName('scaled', 30, schema)
+    else if (!is.null(schema))
+      scaledTableName = paste0(schema, ".", scaledTableName)
+    
+    where_clause = makeWhereClause(where)
   }
-  
-  columns = getNumericColumns(tableInfo, names.only=TRUE, include=include, except=except)
-  columns = sort(setdiff(columns, id))
-  
-  if (is.null(columns) || length(columns) < 1) {
-    stop("Kmeans operates on one or more numeric variables.")
-  }
-  
-  # check if id alias is not one of independent variables
-  if(idAlias %in% columns)
-    stop(paste0("Id alias '", idAlias, "' can't be one of variable names."))
-  
-  # adjust id alias if it's exactly one of the table columns
-  if(idAlias %in% tableInfo$COLUMN_NAME)
-    idAlias = paste("_", idAlias, "_", sep="_")
   
   if (is.matrix(centers)) {
     if (length(columns) != ncol(centers))
       stop(paste0("Kmeans received incompatible parameters: dimension of initial cluster centers doesn't match variables: '", 
                   paste0(columns, collapse = "', '"), "'"))
-    
-    number_of_clusters = nrow(centers)
-  }else
-    number_of_clusters = as.integer(centers)
+  }
   
   aggregates = makeAggregatesAlwaysContainCount(aggregates)
-  
-  # scale data table name
-  if (is.null(scaledTableName))
-    scaledTableName = makeTempTableName('scaled', 30, schema)
-  else if (!is.null(schema))
-    scaledTableName = paste0(schema, ".", scaledTableName)
   
   # centroids table name
   if(is.null(centroidTableName))
@@ -207,26 +232,25 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
   else if (!is.null(schema))
     tempTableName = paste0(schema, ".", tempTableName)
     
-  
-  where_clause = makeWhereClause(where)
-  
   emptyLine = "--"
   
   if(test)
     sqlText = ""
   
-  # scale data or just eliminate incomplete observations (if not scaling)
-  sqlComment = "-- Data Prep: scale"
-  sqlDrop = paste("DROP TABLE IF EXISTS", scaledTableName)
-  sql = getDataPrepSql(scale, tableName, scaledTableName, columns, id, idAlias, where_clause)
-  if(test) {
-    sqlText = paste(sqlComment, sqlDrop, sep='\n')
-    sqlText = paste(sqlText, sql, sep=';\n')
-  }else {
-    toaSqlQuery(channel, sqlDrop)
-    toaSqlQuery(channel, sql)
+  if (!useCanopy) {
+    # scale data or just eliminate incomplete observations (if not scaling)
+    sqlComment = paste("-- Data Prep:", ifelse(scale, "scale", "omit nulls"))
+    sqlDrop = paste("DROP TABLE IF EXISTS", scaledTableName)
+    sql = getDataPrepSql(scale, tableName, scaledTableName, columns, id, idAlias, where_clause)
+    if(test) {
+      sqlText = paste(sqlComment, sqlDrop, sep='\n')
+      sqlText = paste(sqlText, sql, sep=';\n')
+    }else {
+      toaSqlQuery(channel, sqlDrop)
+      toaSqlQuery(channel, sql)
+    }
   }
-    
+  
   # run kmeans
   sqlComment = "-- Run k-means"
   sqlDrop = paste("DROP TABLE IF EXISTS", centroidTableName)
@@ -260,7 +284,7 @@ computeKmeans <- function(channel, tableName, centers, threshold=0.0395, iterMax
     # kmeans output since AAF 6.21
     }else {
       kmeans_version = "6.21"
-      line = number_of_clusters + 2
+      line = K + 2
       iter = gsub("[^0-9]", "", kmeansResultStr[[line+1, 2]])
       if (kmeansResultStr[[line, 2]] == "Converged : False") {
         msg = paste("Kmeans failed to converge after", iter, "iterations.")
@@ -1028,4 +1052,186 @@ makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAl
        GROUP BY 1,2
      ) sil"
   )
+}
+
+
+#' Perform canopy clustering on the table to determine cluster centers.
+#' 
+#' Canopy clustering algorithm runs in-database, returns centroids compatible with \code{\link{computeKmeans}} and 
+#' pre-processes data for k-means and other clustering algorithms.
+#' 
+#' The function fist scales not-null data (if \code{scale=TRUE}) or just eliminate nulls without scaling. After 
+#' that the data given (table \code{tableName} with option of filering with \code{where}) are clustered using canopy 
+#' algorithm in Aster. This results in 1) set of centroids to use as initial cluster centers in k-means and
+#' 2) pre-processed data ready for clustering.
+#' 
+#' @param channel connection object as returned by \code{\link{odbcConnect}}.
+#' @param canopy an object of class \code{"toacanopy"} obtained with \code{computeCanopy}.
+#' @param tableName Aster table name.
+#' @param looseDistance specifies the maximum distance that any point can be from a canopy center to be considered 
+#'   part of that canopy.
+#' @param tightDistance specifies the minimum distance that separates two canopy centers.
+#' @param tableInfo pre-built summary of data to use (require when \code{test=TRUE}). See \code{\link{getTableSummary}}.
+#' @param id column name or SQL expression containing unique table key.
+#' @param idAlias SQL alias for table id. This is required when SQL expression is given for \code{id}.
+#' @param include a vector of column names with variables (must be numeric). Model never contains variables other than in the list.
+#' @param except a vector of column names to exclude from variables. Model never contains variables from the list.
+#' @param scale logical if TRUE then scale each variable in-database before clustering. Scaling performed results in 0 mean and unit
+#'   standard deviation for each of input variables. when \code{FALSE} then function only removes incomplete
+#'   data before clustering (conaining \code{NULL}s).
+#' @param where specifies criteria to satisfy by the table rows before applying
+#'   computation. The creteria are expressed in the form of SQL predicates (inside
+#'   \code{WHERE} clause).
+#' @param scaledTableName the name of the Aster table with results of scaling
+#' @param schema name of Aster schema that tables \code{scaledTableName}, \code{centroidTableName}, and
+#'   \code{clusteredTableName} belong to. Make sure that when this argument is supplied no table name defined
+#'   contain schema in its name.
+#' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
+#'   functions: \link{sqlQuery} and \link{sqlSave}).
+#'   
+#' @export
+#' @seealso \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}, \code{\link{computeCanopy}}
+#' @examples 
+#' if(interactive()){
+#' 
+#' 
+#' 
+#' }
+computeCanopy <- function(channel, tableName, looseDistance, tightDistance,
+                          canopy, 
+                          tableInfo, id, include=NULL, except=NULL, 
+                          scale=TRUE, 
+                          idAlias=gsub("[^0-9a-zA-Z]+", "_", id), where=NULL,
+                          scaledTableName=NULL, schema=NULL, test=FALSE) {
+  
+  ptm = proc.time()
+  
+  if (test && missing(tableInfo) && missing(canopy)) {
+    stop("Must provide tableInfo when test==TRUE")
+  }
+  
+  if (tightDistance >= looseDistance) 
+    stop("The loose distance must be greater than the tight distance.")
+  
+  isValidConnection(channel, test)
+  
+  if(missing(canopy) || is.null(canopy)) {
+    canopy = NULL
+    
+    tableName = normalizeTableName(tableName)
+    
+    if (missing(tableInfo)) {
+      tableInfo = sqlColumns(channel, tableName)
+    }
+    
+    columns = getNumericColumns(tableInfo, names.only=TRUE, include=include, except=except)
+    columns = sort(setdiff(columns, id))
+    
+    if (is.null(columns) || length(columns) < 1) {
+      stop("Kmeans operates on one or more numeric variables.")
+    }
+    
+    # check if id alias is not one of independent variables
+    if(idAlias %in% columns)
+      stop(paste0("Id alias '", idAlias, "' can't be one of variable names."))
+    
+    # adjust id alias if it's exactly one of the table columns
+    if(idAlias %in% tableInfo$COLUMN_NAME)
+      idAlias = paste("_", idAlias, "_", sep="_")
+    
+    # scale data table name
+    if (is.null(scaledTableName))
+      scaledTableName = makeTempTableName('scaled', 30, schema)
+    else if (!is.null(schema))
+      scaledTableName = paste0(schema, ".", scaledTableName)
+    
+    where_clause = makeWhereClause(where)
+  }else {
+    tableName = canopy$tableName
+    columns = canopy$columns
+    id = canopy$id
+    idAlias = canopy$idAlias
+    scale = canopy$scale
+    scaledTableName = canopy$scaledTableName
+    schema = canopy$schema
+    where_clause = canopy$whereClause
+  }
+  
+  emptyLine = "--"
+  
+  if(test)
+    sqlText = ""
+  
+  # scale data or just eliminate incomplete observations (if not scaling)
+  if (is.null(canopy)) {
+    sqlComment = paste("-- Data Prep:", ifelse(scale, "scale", "omit nulls"))
+    sqlDrop = paste("DROP TABLE IF EXISTS", scaledTableName)
+    sql = getDataPrepSql(scale, tableName, scaledTableName, columns, id, idAlias, where_clause)
+    if(test) {
+      sqlText = paste(sqlComment, sqlDrop, sep='\n')
+      sqlText = paste(sqlText, sql, sep=';\n')
+    }else {
+      toaSqlQuery(channel, sqlDrop)
+      toaSqlQuery(channel, sql)
+    }
+  }
+  
+  # run canopy
+  sqlComment = "-- Run canopy"
+  sql = getCanopySql(scaledTableName, looseDistance, tightDistance)
+  if(test) {
+    sqlText = paste(sqlText, sqlComment, sql, sep=';\n')
+  }else {
+    centers = toaSqlQuery(channel, sql)
+  }
+  
+  # return sql
+  if(test) {
+    sqlText = paste0(sqlText, ';')
+    return(sqlText)
+  }
+  
+  result = makeCanopyResult(centers, tableName, columns, looseDistance, tightDistance, 
+                            scale, scaledTableName, id, idAlias, schema,
+                            where_clause, ptm)
+  
+  return(result)
+}
+
+
+getCanopySql <- function(scaledTableName, looseDistance, tightDistance) {
+  
+  sql = paste0(
+    "SELECT * FROM Canopy(
+       ON (SELECT 1) PARTITION BY 1
+       InputTable('",scaledTableName,"')
+       LooseDistance('",looseDistance,"')
+       TightDistance('",tightDistance,"')
+     )"
+  )
+}
+
+makeCanopyResult <- function(centers, tableName, columns, looseDistance, tightDistance,
+                             scale, scaledTableName, id, idAlias, schema,
+                             whereClause, ptm) {
+  
+  centers = as.matrix(centers[,-1])
+  
+  z <- structure(list(centers=centers,
+                      looseDistance=looseDistance, 
+                      tightDistance=tightDistance,
+                      
+                      tableName=tableName,
+                      columns=columns,
+                      scale=scale,
+                      scaledTableName=scaledTableName,
+                      schema=schema,
+                      id=id,
+                      idAlias=idAlias,
+                      whereClause=whereClause,
+                      time=proc.time() - ptm
+  ),
+  class = c("toacanopy"))
+  
+  return(z)
 }

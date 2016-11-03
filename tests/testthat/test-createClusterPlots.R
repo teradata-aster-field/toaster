@@ -22,8 +22,20 @@ test_that("Cluster plot functions throw errors", {
   expect_error(createClusterPairsPlot(),
                "Kmeans object must be specified.")
   
-  expect_error(createClusterPairsPlot(km=structure(list(), class = c("toakmeans", "kmeans"))),
+  expect_error(createClusterPairsPlot(km=structure(list(), class = c("toakmeans"))),
                "Kmeans object is missing sample data.")
+  
+  expect_error(createClusterPairsPlot(km=structure(list(data=data.frame(col1=c(1,2,3), col2=c('a','b','c'))), 
+                                                   class = c("toakmeans"), 
+                                                   .Names = c("data")),
+                                      include=c('nosuch1','nosuch2')),
+               "No columns left to plot.")
+  
+  expect_error(createClusterPairsPlot(km=structure(list(data=data.frame(col1=c(1,2,3), col2=c('a','b','c'))), 
+                                                   class = c("toakmeans"), 
+                                                   .Names = c("data")),
+                                      except=c('col1','col2')),
+               "No columns left to plot.")
   
   expect_error(createSilhouetteProfile(),
                "Kmeans object must be specified.")

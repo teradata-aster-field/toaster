@@ -55,8 +55,8 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   # match argument values
   format = match.arg(format, c('line', 'bar', 'heatmap','bar_dodge'))
   
-  if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
-    stop("Kmeans object must be specified.")
+  if (missing(km) || !is.object(km) || !inherits(km, c("toakmeans","toacanopy"))) {
+    stop("Kmeans or canopy object must be specified.")
   }
   
   if(is.null(km$centers))

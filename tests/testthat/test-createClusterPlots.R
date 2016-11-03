@@ -8,7 +8,7 @@ test_that("Cluster plot functions throw errors", {
                "'arg' should be one of \"line\", \"bar\", \"heatmap\", \"bar_dodge\"")
   
   expect_error(createCentroidPlot(),
-               "Kmeans object must be specified.")
+               "Kmeans or canopy object must be specified.")
   
   expect_error(createCentroidPlot(km=structure(list(), class = c("toakmeans", "kmeans"))),
                "Kmeans object is missing cluster centers.")

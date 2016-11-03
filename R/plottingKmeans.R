@@ -288,7 +288,7 @@ createClusterPairsPlot <- function(km, include = NULL, except = NULL,
   if (!is.factor(kms$clusterid)) 
     kms$clusterid = factor(kms$clusterid)
   
-  p = GGally::ggpairs(kms, aes(color=clusterid), title=title, ...) +
+  p = GGally::ggpairs(kms, aes_string(color='clusterid'), title=title, ...) +
     defaultTheme +
     themeExtra
   

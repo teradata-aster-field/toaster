@@ -13,8 +13,9 @@ NEW FEATURES
 * Kmeans clustering can now persist clustered data for both optimized
   performance and convinience using new argument persist=TRUE (#56).
   
-* Kmeans clustering now supports initial centers obtained with
-  computeCanopy (#61).
+* Kmeans clustering now supports initial centers obtained with canopy
+  clustering. Use new functinality computeCanopy to quickly seed
+  initial centroids and run kmeans with canopy object (#61).
 
 MINOR FEATURES
 

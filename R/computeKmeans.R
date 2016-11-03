@@ -1093,8 +1093,28 @@ makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAl
 #' @seealso \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}, \code{\link{computeCanopy}}
 #' @examples 
 #' if(interactive()){
+#' # initialize connection to Lahman baseball database in Aster 
+#' conn = odbcDriverConnect(connection="driver={Aster ODBC Driver};
+#'                          server=<dbhost>;port=2406;database=<dbname>;uid=<user>;pwd=<pw>")
+#' can = computeCanopy(conn, "batting", looseDistance = 1, tightDistance = 0.5,
+#'                     id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+#'                     include=c('g','r','h'), 
+#'                     scaledTableName='test_canopy_scaled', 
+#'                     where="yearid > 2000")
+#' createCentroidPlot(can)
 #' 
+#' can = computeCanopy(conn, canopy = can, looseDistance = 2, tightDistance = 0.5)
+#' createCentroidPlot(can)
 #' 
+#' can = computeCanopy(conn, canopy = can, looseDistance = 4, tightDistance = 1)
+#' createCentroidPlot(can)
+#'
+#' km = computeKmeans(conn, centers=can, iterMax = 1000, persist = TRUE, 
+#'                    aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+#'                    centroidTableName = "kmeans_test_centroids",
+#'                    tempTableName = "kmeans_test_temp",
+#'                    clusteredTableName = "kmeans_test_clustered") 
+#' createCentroidPlot(km)
 #' 
 #' }
 computeCanopy <- function(channel, tableName, looseDistance, tightDistance,

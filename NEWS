@@ -12,6 +12,9 @@ NEW FEATURES
 
 * Kmeans clustering can now persist clustered data for both optimized
   performance and convinience using new argument persist=TRUE (#56).
+  
+* Kmeans clustering now supports initial centers obtained with
+  computeCanopy (#61).
 
 MINOR FEATURES
 
@@ -21,7 +24,13 @@ MINOR FEATURES
   
 * computeClusterSample now includes id by default (#60).
 
+* createClusterPairsPlot added argument include and except to selectively
+  control features to plot (#63).
+
 BUG FIXES
+
+* Updated createClusterPairsPlot to work with the latest version of
+  GGally (#62).
 
 toaster 0.5.2
 ----------------------------------------------------------------

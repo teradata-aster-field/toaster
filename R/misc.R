@@ -253,6 +253,18 @@ includeExcludeColumns <- function (tableInfo, include, except) {
   return(result)
 }
 
+
+includeExcludeNames <- function(names, include, except) {
+  
+  if(!is.null(include))
+    names = names[names %in% include]
+  
+  if(!is.null(except))
+    names = names[!names %in% except]
+  
+  return(names)
+}
+
  
 getColumns <- function (tableInfo, types, names.only, include, except) {
   result = tableInfo[tableInfo$TYPE_NAME %in% types,]

@@ -55,8 +55,8 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   # match argument values
   format = match.arg(format, c('line', 'bar', 'heatmap','bar_dodge'))
   
-  if (missing(km) || !is.object(km) || !inherits(km, "toakmeans")) {
-    stop("Kmeans object must be specified.")
+  if (missing(km) || !is.object(km) || !inherits(km, c("toakmeans","toacanopy"))) {
+    stop("Kmeans or canopy object must be specified.")
   }
   
   if(is.null(km$centers))
@@ -233,6 +233,9 @@ agg_labeller <- function(value) {
 #' Create cluster variable plot.
 #' 
 #' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
+#' @param include a vector of column names to include. Plot never contains variables other than in the list.
+#'   Plot would never include \code{idAlias} even if it is included explicitly.
+#' @param except a vector of column names to exclude. Plot never contains variables from the list.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -260,7 +263,8 @@ agg_labeller <- function(value) {
 #' km = computeClusterSample(conn, km, 0.01)
 #' createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
 #' }
-createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
+createClusterPairsPlot <- function(km, include = NULL, except = NULL,
+                                   baseSize = 12, baseFamily = "serif",
                                    title="Cluster Variable Pairs", ticks=FALSE,
                                    defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
                                    themeExtra = theme(), ...) {
@@ -271,13 +275,20 @@ createClusterPairsPlot <- function(km, baseSize = 12, baseFamily = "serif",
   
   if(is.null(km$data))
     stop("Kmeans object is missing sample data.")
+
+  kms = km$data[, setdiff(names(km$data), km$idAlias)]
   
-  kms = km$data
+  if(!is.null(include))
+    include = c(include, 'clusterid')
+  kms = kms[, includeExcludeNames(names(kms), include, setdiff(except, 'clusterid'))]
+  
+  if(dim(kms)[[2]] == 0)
+    stop("No columns left to plot.")
   
   if (!is.factor(kms$clusterid)) 
     kms$clusterid = factor(kms$clusterid)
   
-  p = GGally::ggpairs(kms, color='clusterid', title=title, ...) +
+  p = GGally::ggpairs(kms, aes_string(color='clusterid'), title=title, ...) +
     defaultTheme +
     themeExtra
   

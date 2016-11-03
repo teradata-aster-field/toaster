@@ -8,37 +8,38 @@ test_that("computeKmeans throws errors", {
                "Connection is not valid RODBC object.")
   
   expect_error(computeKmeans(NULL, tableName="fielding", test=TRUE),
-               "Must provide tableInfo and version when test==TRUE")
+               "Must provide tableInfo when test==TRUE")
   
-  expect_error(computeKmeans(NULL, tableName="fielding", tableInfo=batting_info, test=TRUE),
-               "Must provide tableInfo and version when test==TRUE")
+  expect_error(computeKmeans(NULL, tableName="fielding", tableInfo=batting_info, 
+                             persist = TRUE, test=TRUE, version="5.20"),
+               "Persisting clustered data with versions before AAF 6.21 is not supported.")
   
   expect_error(computeKmeans(NULL, tableName='XXXXX', centers="a", 
-                             tableInfo=batting_info, version="5.20", test=TRUE),
-               "Parameter centers must be numeric.")
+                             tableInfo=batting_info, test=TRUE),
+               "Parameter centers must be one of following: number of clusters, numeric matrix of initial centroids, or canopy object.")
   
   expect_error(computeKmeans(NULL, tableName='XXXXX', centers=0.1, 
-                             tableInfo=batting_info, version="5.20", test=TRUE),
+                             tableInfo=batting_info, test=TRUE),
                "Number of clusters must be greater or equal to 1.")
   
   expect_error(computeKmeans(NULL, tableName="batting", centers=4, id="id", include=c('lgid','playerid'),
-                             tableInfo=batting_info, version="5.20", test=TRUE),
+                             tableInfo=batting_info, test=TRUE),
                "Kmeans operates on one or more numeric variables.")
   
   expect_error(computeKmeans(NULL, tableName="batting", centers=4, id="id", idAlias="g",
-                             tableInfo=batting_info, version="5.20", test=TRUE),
+                             tableInfo=batting_info, test=TRUE),
                "Id alias 'g' can't be one of variable names")
   
   expect_error(computeKmeans(NULL, tableName="batting", centers=4, id="id", include=c('g','h','r'),
-                             idAlias="g", tableInfo=batting_info, version="5.20", test=TRUE), 
+                             idAlias="g", tableInfo=batting_info, test=TRUE), 
                "Id alias 'g' can't be one of variable names")
   
   expect_error(computeKmeans(NULL, tableName="batting", centers=matrix(c(10,20,30,40,50,60,70,80), nrow=2, byrow=TRUE),
-                             id="id", include=c('g','h','r'), tableInfo=batting_info, version="5.20", test=TRUE),
+                             id="id", include=c('g','h','r'), tableInfo=batting_info, test=TRUE),
                "Kmeans received incompatible parameters: dimension of initial cluster centers doesn't match variables: 'g', 'h', 'r'")
   
   expect_error(computeKmeans(NULL, tableName="batting", centers=4, id="id", include=c('g','h','r'),
-                             aggregates=c("AVG(a) a", "a"), tableInfo=batting_info, version="5.20", test=TRUE),
+                             aggregates=c("AVG(a) a", "a"), tableInfo=batting_info, test=TRUE),
                "Check aggregates: at least one missing alias found.")
   
 })
@@ -543,131 +544,7 @@ test_that("computeKmeans SQL is correct", {
                           );",
                           "kmeans for 1 cluster with no aggregates with WHERE clause")
   
-  expect_equal_normalized(computeKmeans(NULL, "batting", centers=1, tableInfo=batting_info, 
-                                        include=c('g','ab','r','h'),
-                                        id="playerid || '-' || stint || '-' || teamid || '-' || yearid", idAlias="id",
-                                        persist = TRUE,
-                                        scaledTableName='kmeans_test_scaled', 
-                                        centroidTableName='kmeans_test_centroids', 
-                                        clusteredTableName = 'kmeans_test_clustered',
-                                        tempTableName = 'kmeans_test_temp',
-                                        where="yearid > 2000", test=TRUE, version="5.20"),
-                         "-- Data Prep: scale
-                          DROP TABLE IF EXISTS kmeans_test_scaled;
-                          CREATE FACT TABLE kmeans_test_scaled DISTRIBUTE BY HASH(id) AS 
-                          SELECT * FROM Scale(
-                            ON (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, ab, g, h, r FROM batting WHERE yearid > 2000  ) AS input PARTITION BY ANY
-                            ON (SELECT * FROM ScaleMap (
-                              ON (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, ab, g, h, r FROM batting WHERE yearid > 2000  )
-                              InputColumns ('ab', 'g', 'h', 'r')
-                              -- MissValue ('OMIT')
-                            )) AS STATISTIC DIMENSION
-                            Method ('STD')
-                            Accumulate('id')
-                            GlobalScale ('false')
-                            InputColumns ('ab', 'g', 'h', 'r')
-                          );
-                          --;
-                          -- Run k-means;
-                          DROP TABLE IF EXISTS kmeans_test_centroids;
-                          DROP TABLE IF EXISTS kmeans_test_temp;
-                          SELECT * FROM kmeans(
-                            ON (SELECT 1)
-                            PARTITION BY 1
-                            INPUTTABLE('kmeans_test_scaled')
-                            OUTPUTTABLE('kmeans_test_centroids')
-                            NUMBERK('1')
-                            THRESHOLD('0.0395')
-                            MAXITERNUM('10')
-                          );
-                          --;
-                          -- Cluster and persist data;
-                          DROP TABLE IF EXISTS kmeans_test_clustered;
-                          CREATE FACT TABLE kmeans_test_clustered 
-                          DISTRIBUTE BY HASH(id) 
-                          AS 
-                          SELECT * FROM KMeansPlot(
-                            ON kmeans_test_scaled PARTITION BY ANY
-                            ON kmeans_test_centroids DIMENSION
-                            CentroidsTable('kmeans_test_centroids')
-                            PrintDistance('true')
-                          );
-                          --;
-                          -- Run cluster assignment, cluster stats, and within-cluster sum of squares;
-                          SELECT c1.*, c2.withinss  
-                            FROM (SELECT clusterid, means, COUNT(*) cnt          
-                                    FROM (SELECT c.clusterid, c.means means, d.* 
-                                      FROM kmeans_test_centroids c JOIN 
-                                           kmeans_test_clustered kmp ON (c.clusterid = kmp.clusterid) JOIN 
-                                           (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, * 
-                                              FROM batting WHERE yearid > 2000 ) d on (kmp.id = d.id)
-                                          ) clustered_data
-                                    GROUP BY clusterid, means
-                                  ) c1 JOIN ( 
-                                  SELECT 0 clusterid, SUM(distance::double ^ 2) withinss 
-                                    FROM VectorDistance(
-                                      ON ( SELECT clusterid, id, variable, coalesce(value_double, value_long, value_str::double) value
-                                             FROM unpivot(
-                                               ON (SELECT d.* 
-                                                     FROM kmeans_test_clustered d 
-                                            WHERE clusterid = 0
-                                               )
-                                               COLSTOUNPIVOT('ab', 'g', 'h', 'r')
-                                               COLSTOACCUMULATE('id','clusterid')
-                                               ATTRIBUTECOLUMNNAME('variable')
-                                               VALUECOLUMNNAME('value')
-                                               KEEPINPUTCOLUMNTYPES('true')
-                                            )
-                                      ) AS target PARTITION BY id
-                                      ON (
-                                          SELECT *, regexp_split_to_table(means, ' ')::numeric value, regexp_split_to_table('ab, g, h, r', ', ') variable 
-                                            FROM kmeans_test_centroids
-                                           WHERE clusterid = 0
-                                      ) AS ref DIMENSION
-                                      TARGETIDCOLUMNS('id')
-                                      TARGETFEATURECOLUMN('variable')
-                                      TARGETVALUECOLUMN('value')
-                                      REFIDCOLUMNS('clusterid')
-                                      REFFEATURECOLUMN('variable')
-                                      REFVALUECOLUMN('value')
-                                      MEASURE('Euclidean')
-                                )
-                              ) c2 ON (c1.clusterid = c2.clusterid)
-                              ORDER BY clusterid;
-                          --;
-                          -- Compute Total Sum of Squares;
-                          SELECT SUM(distance::double ^ 2) totss FROM VectorDistance(
-                            ON (SELECT id, variable, coalesce(value_double, value_long, value_str::double) value
-                                  FROM unpivot(
-                                    ON kmeans_test_scaled
-                                    COLSTOUNPIVOT('ab', 'g', 'h', 'r')
-                                    COLSTOACCUMULATE('id')
-                                    ATTRIBUTECOLUMNNAME('variable')
-                                    VALUECOLUMNNAME('value')
-                                    KEEPINPUTCOLUMNTYPES('true')
-                                  ) 
-                            ) AS target PARTITION BY id
-                            ON (SELECT id, variable, value_double
-                                  FROM unpivot(
-                                    ON (SELECT 1 id, 0.0::double ab, 0.0::double g, 0.0::double h, 0.0::double r)
-                                    COLSTOUNPIVOT('ab', 'g', 'h', 'r')
-                                    COLSTOACCUMULATE('id')
-                                    ATTRIBUTECOLUMNNAME('variable')
-                                    VALUECOLUMNNAME('value')
-                                    KEEPINPUTCOLUMNTYPES('true')
-                                )
-                            ) AS ref DIMENSION
-                            TARGETIDCOLUMNS('id')
-                            TARGETFEATURECOLUMN('variable')
-                            TARGETVALUECOLUMN('value')
-                            REFIDCOLUMNS('id')
-                            REFFEATURECOLUMN('variable')
-                            REFVALUECOLUMN('value_double')
-                            MEASURE('Euclidean')
-                          );",
-                          "kmeans for 1 cluster with no aggregates with WHERE clause")
-  
-  
+
   expect_equal_normalized(computeKmeans(NULL, "batting", centers=1, tableInfo=batting_info, 
                                         include=c('g','ab','r','h'),
                                         id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
@@ -1144,11 +1021,11 @@ test_that("computeKmeans SQL is correct", {
                           "kmeans for 1 cluster with aggregates without COUNT with default id and WHERE clause")
   
   expect_equal_normalized(computeKmeans(NULL, "batting", centers=1, tableInfo=batting_info, 
-                                        include=c('g','ab','r','h'), scale = FALSE,
+                                        include=c('g','ab','r','h'), scale=FALSE,
                                         id="playerid || '-' || stint || '-' || teamid || '-' || yearid", idAlias="id",
                                         scaledTableName='kmeans_test_scaled', centroidTableName='kmeans_test_centroids', 
                                         where="yearid > 2000", test=TRUE, version="5.20"),
-                         "-- Data Prep: scale
+                         "-- Data Prep: omit nulls
 DROP TABLE IF EXISTS kmeans_test_scaled;
 CREATE FACT TABLE kmeans_test_scaled DISTRIBUTE BY HASH(id) AS 
        SELECT * FROM (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid id, ab, g, h, r FROM batting WHERE yearid > 2000  ) d

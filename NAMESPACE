@@ -2,6 +2,7 @@
 
 export(computeAggregates)
 export(computeBarchart)
+export(computeCanopy)
 export(computeClusterSample)
 export(computeCorrelations)
 export(computeEgoGraph)

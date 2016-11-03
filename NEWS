@@ -24,6 +24,9 @@ MINOR FEATURES
   
 * computeClusterSample now includes id by default (#60).
 
+* createClusterPairsPlot added argument include and except to selectively
+  control features to plot (#63).
+
 BUG FIXES
 
 * Updated createClusterPairsPlot to work with the latest version of

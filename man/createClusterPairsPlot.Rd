@@ -4,13 +4,18 @@
 \alias{createClusterPairsPlot}
 \title{Create cluster variable plot.}
 \usage{
-createClusterPairsPlot(km, baseSize = 12, baseFamily = "serif",
-  title = "Cluster Variable Pairs", ticks = FALSE,
+createClusterPairsPlot(km, include = NULL, except = NULL, baseSize = 12,
+  baseFamily = "serif", title = "Cluster Variable Pairs", ticks = FALSE,
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
   ticks = ticks), themeExtra = theme(), ...)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
+
+\item{include}{a vector of column names to include. Plot never contains variables other than in the list.
+Plot would never include \code{idAlias} even if it is included explicitly.}
+
+\item{except}{a vector of column names to exclude. Plot never contains variables from the list.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 

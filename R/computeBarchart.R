@@ -9,6 +9,10 @@
 #' (see creating visualizations with \code{\link{createHistogram}} and
 #' \code{\link{createHeatmap}}).
 #' 
+#' No columns returned as character and not excluded by \code{as.is} are 
+#' converted to factors by default, i.e. \code{stringsAsFactors = FALSE} when calling
+#' \code{sqlQuery} if not specified when calling this function.
+#' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param tableName table name
 #' @param category column name or expression associated with categories. Name may be 
@@ -26,8 +30,8 @@
 #'   it works as computing first \code{top} results in certain order.
 #' @param withMelt logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform result data frame
 #'  aggregate values into a molten data frame
-#' @param stringsAsFactors logical: should columns returned as character and not excluded by \code{as.is}
-#'   and not converted to anything else be converted to factors?
+#' @param ... additional arguments to be passed to \code{\link{sqlQuery}} for more control over
+#'   performance and data type conversion. By default, \code{stringsAsFactors} is set to \code{FALSE}.
 #' @param test logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 #'   functions like \link{sqlQuery} and \link{sqlSave}).
 #' @return Data frame to use for bar chart plots with \code{\link{createHistogram}}.
@@ -58,8 +62,7 @@
 computeBarchart <- function(channel, tableName, category,
                             aggregates = "COUNT(*) cnt", 
                             where = NULL, orderBy = NULL, top = NULL, by = NULL, 
-                            withMelt = FALSE,
-                            stringsAsFactors = FALSE, test = FALSE) {
+                            withMelt = FALSE, ..., test = FALSE) {
   
   if (missing(tableName)) {
     stop("Must have table name.")
@@ -74,6 +77,10 @@ computeBarchart <- function(channel, tableName, category,
   }
   
   isValidConnection(channel, test)
+  
+  dots = list(...)
+  if (is.null(dots[["stringsAsFactors"]]))
+    dots$stringsAsFactors = FALSE
   
   where_clause = makeWhereClause(where)
   
@@ -104,7 +111,7 @@ computeBarchart <- function(channel, tableName, category,
   if (test) {
     return(sql)
   }else {
-    df = toaSqlQuery(channel, sql, stringsAsFactors=stringsAsFactors)
+    df = do.call(toaSqlQuery, c(list(channel=channel, sql=sql), dots))
     
     if (withMelt) {
       df = melt(df, id.vars=c(category, by))

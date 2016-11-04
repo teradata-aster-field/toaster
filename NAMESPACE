@@ -2,6 +2,7 @@
 
 export(computeAggregates)
 export(computeBarchart)
+export(computeCanopy)
 export(computeClusterSample)
 export(computeCorrelations)
 export(computeEgoGraph)
@@ -76,3 +77,4 @@ importFrom(network,network)
 importFrom(network,network.initialize)
 importFrom(network,set.vertex.attribute)
 importFrom(scales,muted)
+importFrom(utils,compareVersion)

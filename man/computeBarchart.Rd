@@ -6,7 +6,7 @@
 \usage{
 computeBarchart(channel, tableName, category, aggregates = "COUNT(*) cnt",
   where = NULL, orderBy = NULL, top = NULL, by = NULL,
-  withMelt = FALSE, stringsAsFactors = FALSE, test = FALSE)
+  withMelt = FALSE, ..., test = FALSE)
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}}
@@ -35,8 +35,8 @@ will be part of \code{GROUP BY ...})}
 \item{withMelt}{logical if TRUE then uses \pkg{reshape2} \code{\link{melt}} to transform result data frame
 aggregate values into a molten data frame}
 
-\item{stringsAsFactors}{logical: should columns returned as character and not excluded by \code{as.is}
-and not converted to anything else be converted to factors?}
+\item{...}{additional arguments to be passed to \code{\link{sqlQuery}} for more control over
+performance and data type conversion. By default, \code{stringsAsFactors} is set to \code{FALSE}.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \link{RODBC} 
 functions like \link{sqlQuery} and \link{sqlSave}).}
@@ -53,6 +53,11 @@ column using SQL \code{COUNT(*) ... GROUP BY} - hence the name of the
 function. Result is a data frame to visualize as bar charts or heatmaps
 (see creating visualizations with \code{\link{createHistogram}} and
 \code{\link{createHeatmap}}).
+}
+\details{
+No columns returned as character and not excluded by \code{as.is} are 
+converted to factors by default, i.e. \code{stringsAsFactors = FALSE} when calling
+\code{sqlQuery} if not specified when calling this function.
 }
 \examples{
 if(interactive()){

@@ -6,19 +6,24 @@
 \usage{
 computeKmeans(channel, tableName, centers, threshold = 0.0395, iterMax = 10,
   tableInfo, id, include = NULL, except = NULL,
-  aggregates = "COUNT(*) cnt", scale = TRUE,
+  aggregates = "COUNT(*) cnt", scale = TRUE, persist = FALSE,
   idAlias = gsub("[^0-9a-zA-Z]+", "_", id), where = NULL,
-  scaledTableName = NULL, centroidTableName = NULL, schema = NULL,
-  test = FALSE)
+  scaledTableName = NULL, centroidTableName = NULL,
+  clusteredTableName = NULL, tempTableName = NULL, schema = NULL,
+  test = FALSE, version = "6.21")
 }
 \arguments{
 \item{channel}{connection object as returned by \code{\link{odbcConnect}}.}
 
-\item{tableName}{Aster table name.}
+\item{tableName}{Aster table name. This argument is ignored if \code{centers} is a canopy object.}
 
-\item{centers}{either the number of clusters, say \code{k}, or a matrix of initial (distinct) cluster centres. 
-If a number, a random set of (distinct) rows in x is chosen as the initial centres. If a matrix then number 
-of rows determines the number of clusters as each row determines initial center.}
+\item{centers}{either the number of clusters, say \code{k}, a matrix of initial (distinct) cluster centres, 
+or an object of class \code{"toacanopy"} obtained with \code{computeCanopy}. 
+If a number, a random set of (distinct) rows in x is chosen as the initial centers. 
+If a matrix then number of rows determines the number of clusters as each row determines initial center.
+if a canopy object then number of centers it contains determines the number of clusters, plust it provides
+(and overrides) the following arguments: \code{tableName}, \code{id}, \code{idAlias}, \code{include},
+\code{except}, \code{scale}, \code{where}, \code{scaledTableName}, \code{schema}}
 
 \item{threshold}{the convergence threshold. When the centroids move by less than this amount, 
 the algorithm has converged.}
@@ -28,33 +33,54 @@ threshold has not been met.}
 
 \item{tableInfo}{pre-built summary of data to use (require when \code{test=TRUE}). See \code{\link{getTableSummary}}.}
 
-\item{id}{column name or SQL expression containing unique table key.}
+\item{id}{column name or SQL expression containing unique table key. This argument is ignored if \code{centers} 
+is a canopy object.}
 
-\item{include}{a vector of column names with variables (must be numeric). Model never contains variables other than in the list.}
+\item{include}{a vector of column names with variables (must be numeric). Model never contains variables other than in the list.
+This argument is ignored if \code{centers} is a canopy object.}
 
-\item{except}{a vector of column names to exclude from variables. Model never contains variables from the list.}
+\item{except}{a vector of column names to exclude from variables. Model never contains variables from the list.
+This argument is ignored if \code{centers} is a canopy object.}
 
 \item{aggregates}{vector with SQL aggregates that define arbitrary aggreate metrics to be computed on each cluster 
 after running k-means. Aggregates may have optional aliases like in \code{"AVG(era) avg_era"}. 
 Subsequently, used in \code{\link{createClusterPlot}} as cluster properties.}
 
 \item{scale}{logical if TRUE then scale each variable in-database before clustering. Scaling performed results in 0 mean and unit
-standard deviation for each of input variables.}
+standard deviation for each of input variables. when \code{FALSE} then function only removes incomplete
+data before clustering (conaining \code{NULL}s). This argument is ignored if \code{centers} is a canopy object.}
 
-\item{idAlias}{SQL alias for table id. This is required when SQL expression is given for \code{id}.}
+\item{persist}{logical if TRUE then function saves clustered data in the table \code{clusteredTableName} 
+(when defined) with cluster id assigned. Aster Analytics Foundation 6.20 or earlier 
+can't support this option and so must use \code{persisit=TRUE}.}
+
+\item{idAlias}{SQL alias for table id. This is required when SQL expression is given for \code{id}. 
+This argument is ignored if \code{centers} is a canopy object.}
 
 \item{where}{specifies criteria to satisfy by the table rows before applying
 computation. The creteria are expressed in the form of SQL predicates (inside
-\code{WHERE} clause).}
+\code{WHERE} clause). This argument is ignored if \code{centers} is a canopy object.}
 
-\item{scaledTableName}{name of Aster table with results of scaling}
+\item{scaledTableName}{the name of the Aster table with results of scaling. This argument is ignored if \code{centers} is a canopy object.}
 
-\item{centroidTableName}{name of Aster table with centroids found by kmeans}
+\item{centroidTableName}{the name of the Aster table with centroids found by kmeans.}
 
-\item{schema}{name of Aster schema tables \code{scaledTableName} and \code{centroidTableName} belong.}
+\item{clusteredTableName}{the name of the Aster table in which to store the clustered output. If omitted 
+and argument \code{persist = TRUE} the random table name is generated (always saved in the 
+resulting \code{toakmeans} object). If \code{persist = FALSE} then the name is ignored and
+function does not generate a table of clustered output.}
+
+\item{tempTableName}{name of the temporary Aster table to use to store intermediate results. This table
+always gets dropped when function executes successfully.}
+
+\item{schema}{name of Aster schema that tables \code{scaledTableName}, \code{centroidTableName}, and
+\code{clusteredTableName} belong to. Make sure that when this argument is supplied no table name defined
+contain schema in its name.}
 
 \item{test}{logical: if TRUE show what would be done, only (similar to parameter \code{test} in \pkg{RODBC} 
 functions: \link{sqlQuery} and \link{sqlSave}).}
+
+\item{version}{version of Aster Analytics Foundation functions applicable when \code{test=TRUE}, ignored otherwise.}
 }
 \value{
 \code{computeKmeans} returns an object of class \code{"toakmeans"} (compatible with class \code{"kmeans"}).
@@ -72,11 +98,13 @@ It is a list with at least the following components:
   \item{\code{iter}}{The number of (outer) iterations.}
   \item{\code{ifault}}{integer: indicator of a possible algorithm problem (always 0).}
   \item{\code{scale}}{logical: indicates if variable scaling was performed before clustering.}
+  \item{\code{persist}}{logical: indicates if clustered data was saved in the table.}
   \item{\code{aggregates}}{Vectors (dataframe) of aggregates computed on each cluster.}
   \item{\code{tableName}}{Aster table name containing data for clustering.}
   \item{\code{columns}}{Vector of column names with variables used for clustering.}
-  \item{\code{scaledTableName}}{Aster table name containing scaled data for clustering.}
-  \item{\code{centroidTableName}}{Aster table name containing cluster centroids.}
+  \item{\code{scaledTableName}}{Aster table containing scaled data for clustering.}
+  \item{\code{centroidTableName}}{Aster table containing cluster centroids.}
+  \item{\code{clusteredTableName}}{Aster table containing clustered output.}
   \item{\code{id}}{Column name or SQL expression containing unique table key.}
   \item{\code{idAlias}}{SQL alias for table id.}
   \item{\code{whereClause}}{SQL \code{WHERE} clause expression used (if any).}
@@ -89,8 +117,8 @@ K-means clustering algorithm runs in-database, returns object compatible with \c
 includes arbitrary aggregate metrics computed on resulting clusters.
 }
 \details{
-The function fist scales not-null data (if \code{scale=TRUE}) or just eliminate nulls without scaling. After 
-that the data given (table \code{tableName} with option of filering with \code{where}) are clustered by the 
+The function fist scales not-null data (if \code{scale=TRUE}) or just removes data with \code{NULL}s without scaling. 
+After that the data given (table \code{tableName} with option of filering with \code{where}) are clustered by the 
 k-means in Aster. Next, all standard metrics of k-means clusters plus additional aggregates provided with
 \code{aggregates} are calculated again in-database.
 }
@@ -109,9 +137,33 @@ km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
 km
 createCentroidPlot(km)
 createClusterPlot(km)
+
+# persist clustered data
+kmc = computeKmeans(conn, "batting", centers=5, iterMax = 250,
+                   aggregates = c("COUNT(*) cnt", "AVG(g) avg_g", "AVG(r) avg_r", "AVG(h) avg_h"),
+                   id="playerid || '-' || stint || '-' || teamid || '-' || yearid", 
+                   include=c('g','r','h'), 
+                   persist = TRUE, 
+                   scaledTableName='kmeans_test_scaled', 
+                   centroidTableName='kmeans_test_centroids', 
+                   clusteredTableName = 'kmeans_test_clustered',
+                   tempTableName = 'kmeans_test_temp',
+                   where="yearid > 2000")
+createCentroidPlot(kmc)
+createCentroidPlot(kmc, format="bar_dodge")
+createCentroidPlot(kmc, format="heatmap", coordFlip=TRUE)
+
+createClusterPlot(kmc)
+
+kmc = computeClusterSample(conn, kmc, 0.01)
+createClusterPairsPlot(kmc, title="Batters Clustered by G, H, R", ticks=FALSE)
+
+kmc = computeSilhouette(conn, kmc)
+createSilhouetteProfile(kmc, title="Cluster Silhouette Histograms (Profiles)")
+
 }
 }
 \seealso{
-\code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}
+\code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}, \code{\link{computeCanopy}}
 }
 

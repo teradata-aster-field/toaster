@@ -1,4 +1,40 @@
 
+toaster 0.5.4
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* Both explicit and implicit support for kmeans functions in AAF 6.21. 
+  Package will recognize versions based on the function's output or 
+  using new argument version. since new output now includes more
+  kmeans statistics computeKmeans will run faster with newer
+  version of AAF (#56).
+
+* Kmeans clustering can now persist clustered data for both optimized
+  performance and convinience using new argument persist=TRUE (#56).
+  
+* Kmeans clustering now supports initial centers obtained with canopy
+  clustering. Use new functinality computeCanopy to quickly seed
+  initial centroids and run kmeans with canopy object (#61).
+
+MINOR FEATURES
+
+* Compute functions computeAggregates, computeBarchart, computeSample
+  now allow passing any parameter to sqlQuery via ... syntax to better 
+  control performance and data type conversion (#60).
+  
+* computeClusterSample now includes id by default (#60).
+
+* createClusterPairsPlot added argument include and except to selectively
+  control features to plot (#63).
+
+BUG FIXES
+
+* createBoxplot with coordFlip=TRUE now labels axises correctly (#58).
+
+* Updated createClusterPairsPlot to work with the latest version of
+  GGally (#62).
+
 toaster 0.5.2
 ----------------------------------------------------------------
 

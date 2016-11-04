@@ -445,7 +445,7 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
     ) +
     defaultTheme +
     labs(title=makeTitle(title, subtitle), x=xlab, y=ylab) +
-    buildThemeFromParameters(legendPosition, title, xlab, ylab, baseFamily, baseSize) +
+    buildThemeFromParameters(legendPosition, title, xlab, ylab, baseFamily, baseSize, coordFlip) +
     themeExtra 
   
   # apply facets
@@ -459,7 +459,8 @@ createBoxplot <- function(data, x = NULL, fill = x, value = 'value', useIQR = FA
   
 }
 
-buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFamily, baseSize) {
+buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, 
+                                     baseFamily, baseSize, coordFlip) {
   
   if (is.null(title))
     plotTitle = element_blank()
@@ -475,6 +476,12 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab, baseFami
     axisTitleY = element_blank()
   else
     axisTitleY = element_text(size = baseSize * 0.8, vjust = NULL)
+  
+  if (coordFlip) {
+    temp = axisTitleY
+    axisTitleY = axisTitleX
+    axisTitleX = temp
+  }
   
   them = theme(legend.position = legendPosition,
                plot.title = plotTitle,

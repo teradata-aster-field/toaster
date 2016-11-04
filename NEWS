@@ -30,6 +30,8 @@ MINOR FEATURES
 
 BUG FIXES
 
+* createBoxplot with coordFlip=TRUE now labels axises correctly (#58).
+
 * Updated createClusterPairsPlot to work with the latest version of
   GGally (#62).
 

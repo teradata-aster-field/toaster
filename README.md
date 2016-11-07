@@ -1,7 +1,7 @@
 # toaster
 
 [![Travis-CI Build Status](https://travis-ci.org/teradata-aster-field/toaster.svg?branch=master)](https://travis-ci.org/teradata-aster-field/toaster)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/toaster)](http://CRAN.R-project.org/package=toaster)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/toaster)](https://CRAN.R-project.org/package=toaster)
 [![Downloads_all_badge](http://cranlogs.r-pkg.org/badges/grand-total/toaster?color=orange)](http://www.r-pkg.org/pkg/toaster)
 [![Downloads_week_badge](http://cranlogs.r-pkg.org/badges/last-week/tcR?color=orange)](http://www.r-pkg.org/pkg/toaster)
 [![License](http://img.shields.io/:license-gpl2-blue.svg)](http://www.gnu.org/licenses/gpl-2.0.html)

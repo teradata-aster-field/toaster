@@ -12,10 +12,13 @@ computeClusterSample(channel, km, sampleFraction, sampleSize, scaled = FALSE,
 
 \item{km}{an object of class \code{"toakmeans"} obtained with \code{computeKmeans}.}
 
-\item{sampleFraction}{one or more sample fractions to use in the sampling of data. (multipe 
-sampling fractions are not yet supported.)}
+\item{sampleFraction}{vector with one or more sample fractions to use in the sampling of data.
+Multiple fractions define sampling for each cluster in kmeans \code{km} object where
+vector length must be equal to the number of clusters.}
 
-\item{sampleSize}{total sample size (applies only when \code{sampleFraction} is missing).}
+\item{sampleSize}{vector with sample size (applies only when \code{sampleFraction} is missing).
+Multiple sizes define sampling for each cluster in kmeans \code{km} object where
+vector length must be equal to the number of clusters.}
 
 \item{scaled}{logical: indicates if original (default) or scaled data returned.}
 
@@ -46,6 +49,9 @@ km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
 km = computeClusterSample(conn, km, 0.01)
 km
 createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
+
+# per cluster sample fractions
+km = computeClusterSample(conn, km, c(0.01, 0.02, 0.03, 0.02, 0.01))
 }
 }
 \seealso{

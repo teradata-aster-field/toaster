@@ -1,4 +1,13 @@
 
+toaster 0.6.0
+----------------------------------------------------------------
+
+NEW FEATURES
+
+MINOR FEATURES
+
+* Support for per-cluster sampling with computeClusterSample (#64).
+
 toaster 0.5.4
 ----------------------------------------------------------------
 

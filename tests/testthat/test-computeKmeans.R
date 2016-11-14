@@ -62,8 +62,49 @@ test_that("computeClusterSample throws errors", {
   expect_error(computeClusterSample(NULL, data.frame(1:5), test=TRUE),
                "Kmeans object must be specified.")
   
-  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0)), class = c("toakmeans", "kmeans")), test=TRUE),
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0)), class = c("toakmeans", "kmeans")), 
+                                    test=TRUE),
                "Sample fraction or sample size must be specified.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleFraction = 10.0, test=TRUE),
+               "All sample fractions must be between 0 and 1 inclusively.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleFraction = c(0.0, -0.1), test=TRUE),
+               "All sample fractions must be between 0 and 1 inclusively.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleFraction = c(0.0, 0.1, 1.0001), test=TRUE),
+               "All sample fractions must be between 0 and 1 inclusively.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleFraction = c(0.0, 0.1, 1.0), test=TRUE),
+               "Fraction vector length must be either 1 or equal to the number of clusters.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleFraction = c(0.0, 0.1, 1.0, 0.5, 0.5, 0.6), test=TRUE),
+               "Fraction vector length must be either 1 or equal to the number of clusters.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleSize = c(1,2,-100), test=TRUE),
+               "All sample sizes must be equal to or greater than 0.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleSize = c(0, 0, 1.0), test=TRUE),
+               "Size vector length must be either 1 or equal to the number of clusters.")
+  
+  expect_error(computeClusterSample(NULL, structure(list(cluster=integer(0), centers=matrix(1:10, nrow = 5)), 
+                                                    class = c("toakmeans", "kmeans")), 
+                                    sampleSize = c(0, 0, 1.0, 2, 5, 8), test=TRUE),
+               "Size vector length must be either 1 or equal to the number of clusters.")
 })
 
 
@@ -1416,6 +1457,29 @@ test_that("computeClusterSample SQL is correct", {
        )",
                           info="Sampling fraction unscaled data without row id.")
   
+  expect_equal_normalized(computeClusterSample(NULL, kmeans_obj, c(0.01,0.02,0.03,0.04,0.05), includeId=FALSE, test=TRUE), 
+                          "SELECT * FROM antiselect(
+         ON 
+           (SELECT * FROM sample(
+             ON (SELECT  clusterid, d.* 
+                   FROM kmeansplot(
+                     ON kmeans_test_scaled PARTITION BY ANY
+                     ON kmeans_test_centroids DIMENSION
+                     centroidsTable('kmeans_test_centroids')
+                   ) kmp JOIN (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid playerid_stint_teamid_yearid, 
+                                      g, h, r 
+                                 FROM batting WHERE yearid > 2010  ) d ON (kmp.playerid_stint_teamid_yearid = d.playerid_stint_teamid_yearid)
+                  WHERE clusterid != -1
+             )
+             CONDITIONONCOLUMN('clusterid')
+             CONDITIONON('0','1','2','3','4')
+             SAMPLEFRACTION('0.01','0.02','0.03','0.04','0.05')
+       )
+           )
+         EXCLUDE('playerid_stint_teamid_yearid')
+       )",
+                          info="Sampling fraction vector unscaled data without row id.")
+  
   expect_equal_normalized(computeClusterSample(NULL, kmeans_obj_clustered, 0.01, includeId=FALSE, test=TRUE), 
                           "SELECT * FROM antiselect(
          ON 
@@ -1635,6 +1699,25 @@ test_that("computeClusterSample SQL is correct", {
          ApproximateSampleSize('1000')
       )",
           info="Sampling clustered size unscaled data with id.")
+  
+  expect_equal_normalized(computeClusterSample(NULL, kmeans_obj_clustered, sampleSize = c(1000,100,10,100,1000), test=TRUE),
+          "WITH stratum_counts AS (
+         SELECT clusterid stratum, count(*) stratum_count 
+           FROM kmeans_test_clustered 
+          WHERE clusterid != -1
+         GROUP BY 1
+       )
+       SELECT * FROM sample (
+         ON (SELECT  clusterid, d.* 
+                   FROM kmeans_test_clustered kmp JOIN (SELECT playerid || '-' || stint || '-' || teamid || '-' || yearid playerid_stint_teamid_yearid, g, h, r FROM batting WHERE yearid > 2010  ) d ON (kmp.playerid_stint_teamid_yearid = d.playerid_stint_teamid_yearid)
+                  WHERE clusterid != -1
+            ) AS data PARTITION BY ANY
+         ON stratum_counts AS summary DIMENSION
+         CONDITIONONCOLUMN('clusterid')
+         CONDITIONON('0','1','2','3','4')
+         ApproximateSampleSize('1000','100','10','100','1000')
+      )",
+          info="Sampling clustered size vector unscaled data with id.")
   
   expect_equal_normalized(computeClusterSample(NULL, kmeans_obj, sampleSize=1000, includeId=FALSE, scaled=TRUE, test=TRUE),
           "SELECT * FROM antiselect(

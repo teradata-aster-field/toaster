@@ -69,7 +69,7 @@ validateGraph <- function(channel, graph, weight=NULL,
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")

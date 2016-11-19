@@ -9,9 +9,10 @@ isTable(channel, tables, withNames = FALSE, allTables = NULL)
 \arguments{
 \item{channel}{object as returned by \code{\link{odbcConnect}}.}
 
-\item{tables}{vector of table names. Name may contain schema name
-followed by dot and table name. All visible schemas are checked 
-when table specified without a schema.}
+\item{tables}{list of table names. Name may contain schema name
+followed by dot and table name or may be \code{NULL}. All visible schemas 
+are checked when table specified without a schema. \code{NULL} corresponds 
+to not a table.}
 
 \item{withNames}{logical indicates if table components included in the
 results.}

@@ -712,9 +712,10 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 #';
 #' 
 #' @param channel object as returned by \code{\link{odbcConnect}}.
-#' @param tables vector of table names. Name may contain schema name
-#'   followed by dot and table name. All visible schemas are checked 
-#'   when table specified without a schema.
+#' @param tables list of table names. Name may contain schema name
+#'   followed by dot and table name or may be \code{NULL}. All visible schemas 
+#'   are checked when table specified without a schema. \code{NULL} corresponds 
+#'   to not a table.
 #' @param withNames logical indicates if table components included in the
 #'   results.
 #' @param allTables a data frame containing table-like objects accessible from
@@ -739,17 +740,25 @@ getColumnValues <- function(conn, tableName, columnName, where = NULL, mock = FA
 #' }
 isTable <- function(channel, tables, withNames=FALSE, allTables=NULL) {
   
+  if (!inherits(tables, "list"))
+    stop("Argument tables must be a list.")
+  
   if (is.null(tables) || length(tables) < 1) return(logical(0))
   
   # trim leading and trailing spaces
-  tables = gsub("^[[:blank:]]+|[[:blank:]]+$", "", tables)
+  tables = lapply(tables, function(x) {
+    if(is.null(x)) 
+       return(NULL)
+    else
+      return(gsub("^[[:blank:]]+|[[:blank:]]+$", "", x))
+    })
   
   if(is.null(names(tables))) 
      row_names = tables
   else
      row_names = names(tables)
   
-  df = data.frame(candidate = !grepl("[[:blank:]]", tables),
+  df = data.frame(candidate = sapply(tables, function(x) {if(is.null(x)) return(FALSE) else !grepl("[[:blank:]]", x)}),
                   schema = substr(tables, 1, regexpr("\\.[^\\.]*$", tables)-1), 
                   table = substr(tables, regexpr("[^\\.]*$", tables), nchar(tables)), 
                   stringsAsFactors = FALSE)
@@ -760,7 +769,7 @@ isTable <- function(channel, tables, withNames=FALSE, allTables=NULL) {
     allTables = sqlTables(channel)
   }
   
-  result = mapply(FUN = function(name, fullname, candidate, schema, table) {
+  result = mapply(FUN = function(fullname, candidate, schema, table) {
     if (!candidate) return(NA)
     if (nchar(schema)>0) {
       if(nrow(allTables[allTables$TABLE_NAME == table &
@@ -775,7 +784,8 @@ isTable <- function(channel, tables, withNames=FALSE, allTables=NULL) {
       else
         return(FALSE)
     }
-  }, row_names, tables, df$candidate, df$schema, df$table, SIMPLIFY = TRUE)
+  }, tables, df$candidate, df$schema, df$table, SIMPLIFY = TRUE)
+  names(result) = row_names
   
   if(withNames) {
     result = data.frame(isTable=result, schema=df$schema, table=df$table,

@@ -7,9 +7,13 @@ pitching_info2 = duplicateSchema(pitching_info)
 
 test_that("exceptions are properly handled by utility functions", {
   
-  expect_equal(isTable(NULL, NULL), logical(0))
+  expect_error(isTable(NULL, NULL),
+               "Argument tables must be a list.")
   
-  expect_equal(isTable(NULL, character(0)), logical(0))
+  expect_error(isTable(NULL, tables=c(a="a", b="b")),
+               "Argument tables must be a list.")
+  
+  expect_equal(isTable(NULL, list()), logical(0))
   
   expect_null(viewTableSummary())
   
@@ -104,15 +108,19 @@ all_tables = data.frame(TABLE_CAT=c("beehive","beehive","beehive","beehive"),
 
 test_that("isTable is correct", {
   
-  expect_equal(isTable(NULL, c(edges="graph.edges", vertices="graph.vertices"), 
+  expect_equal(isTable(NULL, list(edges=NULL, vertices="graph.vertices"), 
+                       allTables = all_tables),
+               c(edges=NA, vertices=TRUE))
+  
+  expect_equal(isTable(NULL, list(edges="graph.edges", vertices="graph.vertices"), 
                        allTables = all_tables),
                c(edges=TRUE, vertices=TRUE))
   
-  expect_equal(isTable(NULL, c("graph.edges", "graph.vertices", "pitching", "non.existing", "select * from batting"),
+  expect_equal(isTable(NULL, list("graph.edges", "graph.vertices", "pitching", "non.existing", "select * from batting"),
                        allTables = all_tables),
                c(graph.edges=TRUE, graph.vertices=TRUE, pitching=TRUE, non.existing=FALSE, `select * from batting`=NA))
   
-  expect_equal(isTable(NULL, c('1'="pitching", '2'="batting", '3'="SELECT source, target, COUNT(*) FROM data GROUP BY 1,2"),
+  expect_equal(isTable(NULL, list('1'="pitching", '2'="batting", '3'="SELECT source, target, COUNT(*) FROM data GROUP BY 1,2"),
                        allTables = all_tables),
                c('1'=TRUE, '2'=TRUE, '3'=NA))
   

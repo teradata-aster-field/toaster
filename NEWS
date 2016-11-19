@@ -4,6 +4,9 @@ toaster 0.6.0
 
 NEW FEATURES
 
+* Graph can now be defined using edge table, view, or query only.
+  Vertices collection will use query derived from the edges (#35).
+
 MINOR FEATURES
 
 * Support for per-cluster sampling with computeClusterSample (#64).

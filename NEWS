@@ -10,6 +10,7 @@ NEW FEATURES
 MINOR FEATURES
 
 * Support for per-cluster sampling with computeClusterSample (#64).
+* isTable function requires a list of table names instead of a vector (#35).
 
 toaster 0.5.4
 ----------------------------------------------------------------

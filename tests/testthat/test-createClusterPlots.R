@@ -10,6 +10,12 @@ test_that("Cluster plot functions throw errors", {
   expect_error(createCentroidPlot(),
                "Kmeans or canopy object must be specified.")
   
+  expect_error(createCentroidPlot(km=1),
+               "Kmeans or canopy object must be specified.")
+  
+  expect_error(createCentroidPlot(km=structure(list(), class = c("NOTtoakmeans", "NOTkmeans"))),
+               "Kmeans or canopy object must be specified.")
+  
   expect_error(createCentroidPlot(km=structure(list(), class = c("toakmeans", "kmeans"))),
                "Kmeans object is missing cluster centers.")
   

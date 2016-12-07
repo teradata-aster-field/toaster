@@ -5,9 +5,9 @@
 #' Plots available are line plot, bar plot, or heatmap. Parameter \code{format}
 #' specifies which one to create.
 #' 
-#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
-#' @param format type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"}, 
-#'   \code{"bar_facet"} (same as \code{"bar"}) or \code{"heatmap"}.
+#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}} or of class 
+#'   \code{"kmeans"} returned by \code{\link{kmeans}}.
+#' @param format type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"} or \code{"heatmap"}.
 #' @param groupByCluster logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
 #'   has no effect when \code{format="heatmap"}.
 #' @param baseSize \code{\link{theme}} base font size.
@@ -55,7 +55,7 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   # match argument values
   format = match.arg(format, c('line', 'bar', 'heatmap','bar_dodge'))
   
-  if (missing(km) || !is.object(km) || !inherits(km, c("toakmeans","toacanopy"))) {
+  if (missing(km) || !is.object(km) || !inherits(km, c("kmeans","toakmeans","toacanopy"))) {
     stop("Kmeans or canopy object must be specified.")
   }
   

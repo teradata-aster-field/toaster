@@ -11,6 +11,7 @@ MINOR FEATURES
 
 * Support for per-cluster sampling with computeClusterSample (#64).
 * isTable function requires a list of table names instead of a vector (#35).
+* createCentroidPlot now supports standard kmeans objects (#68).
 
 toaster 0.5.4
 ----------------------------------------------------------------

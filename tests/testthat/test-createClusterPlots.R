@@ -1,5 +1,11 @@
 context("create Cluster Plots")
 
+kmobj = structure(list(centers=matrix(c(1,1,1,1,1,
+                                        2,2,2,2,2,
+                                        3,3,3,3,3),nrow=5,
+                                      dimnames = list(c("1","2","3","4","5"),c("f1","f2","f3")))),
+                  class = c("toakmeans", "kmeans"))
+
 test_that("Cluster plot functions throw errors", {
   
   expect_error(createCentroidPlot(km=structure(list(centers=matrix(c(1), nrow=1, byrow = TRUE)),
@@ -10,8 +16,32 @@ test_that("Cluster plot functions throw errors", {
   expect_error(createCentroidPlot(),
                "Kmeans or canopy object must be specified.")
   
+  expect_error(createCentroidPlot(km=1),
+               "Kmeans or canopy object must be specified.")
+  
+  expect_error(createCentroidPlot(km=structure(list(), class = c("NOTtoakmeans", "NOTkmeans"))),
+               "Kmeans or canopy object must be specified.")
+  
   expect_error(createCentroidPlot(km=structure(list(), class = c("toakmeans", "kmeans"))),
                "Kmeans object is missing cluster centers.")
+  
+  expect_error(createCentroidPlot(km=kmobj, clusters = NULL),
+               "All clusters must be defined in kmeans object: .")
+  
+  expect_error(createCentroidPlot(km=kmobj, clusters = c()),
+               "All clusters must be defined in kmeans object: .")
+  
+  expect_error(createCentroidPlot(km=kmobj, clusters = c(1,2,6,12)),
+               "All clusters must be defined in kmeans object: 6,12.")
+  
+  expect_error(createCentroidPlot(km=kmobj, dims = NULL),
+               "All dimensions must be defined in kmeans object: .")
+  
+  expect_error(createCentroidPlot(km=kmobj, dims = c()),
+               "All dimensions must be defined in kmeans object: .")
+  
+  expect_error(createCentroidPlot(km=kmobj, dims = c("f1","f6","f12")),
+               "All dimensions must be defined in kmeans object: f6,f12.")
   
   expect_error(createClusterPlot(),
                "Kmeans object must be specified.")

@@ -9,7 +9,7 @@ test_that("format 'boxplot' works", {
   notNullNumData = pitching_info[pitching_info$not_null_count > 0 & 
                                    pitching_info$COLUMN_NAME %in% getNumericColumns(pitching_info),]
   expect_equal(nrow(p$data[[1]]), length(getNumericColumns(notNullNumData)))
-  expect_equal(setdiff(p$panel$ranges[[1]]$x.labels, getNumericColumns(notNullNumData)),
+  expect_equal(setdiff(p$layout$panel_ranges[[1]]$x.labels, getNumericColumns(notNullNumData)),
                character(0))
 })
 
@@ -18,7 +18,7 @@ test_that("format 'boxplot' with facets works", {
   cols = c('bb','er','era','so','r')
   p = ggplot_build(showData(tableName='pitching', tableInfo=pitching_info, format='boxplot',
                include=cols, facet=TRUE))
-  expect_equal(nrow(p$panel$layout), length(cols))
+  expect_equal(nrow(p$layout$panel_layout), length(cols))
   expect_equal(nrow(p$data[[1]]), length(cols))
   
 })

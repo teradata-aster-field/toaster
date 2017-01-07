@@ -5,11 +5,15 @@
 #' Plots available are line plot, bar plot, or heatmap. Parameter \code{format}
 #' specifies which one to create.
 #' 
-#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
-#' @param format type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"}, 
-#'   \code{"bar_facet"} (same as \code{"bar"}) or \code{"heatmap"}.
+#' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}} or of class 
+#'   \code{"kmeans"} returned by \code{\link{kmeans}}.
+#' @param format type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"} or \code{"heatmap"}.
 #' @param groupByCluster logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
 #'   has no effect when \code{format="heatmap"}.
+#' @param clusters optional vector with clusters to include. If vector has named values then names are used for 
+#'   cluster labels. By default, all clusters are included.
+#' @param dims optional vector with dimensions to include. Vector may be contain either dimension indices or names.
+#'   By default, all dimensions are included.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -40,13 +44,17 @@
 #'                    centroidTableName='kmeans_test_centroids',
 #'                    where="yearid > 2000")
 #' createCentroidPlot(km)
-#' createCentroidPlot(km, format="bar_dodge")
+#' # As clusters fluctuate from run to run cluster names may be inconsistent
+#' createCentroidPlot(km, format="bar_dodge", 
+#'                    clusters=c(Stars=3, Reserve=4), dims=c('g','h'))
 #' createCentroidPlot(km, format="heatmap", coordFlip=TRUE)
 #' }
 createCentroidPlot <- function(km, format='line', groupByCluster=TRUE, 
+                               clusters=rownames(km$centers), dims=colnames(km$centers), 
                                baseSize = 12, baseFamily = "serif",
                                title = paste("Cluster Centroids", format, "Plot"), 
-                               xlab, ylab = ifelse(format=="heatmap", "cluster", ifelse(km$scale, "scaled value", "value")), 
+                               xlab, ylab = ifelse(format=="heatmap", "cluster", 
+                                                   ifelse(!is.null(km$scale) && km$scale, "scaled value", "value")), 
                                legendPosition = ifelse(format=="bar", "none", "right"),
                                coordFlip = FALSE, ticks = FALSE,
                                defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=ticks),
@@ -55,27 +63,54 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   # match argument values
   format = match.arg(format, c('line', 'bar', 'heatmap','bar_dodge'))
   
-  if (missing(km) || !is.object(km) || !inherits(km, c("toakmeans","toacanopy"))) {
+  if (missing(km) || !is.object(km) || !inherits(km, c("kmeans","toakmeans","toacanopy"))) {
     stop("Kmeans or canopy object must be specified.")
   }
   
   if(is.null(km$centers))
     stop("Kmeans object is missing cluster centers.")
   
+  if (is.null(clusters) || 
+      length(clusters) == 0 ||
+      !all(clusters %in% rownames(km$centers)))
+    stop(paste0("All clusters must be defined in kmeans object: ", 
+                paste(clusters[!clusters %in% rownames(km$centers)], collapse = ","),"."))
+  
+  if (is.null(dims) ||
+      length(dims) == 0 ||
+      !all(dims %in% colnames(km$centers)))
+    stop(paste0("All dimensions must be defined in kmeans object: ",
+                paste(dims[!dims %in% colnames(km$centers)], collapse = ","),"."))
+  
   clusterid = "clusterid"
   
-  centroids = data.frame(km$centers, stringsAsFactors = TRUE)
-  centroids[, clusterid] = factor(rownames(km$centers))
+  km_centers = km$centers[clusters,dims]
+  if(!is.null(names(clusters)))
+    cluster_labels = names(clusters)
+  else
+    cluster_labels = rownames(km_centers)
+  
+  
+  centroids = data.frame(km_centers, stringsAsFactors = TRUE)
+  centroids[, clusterid] = factor(rownames(km_centers), labels = cluster_labels)
   data = melt(centroids,id.vars=clusterid)
   
   if(groupByCluster) {
     x = "variable"
     group = clusterid
-    if(missing(xlab) && format!='bar_dodge') xlab = "variable" else xlab = "cluster"
+    if(missing(xlab) && format!='bar_dodge'){
+      xlab = "variable" 
+    }else {
+      xlab = "cluster"
+    } 
   }else {
     x = clusterid
     group = "variable"
-    if(missing(xlab) && format!='bar_dodge') xlab = "cluster" else xlab = "variable"
+    if(missing(xlab) && format!='bar_dodge'){
+      xlab = "cluster"
+    }else {
+      xlab = "variable"
+    }
   }
   
   if (format=='line') {

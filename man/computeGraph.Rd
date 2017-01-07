@@ -35,12 +35,19 @@ functions: \link{sqlQuery} and \link{sqlSave}).}
 \description{
 Results in \code{\link{network}} object representation of the graph 
 stored in Aster tables. Usually in Aster database a graph is represented
-using a pair of vertice and edge tables.
+using a pair of vertice and edge tables (see \code{\link{toaGraph}}).
 }
 \details{
 Use caution when computing network objects stored in Aster with this function 
 as data may include considerable amount of vertices and edges which are too large to
 load into a memory.
+
+\code{copmuteGraph} will use graph defined by \code{graph} if neither of the arguments
+\code{vertexWhere}, or \code{edgeWhere} provided. When one or more of them 
+defined then they override corresponding attributes in the \code{graph}. On top of it,
+argument \code{v} specifies concrete vertices to include in the resulting graph.
+In case when only edges table specified argument \code{vertexWhere} will trigger error
+while argument \code{v} is still valid.
 }
 \examples{
 if(interactive()) {

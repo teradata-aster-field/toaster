@@ -53,10 +53,26 @@ Canopy clustering algorithm runs in-database, returns centroids compatible with 
 pre-processes data for k-means and other clustering algorithms.
 }
 \details{
+Canopy clustering often precedes kmeans algorithm (see \code{\link{computeKmeans}}) 
+or other clustering algorithms. The goal is to speed up clustering by choosing initial centroids more efficiently
+than randomly or naively, especially for big data applications. An important notes are that:
+\itemize{
+  \item function does not let specify number of canopies (clusters), instead it controls them with pair of
+    threshold arguments \code{looseDistance} and \code{tightDistance}. By adjusting them one tunes 
+    \code{computeCanopy} to produce more or less canopies as desired.
+  \item individual data points may be part of several canopies and cluster memberhip is not available as result 
+    of the operation.
+  \item resulting \code{toacanopy} object should be passed to \code{computeKmeans} with \code{canopy} argument 
+   effectively overriding arguments in kmeans function.
+}
+
 The function fist scales not-null data (if \code{scale=TRUE}) or just eliminate nulls without scaling. After 
 that the data given (table \code{tableName} with option of filering with \code{where}) are clustered using canopy 
-algorithm in Aster. This results in 1) set of centroids to use as initial cluster centers in k-means and
-2) pre-processed data ready for clustering.
+algorithm in Aster. This results in 
+\enumerate{
+  \item set of centroids to use as initial cluster centers in k-means and
+  \item pre-processed data persisted and ready for clustering with kmeans function \code{computeKmeans}.
+}
 }
 \examples{
 if(interactive()){

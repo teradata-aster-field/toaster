@@ -9,10 +9,11 @@ toaGraph(vertices, edges, directed = FALSE, key = "id", source = "source",
   vertexWhere = NULL, edgeWhere = NULL)
 }
 \arguments{
-\item{vertices}{A table, view, or query of a collection of vertices in the graph.}
+\item{vertices}{A table, view, or query of a collection of vertices in the graph. The 
+collection must contain at least one column representing the vertex key.}
 
 \item{edges}{A table, view, or query of a collection of edges of the graph. 
-The collection must contain at least two lists of columns, one list that represents 
+The collection must contain at least two columns, one list that represents 
 the source vertex key and another list that represents the target vertex key.}
 
 \item{directed}{logical: should edges be interpreted as directed?}
@@ -48,6 +49,18 @@ so that each row represents an edge.
 Both vertices and edges tables may contain additional columns representing 
 optional attributes. For example if edges table has column 'weight' it can
 correspond a graph with edge weights.
+}
+\details{
+Graph object can be defined using single table with edges. In that case vertices
+are derived from the edges and arguments \code{vertexWhere} and \code{vertexAttrnames}
+will be disallowed or ignored.
+
+In place of both or any of the tables could be views or even queries. The only requirement
+is that they correspond to a graph in Aster database by containing non-null set of vertices,
+0 or more edges and do not break referential integrity (see \code{\link{validateGraph}}).
+No speical syntactic designation is necessary when using queries, thus \code{"public.edges"}
+and \code{"SELECT * FROM public.edges"} are valid and equivalent values for the argument
+\code{edges}.
 }
 \examples{
 # undirected graph

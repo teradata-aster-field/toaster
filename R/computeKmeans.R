@@ -732,9 +732,12 @@ makeAggregatesAlwaysContainCount <- function(aggregates){
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}.
 #' @param km an object of class \code{"toakmeans"} obtained with \code{computeKmeans}.
-#' @param sampleFraction one or more sample fractions to use in the sampling of data. (multipe 
-#'   sampling fractions are not yet supported.)
-#' @param sampleSize total sample size (applies only when \code{sampleFraction} is missing).
+#' @param sampleFraction vector with one or more sample fractions to use in the sampling of data.
+#'   Multiple fractions define sampling for each cluster in kmeans \code{km} object where
+#'   vector length must be equal to the number of clusters.
+#' @param sampleSize vector with sample size (applies only when \code{sampleFraction} is missing).
+#'   Multiple sizes define sampling for each cluster in kmeans \code{km} object where
+#'   vector length must be equal to the number of clusters.
 #' @param scaled logical: indicates if original (default) or scaled data returned.
 #' @param includeId logical indicates if sample should include key attribute identifying
 #'   each data point.
@@ -759,6 +762,9 @@ makeAggregatesAlwaysContainCount <- function(aggregates){
 #' km = computeClusterSample(conn, km, 0.01)
 #' km
 #' createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
+#' 
+#' # per cluster sample fractions
+#' km = computeClusterSample(conn, km, c(0.01, 0.02, 0.03, 0.02, 0.01))
 #' }
 computeClusterSample <- function(channel, km, sampleFraction, sampleSize, scaled=FALSE, includeId=TRUE, test=FALSE) {
   
@@ -771,6 +777,26 @@ computeClusterSample <- function(channel, km, sampleFraction, sampleSize, scaled
   if ((missing(sampleFraction) || is.null(sampleFraction)) && 
       (missing(sampleSize) || is.null(sampleSize))) {
     stop("Sample fraction or sample size must be specified.")
+  }
+  
+  # validate sample fraction
+  if (!missing(sampleFraction) && !is.null(sampleFraction)) {
+    sampleFraction = as.numeric(sampleFraction)
+    
+    # using sample fraction
+    if (!all(sampleFraction >= 0) || !all(sampleFraction <= 1))
+      stop("All sample fractions must be between 0 and 1 inclusively.")
+    
+    if (length(sampleFraction) > 1 && length(sampleFraction) != nrow(km$centers))
+      stop("Fraction vector length must be either 1 or equal to the number of clusters.")
+  }else {
+    sampleSize = as.integer(sampleSize)
+    
+    if (!all(sampleSize >= 0.0))
+      stop("All sample sizes must be equal to or greater than 0.")
+    
+    if (length(sampleSize) > 1 && length(sampleSize) != nrow(km$centers))
+      stop("Size vector length must be either 1 or equal to the number of clusters.")
   }
   
   persist = ifelse(is.null(km$persist), FALSE, km$persist)
@@ -790,8 +816,7 @@ computeClusterSample <- function(channel, km, sampleFraction, sampleSize, scaled
   
   if (!missing(sampleFraction) && !is.null(sampleFraction)) {
     
-    # using sample fraction
-    stopifnot(sampleFraction >= 0, sampleFraction <= 1)
+    fractionStr = paste0("'", as.character(sampleFraction), "'", collapse = ",")
 
     sql = paste0(
       "SELECT * FROM sample(
@@ -799,10 +824,13 @@ computeClusterSample <- function(channel, km, sampleFraction, sampleSize, scaled
              )
              CONDITIONONCOLUMN('clusterid')
              CONDITIONON(",conditionOnSql,")
-             SAMPLEFRACTION('", as.character(sampleFraction), "')
+             SAMPLEFRACTION(", fractionStr, ")
        )")
   }else {
     # using sample size
+    
+    sizeStr = paste0("'", as.character(sampleSize), "'", collapse = ",")
+    
     sql = paste0(
       "WITH stratum_counts AS (
          SELECT clusterid stratum, count(*) stratum_count 
@@ -821,7 +849,7 @@ computeClusterSample <- function(channel, km, sampleFraction, sampleSize, scaled
          ON stratum_counts AS summary DIMENSION
          CONDITIONONCOLUMN('clusterid')
          CONDITIONON(",conditionOnSql,")
-         ApproximateSampleSize('", as.character(sampleSize), "')
+         ApproximateSampleSize(", sizeStr, ")
       )"
     )
   }
@@ -1060,10 +1088,26 @@ makeSilhouetteDataSql <- function(table_name, temp_table_name, columns, id, idAl
 #' Canopy clustering algorithm runs in-database, returns centroids compatible with \code{\link{computeKmeans}} and 
 #' pre-processes data for k-means and other clustering algorithms.
 #' 
+#' Canopy clustering often precedes kmeans algorithm (see \code{\link{computeKmeans}}) 
+#' or other clustering algorithms. The goal is to speed up clustering by choosing initial centroids more efficiently
+#' than randomly or naively, especially for big data applications. An important notes are that:
+#' \itemize{
+#'   \item function does not let specify number of canopies (clusters), instead it controls them with pair of
+#'     threshold arguments \code{looseDistance} and \code{tightDistance}. By adjusting them one tunes 
+#'     \code{computeCanopy} to produce more or less canopies as desired.
+#'   \item individual data points may be part of several canopies and cluster memberhip is not available as result 
+#'     of the operation.
+#'   \item resulting \code{toacanopy} object should be passed to \code{computeKmeans} with \code{canopy} argument 
+#'    effectively overriding arguments in kmeans function.
+#' }
+#' 
 #' The function fist scales not-null data (if \code{scale=TRUE}) or just eliminate nulls without scaling. After 
 #' that the data given (table \code{tableName} with option of filering with \code{where}) are clustered using canopy 
-#' algorithm in Aster. This results in 1) set of centroids to use as initial cluster centers in k-means and
-#' 2) pre-processed data ready for clustering.
+#' algorithm in Aster. This results in 
+#' \enumerate{
+#'   \item set of centroids to use as initial cluster centers in k-means and
+#'   \item pre-processed data persisted and ready for clustering with kmeans function \code{computeKmeans}.
+#' }
 #' 
 #' @param channel connection object as returned by \code{\link{odbcConnect}}.
 #' @param canopy an object of class \code{"toacanopy"} obtained with \code{computeCanopy}.

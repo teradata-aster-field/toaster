@@ -528,7 +528,7 @@ buildThemeFromParameters <- function(legendPosition, title, xlab, ylab,
 #'   if FALSE then scale the area.
 #' @param shapeSizeRange bubble size range (applies only when \code{scaleSize = TRUE})
 #' @param shapeMaxSize size of largest shape (applies only when \code{scaleSize = FALSE})
-#' @param paletteValues actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
+#' @param paletteValues actual palette colours for use with \code{\link[ggplot2]{scale_fill_manual}} (if specified then parameter
 #'  \code{palette} is ignored)
 #' @param palette Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names
 #' @param title plot title.
@@ -705,7 +705,6 @@ createSlopegraph <- function(data, id, rankFrom, rankTo,
           axis.ticks=element_blank(),
           axis.line=element_blank(),
           panel.grid.major = element_line(panelGridColour, size = panelGridSize),
-          panel.grid.major = element_blank(),
           panel.grid.major.y = element_blank(),
           panel.grid.minor.y = element_blank(),
           panel.background = element_blank(),

@@ -12,9 +12,22 @@
 #' Both vertices and edges tables may contain additional columns representing 
 #' optional attributes. For example if edges table has column 'weight' it can
 #' correspond a graph with edge weights.
-#' @param vertices A table, view, or query of a collection of vertices in the graph.
+#' 
+#' Graph object can be defined using single table with edges. In that case vertices
+#' are derived from the edges and arguments \code{vertexWhere} and \code{vertexAttrnames}
+#' will be disallowed or ignored.
+#' 
+#' In place of both or any of the tables could be views or even queries. The only requirement
+#' is that they correspond to a graph in Aster database by containing non-null set of vertices,
+#' 0 or more edges and do not break referential integrity (see \code{\link{validateGraph}}).
+#' No speical syntactic designation is necessary when using queries, thus \code{"public.edges"}
+#' and \code{"SELECT * FROM public.edges"} are valid and equivalent values for the argument
+#' \code{edges}.
+#' 
+#' @param vertices A table, view, or query of a collection of vertices in the graph. The 
+#'   collection must contain at least one column representing the vertex key.
 #' @param edges A table, view, or query of a collection of edges of the graph. 
-#'   The collection must contain at least two lists of columns, one list that represents 
+#'   The collection must contain at least two columns, one list that represents 
 #'   the source vertex key and another list that represents the target vertex key.
 #' @param directed logical: should edges be interpreted as directed?
 #' @param key name of the column with vertex unique id (in the table \code{vertices}).
@@ -47,8 +60,14 @@ toaGraph <- function(vertices, edges, directed=FALSE,
                      vertexAttrnames=NULL, edgeAttrnames=NULL, 
                      vertexWhere = NULL, edgeWhere = NULL) {
   
-  if(is.null(vertices) || is.null(edges))
-    stop("Both vertices and edges must be defined.")
+  if(missing(edges) || is.null(edges))
+    stop("An edge table must be defined.")
+  
+  if(missing(vertices) || is.null(vertices)) {
+    if (!is.null(vertexWhere))
+      stop("Graph with derived vertices can not have where clause.")
+    vertices = NULL
+  }
   
   z <- structure(list(vertices = vertices,
                       edges = edges,
@@ -66,16 +85,23 @@ toaGraph <- function(vertices, edges, directed=FALSE,
   z 
 }
 
+
 #' Materialize Aster graph as network object in R.
 #'
 #' Results in \code{\link{network}} object representation of the graph 
 #' stored in Aster tables. Usually in Aster database a graph is represented
-#' using a pair of vertice and edge tables.
+#' using a pair of vertice and edge tables (see \code{\link{toaGraph}}).
 #' 
 #' Use caution when computing network objects stored in Aster with this function 
 #' as data may include considerable amount of vertices and edges which are too large to
-#' load into a memory.  
-#'
+#' load into a memory.
+#' 
+#' \code{copmuteGraph} will use graph defined by \code{graph} if neither of the arguments
+#' \code{vertexWhere}, or \code{edgeWhere} provided. When one or more of them 
+#' defined then they override corresponding attributes in the \code{graph}. On top of it,
+#' argument \code{v} specifies concrete vertices to include in the resulting graph.
+#' In case when only edges table specified argument \code{vertexWhere} will trigger error
+#' while argument \code{v} is still valid.
 #'
 #' @param channel connection object as returned by \code{\link{odbcConnect}}
 #' @param graph an object of class \code{'toagraph'} referencing graph 
@@ -143,7 +169,7 @@ computeGraph <- function(channel, graph, v=NULL,
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
 
   return(computeGraphInternal(channel, graph, v, vertexWhere, edgeWhere,
                               isTableFlag, test, closeOnError=FALSE))
@@ -157,6 +183,14 @@ computeGraphInternal <- function(channel, graph, v=NULL,
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
+  
+  if(is.null(graph$vertices)) {
+    if(!is.null(vertexWhere))
+      stop("Derived vertices can not have where clause.")
+    
+    graph$vertices = makeDerivedVerticesTable(graph, isTableFlag, edgeWhere)
+  }
+    
   
   # Handle vertex list if defined
   vertexWhere = addVerticesInVertexWhere(graph, v, vertexWhere)
@@ -285,7 +319,7 @@ computeEgoGraph <- function(channel, graph, ego, order=1, mode="all",
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
@@ -472,7 +506,7 @@ computeGraphHistogram <- function(channel, graph, type='degree', weight=FALSE,
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
@@ -704,7 +738,7 @@ computeGraphMetric <- function(channel, graph, type='degree', top=10, rankFuncti
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
@@ -1095,6 +1129,19 @@ makeEdgesSql <- function(graph, isTableFlag, vertexWhere, edgeWhere) {
   )
 }
 
+makeDerivedVerticesTable <- function(graph, isTableFlag, edgeWhere) {
+  
+  vertices = paste0(
+    "SELECT ",graph$source," ",graph$key," 
+       FROM ", makeFromClause(graph$edges, isTableFlag[['edges']], "t"), 
+       makeWhereClause(edgeWhere), "
+     UNION
+     SELECT ",graph$target," ",graph$key," 
+       FROM ", makeFromClause(graph$edges, isTableFlag[['edges']], "t"), 
+       makeWhereClause(edgeWhere)
+  )
+  
+}
 
 makeEgoSelfEdgeWhereSql <- function(graph, key, mode) {
   

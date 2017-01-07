@@ -1,4 +1,25 @@
 
+toaster 0.5.5
+----------------------------------------------------------------
+
+NEW FEATURES
+
+* Graph can now be defined using edge table, view, or query only.
+  Vertices collection will use query derived from the edges (#35).
+* Support for per-cluster sampling with computeClusterSample (#64).
+* createCentroidPlot now allows selecting both clusters and dimensions 
+  to display. You can also label clusters with meaningful names (#69).
+
+MINOR FEATURES
+
+* isTable function requires a list of table names instead of a vector (#35).
+* createCentroidPlot now supports standard kmeans objects (#68).
+* Updated canopy documentation (#65).
+
+BUG FIXES
+
+* Addressed errors in tests caused by ggplot2 release 2.2.1. 
+
 toaster 0.5.4
 ----------------------------------------------------------------
 

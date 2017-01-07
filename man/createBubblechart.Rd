@@ -61,7 +61,7 @@ if FALSE then scale the area.}
 
 \item{shapeMaxSize}{size of largest shape (applies only when \code{scaleSize = FALSE})}
 
-\item{paletteValues}{actual palette colours for use with \code{scale_fill_manual} (if specified then parameter
+\item{paletteValues}{actual palette colours for use with \code{\link[ggplot2]{scale_fill_manual}} (if specified then parameter
 \code{palette} is ignored)}
 
 \item{palette}{Brewer palette name - see \code{display.brewer.all} in \code{RColorBrewer} package for names}

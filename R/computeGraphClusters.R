@@ -114,7 +114,7 @@ computeGraphClusters <- function(channel, graph, type='connected',
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
   
   if(!all(isTableFlag | is.na(isTableFlag)))
     stop("Both vertices and edges must exist as tables or views.")
@@ -423,7 +423,7 @@ computeGraphClustersAsGraphs <- function(channel, communities, ids=NULL, compone
   
   isValidConnection(channel, test)
   
-  isTableFlag = isTable(channel, c(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
+  isTableFlag = isTable(channel, list(vertices=graph$vertices, edges=graph$edges), allTables=allTables)
   
   if (is.null(ids) || length(ids) == 0) {
     ids = integer(0)

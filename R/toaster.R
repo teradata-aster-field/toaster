@@ -8,7 +8,7 @@
 #' 
 #' @name toaster
 #' @docType package
-#' @import RODBC plyr reshape2 ggplot2 RColorBrewer wordcloud foreach scales 
+#' @import RODBC plyr reshape2 ggplot2 RColorBrewer wordcloud foreach scales grid
 #' @importFrom scales muted 
 #' @importFrom memoise memoise
 #' @importFrom ggthemes theme_tufte

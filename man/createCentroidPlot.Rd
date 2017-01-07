@@ -5,21 +5,28 @@
 \title{Create plot of cluster centroids.}
 \usage{
 createCentroidPlot(km, format = "line", groupByCluster = TRUE,
+  clusters = rownames(km$centers), dims = colnames(km$centers),
   baseSize = 12, baseFamily = "serif", title = paste("Cluster Centroids",
   format, "Plot"), xlab, ylab = ifelse(format == "heatmap", "cluster",
-  ifelse(km$scale, "scaled value", "value")), legendPosition = ifelse(format
-  == "bar", "none", "right"), coordFlip = FALSE, ticks = FALSE,
-  defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
-  ticks = ticks), themeExtra = NULL)
+  ifelse(!is.null(km$scale) && km$scale, "scaled value", "value")),
+  legendPosition = ifelse(format == "bar", "none", "right"),
+  coordFlip = FALSE, ticks = FALSE, defaultTheme = theme_tufte(base_size =
+  baseSize, base_family = baseFamily, ticks = ticks), themeExtra = NULL)
 }
 \arguments{
-\item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
+\item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}} or of class 
+\code{"kmeans"} returned by \code{\link{kmeans}}.}
 
-\item{format}{type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"}, 
-\code{"bar_facet"} (same as \code{"bar"}) or \code{"heatmap"}.}
+\item{format}{type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"} or \code{"heatmap"}.}
 
 \item{groupByCluster}{logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
 has no effect when \code{format="heatmap"}.}
+
+\item{clusters}{optional vector with clusters to include. If vector has named values then names are used for 
+cluster labels. By default, all clusters are included.}
+
+\item{dims}{optional vector with dimensions to include. Vector may be contain either dimension indices or names.
+By default, all dimensions are included.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 
@@ -66,7 +73,9 @@ km = computeKmeans(conn, "batting", centers=5, iterMax = 25,
                    centroidTableName='kmeans_test_centroids',
                    where="yearid > 2000")
 createCentroidPlot(km)
-createCentroidPlot(km, format="bar_dodge")
+# As clusters fluctuate from run to run cluster names may be inconsistent
+createCentroidPlot(km, format="bar_dodge", 
+                   clusters=c(Stars=3, Reserve=4), dims=c('g','h'))
 createCentroidPlot(km, format="heatmap", coordFlip=TRUE)
 }
 }

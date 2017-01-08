@@ -1,6 +1,6 @@
 Package: toaster
 Type: Package
-Title: Big Data in-Database Analytics that scales with Teradata Aster distributed platform
+Title: Big Data in-Database Analytics that Scales with Teradata Aster Distributed Platform
 Version: 0.5.5
 Authors@R: c(
     person("Gregory", "Kanevsky", , "gregory.kanevsky@teradata.com", c("aut","cre"))

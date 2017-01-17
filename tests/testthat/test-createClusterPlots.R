@@ -3,7 +3,9 @@ context("create Cluster Plots")
 kmobj = structure(list(centers=matrix(c(1,1,1,1,1,
                                         2,2,2,2,2,
                                         3,3,3,3,3),nrow=5,
-                                      dimnames = list(c("1","2","3","4","5"),c("f1","f2","f3")))),
+                                      dimnames = list(c("1","2","3","4","5"),c("f1","f2","f3"))),
+                       aggregates=data.frame(clusterid="1","2","3","4","5", cnt=c(10,20,30,20,30),
+                                             withinns=c(100,200,300,299,120), avg_a=c(0.1,0.2,0.3,0.2,0.1))),
                   class = c("toakmeans", "kmeans"))
 
 test_that("Cluster plot functions throw errors", {

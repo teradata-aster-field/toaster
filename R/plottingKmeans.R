@@ -10,10 +10,9 @@
 #' @param format type of plot to use: \code{"line"}, \code{"bar"}, \code{"bar_dodge"} or \code{"heatmap"}.
 #' @param groupByCluster logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
 #'   has no effect when \code{format="heatmap"}.
-#' @param clusters optional vector with clusters to include. If vector has named values then names are used for 
-#'   cluster labels. By default, all clusters are included.
-#' @param dims optional vector with dimensions to include. Vector may be contain either dimension indices or names.
-#'   By default, all dimensions are included.
+#' @param clusters optional character vector with clusters to include. If it has named values then names are used for 
+#'   cluster labels. By default, all clusters are included. Numerical vector will be casted to character one as is.
+#' @param dims optional vector with dimensions to include. By default, all dimensions are included.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -75,6 +74,12 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
       !all(clusters %in% rownames(km$centers)))
     stop(paste0("All clusters must be defined in kmeans object: ", 
                 paste(clusters[!clusters %in% rownames(km$centers)], collapse = ","),"."))
+  else {
+    clusters = sort(clusters)
+    cluster_names = names(clusters)
+    clusters = as.character(clusters)
+    names(clusters) = cluster_names
+  }
   
   if (is.null(dims) ||
       length(dims) == 0 ||
@@ -85,11 +90,10 @@ createCentroidPlot <- function(km, format='line', groupByCluster=TRUE,
   clusterid = "clusterid"
   
   km_centers = km$centers[clusters,dims]
-  if(!is.null(names(clusters)))
-    cluster_labels = names(clusters)
+  if(!is.null(cluster_names))
+    cluster_labels = cluster_names
   else
     cluster_labels = rownames(km_centers)
-  
   
   centroids = data.frame(km_centers, stringsAsFactors = TRUE)
   centroids[, clusterid] = factor(rownames(km_centers), labels = cluster_labels)

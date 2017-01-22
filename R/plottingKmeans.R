@@ -193,6 +193,10 @@ plotHeatmapCentroids <- function(data, id) {
 #' Create clusters' properties plot.
 #' 
 #' @param km an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.
+#' @param clusters optional vector with clusters to include. If vector has named values then names are used for 
+#'   cluster labels. By default, all clusters are included.
+#' @param aggregates optional vector with cluster properties to include. By default, all properties found in 
+#'   \code{km$aggregates} are included.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -223,7 +227,8 @@ plotHeatmapCentroids <- function(data, id) {
 #'                    where="yearid > 2000")
 #' createClusterPlot(km)
 #' }
-createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
+createClusterPlot <- function(km, clusters=rownames(km$centers), aggregates = names(km$aggregates)[-1],
+                              baseSize = 12, baseFamily = "serif",
                               title = paste("Cluster Properties Plot"), xlab = "cluster", ylab = "value", 
                               border=TRUE, colorByCluster=TRUE, ticks=FALSE,
                               defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks=ticks),
@@ -236,17 +241,38 @@ createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
   if(is.null(km$aggregates))
     stop("Kmeans object is missing cluster aggregates.")
   
-  clusterid="clusterid"
-  aggregates = km$aggregates
-  
-  if (!is.factor(aggregates$clusterid)) 
-    aggregates$clusterid = factor(aggregates$clusterid)
-  
-  if (all(c("cnt","withinss") %in% names(aggregates))) {
-    aggregates$unit_withinss = aggregates$withinss / aggregates$cnt
+  if (is.null(clusters) || 
+      length(clusters) == 0 ||
+      !all(clusters %in% rownames(km$centers)))
+    stop(paste0("All clusters must be defined in kmeans object: ", 
+                paste(clusters[!clusters %in% rownames(km$centers)], collapse = ","),"."))
+  else {
+    clusters = sort(clusters)
+    cluster_names = names(clusters)
+    clusters = as.character(clusters)
+    names(clusters) = cluster_names
   }
   
-  data = melt(aggregates,id.vars=clusterid)
+  if (is.null(aggregates) ||
+      length(aggregates) == 0 ||
+      !all(aggregates %in% names(km$aggregates)[-1]))
+    stop(paste0("All aggregate properties must be defined in kmeans object: ",
+                paste(aggregates[!aggregates %in% names(km$aggregates)[-1]], collapse = ","),"."))
+  
+  clusterid="clusterid"
+  aggregates.df = km$aggregates[km$aggregates$clusterid %in% clusters, c(clusterid, aggregates)]
+  if(!is.null(cluster_names))
+    cluster_labels = cluster_names
+  else
+    cluster_labels = aggregates.df$clusterid
+
+  aggregates.df$clusterid = factor(aggregates.df$clusterid, labels = cluster_labels)
+  
+  if (all(c("cnt","withinss") %in% aggregates)) {
+    aggregates.df$unit_withinss = with(aggregates.df, withinss / cnt)
+  }
+  
+  data = melt(aggregates.df, id.vars=clusterid)
   
   facet_formula = stats::as.formula(paste("~", "variable"))
   border_element = if(border) element_rect(fill=NA) else element_blank()
@@ -254,7 +280,7 @@ createClusterPlot <- function(km, baseSize = 12, baseFamily = "serif",
   
   p = ggplot(data) +
     geom_bar(aes_string(clusterid, "value", fill=fill), stat="identity", position="dodge") +
-    facet_wrap(facet_formula, scales="free", dir="h", labeller=labeller(.default=agg_labeller)) +
+    facet_wrap(facet_formula, scales="free_y", dir="h", labeller=labeller(.default=agg_labeller)) +
     labs(title=title, x=xlab, y=ylab) +
     defaultTheme + 
     theme(legend.position="none",
@@ -275,6 +301,8 @@ agg_labeller <- function(value) {
 #' @param include a vector of column names to include. Plot never contains variables other than in the list.
 #'   Plot would never include \code{idAlias} even if it is included explicitly.
 #' @param except a vector of column names to exclude. Plot never contains variables from the list.
+#' @param clusters optional vector with clusters to include. If vector has named values then names are used for 
+#'   cluster labels. By default, all clusters are included.
 #' @param baseSize \code{\link{theme}} base font size.
 #' @param baseFamily \code{\link{theme}} base font family.
 #' @param title plot title.
@@ -303,6 +331,7 @@ agg_labeller <- function(value) {
 #' createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
 #' }
 createClusterPairsPlot <- function(km, include = NULL, except = NULL,
+                                   clusters=rownames(km$centers), 
                                    baseSize = 12, baseFamily = "serif",
                                    title="Cluster Variable Pairs", ticks=FALSE,
                                    defaultTheme=theme_tufte(base_size = baseSize, base_family = baseFamily, ticks = ticks),
@@ -315,7 +344,7 @@ createClusterPairsPlot <- function(km, include = NULL, except = NULL,
   if(is.null(km$data))
     stop("Kmeans object is missing sample data.")
 
-  kms = km$data[, setdiff(names(km$data), km$idAlias)]
+  kms = km$data[km$data$clusterid %in% clusters, setdiff(names(km$data), km$idAlias)]
   
   if(!is.null(include))
     include = c(include, 'clusterid')
@@ -324,8 +353,28 @@ createClusterPairsPlot <- function(km, include = NULL, except = NULL,
   if(dim(kms)[[2]] == 0)
     stop("No columns left to plot.")
   
+  if (is.null(clusters) || 
+      length(clusters) == 0 ||
+      !all(clusters %in% rownames(km$centers)))
+    stop(paste0("All clusters must be defined in kmeans object: ", 
+                paste(clusters[!clusters %in% rownames(km$centers)], collapse = ","),"."))
+  else {
+    clusters = sort(clusters)
+    cluster_names = names(clusters)
+    clusters = as.character(clusters)
+    names(clusters) = cluster_names
+  }
+  
   if (!is.factor(kms$clusterid)) 
     kms$clusterid = factor(kms$clusterid)
+  
+  clusterid="clusterid"
+  if(!is.null(cluster_names))
+    cluster_labels = cluster_names
+  else
+    cluster_labels = sort(unique(kms$clusterid))
+
+  kms$clusterid = factor(kms$clusterid, labels = cluster_labels)
   
   p = GGally::ggpairs(kms, aes_string(color='clusterid'), title=title, ...) +
     defaultTheme +

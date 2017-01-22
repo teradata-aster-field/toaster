@@ -1,6 +1,15 @@
 
 toaster 0.6.0
 ----------------------------------------------------------------
+
+NEW FEATURES
+
+MINOR FEATURES
+
+* createClusterPlot and createClusterPairsPlot now allow selecting 
+  clusters, aggregates, and dimensions (all when applicable) to 
+  display. You can also label clusters with meaningful names (#71).
+  
 BUG FIXES
 
 * Argument clusters with names (cluster aliases) now works in any 

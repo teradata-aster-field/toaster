@@ -4,14 +4,22 @@
 \alias{createClusterPlot}
 \title{Create clusters' properties plot.}
 \usage{
-createClusterPlot(km, baseSize = 12, baseFamily = "serif",
-  title = paste("Cluster Properties Plot"), xlab = "cluster",
-  ylab = "value", border = TRUE, colorByCluster = TRUE, ticks = FALSE,
+createClusterPlot(km, clusters = rownames(km$centers),
+  aggregates = names(km$aggregates)[-1], baseSize = 12,
+  baseFamily = "serif", title = paste("Cluster Properties Plot"),
+  xlab = "cluster", ylab = "value", border = TRUE,
+  colorByCluster = TRUE, ticks = FALSE,
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
   ticks = ticks), themeExtra = NULL)
 }
 \arguments{
 \item{km}{an object of class \code{"toakmeans"} returned by \code{\link{computeKmeans}}.}
+
+\item{clusters}{optional vector with clusters to include. If vector has named values then names are used for 
+cluster labels. By default, all clusters are included.}
+
+\item{aggregates}{optional vector with cluster properties to include. By default, all properties found in 
+\code{km$aggregates} are included.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 

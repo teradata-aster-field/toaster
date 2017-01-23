@@ -4,8 +4,9 @@
 \alias{createClusterPairsPlot}
 \title{Create cluster variable plot.}
 \usage{
-createClusterPairsPlot(km, include = NULL, except = NULL, baseSize = 12,
-  baseFamily = "serif", title = "Cluster Variable Pairs", ticks = FALSE,
+createClusterPairsPlot(km, include = NULL, except = NULL,
+  clusters = rownames(km$centers), baseSize = 12, baseFamily = "serif",
+  title = "Cluster Variable Pairs", ticks = FALSE,
   defaultTheme = theme_tufte(base_size = baseSize, base_family = baseFamily,
   ticks = ticks), themeExtra = theme(), ...)
 }
@@ -16,6 +17,9 @@ createClusterPairsPlot(km, include = NULL, except = NULL, baseSize = 12,
 Plot would never include \code{idAlias} even if it is included explicitly.}
 
 \item{except}{a vector of column names to exclude. Plot never contains variables from the list.}
+
+\item{clusters}{optional vector with clusters to include. If vector has named values then names are used for 
+cluster labels. By default, all clusters are included.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 

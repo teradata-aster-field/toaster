@@ -22,11 +22,10 @@ createCentroidPlot(km, format = "line", groupByCluster = TRUE,
 \item{groupByCluster}{logical: indicates if centroids are grouped by clusters or variables. \code{groupByCluster} 
 has no effect when \code{format="heatmap"}.}
 
-\item{clusters}{optional vector with clusters to include. If vector has named values then names are used for 
-cluster labels. By default, all clusters are included.}
+\item{clusters}{optional character vector with clusters to include. If it has named values then names are used for 
+cluster labels. By default, all clusters are included. Numerical vector will be casted to character one as is.}
 
-\item{dims}{optional vector with dimensions to include. Vector may be contain either dimension indices or names.
-By default, all dimensions are included.}
+\item{dims}{optional vector with dimensions to include. By default, all dimensions are included.}
 
 \item{baseSize}{\code{\link{theme}} base font size.}
 

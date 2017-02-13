@@ -17,7 +17,7 @@ Description: A consistent set of tools to perform in-database analytics
 SystemRequirements: Teradata Aster Database 5.20 (AD5.20) or higher,
     Teradata Aster Analytical Foundation 5.20 (AA5.20) or higher.
 Depends:
-    R (>= 3.0),
+    R (>= 3.3.2),
     RODBC (>= 1.3-12)
 Imports:
     plyr (>= 1.8.3),

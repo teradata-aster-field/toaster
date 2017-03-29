@@ -42,4 +42,3 @@ viewTableSummary(pitchingInfo, types=c("numeric", "temporal"))
 \seealso{
 \code{\link{getTableSummary}}
 }
-

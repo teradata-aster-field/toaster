@@ -14,7 +14,10 @@ test_that("computeHistogram throws errors", {
   expect_error(computeHistogram(channel=NULL, tableName="fake"),
                "Must provide table and column names.")
   
-   expect_error(computeHistogram(channel=NULL, tableName="fake", columnName="nocolumn"),
+  expect_error(computeHistogram(channel=NULL, tableName="fake", columnName=c("column1","column2")),
+               "Multiple columns are allowed only when columnFrequency = TRUE")
+  
+  expect_error(computeHistogram(channel=NULL, tableName="fake", columnName="nocolumn"),
                "Connection is not valid RODBC object.")
   
   expect_error(computeHistogram(channel=NULL, tableName="fake", columnName="nocolumn", test=TRUE),
@@ -149,7 +152,145 @@ test_that("computeHistogram with barplot SQL is correct", {
 })
 
 
-#test_that("computeHistogram with column frequency SQL is correct", {
-#  
-#  expect_equal_normalized(computeHistogram(channel=NULL, tableName="pitching", ))
-#})
+test_that("computeHistogram with column frequency SQL is correct", {
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", "session_id", 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           test = TRUE),
+                          "SELECT * 
+                             FROM hist_reduce(
+                               ON hist_map(
+                                 ON (SELECT session_id, count(*) cnt 
+                                       FROM bank_web_clicks  GROUP BY 1
+                                 )
+                                 binsize('291.633333333333')
+                                 startvalue('1')
+                                 endvalue('8750')
+                                 value_column('cnt')                                          
+                               ) 
+                               PARTITION BY 1 
+                             )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", "session_id", 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           by="page", test = TRUE),
+                          "SELECT * 
+                             FROM hist_reduce(
+                               ON hist_map(
+                                 ON (SELECT page, session_id, count(*) cnt 
+                                       FROM bank_web_clicks  GROUP BY 1, 2
+                                 )
+                                 binsize('291.633333333333')
+                                 startvalue('1')
+                                 endvalue('8750')
+                                 value_column('cnt')   
+                                 GROUP_COLUMNS('page')
+                               ) 
+                               PARTITION BY page
+                          )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", c("customer_id", "session_id"), 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           test = TRUE),
+                          "SELECT * 
+                             FROM hist_reduce(
+                               ON hist_map(
+                                 ON (SELECT customer_id, session_id, count(*) cnt 
+                                       FROM bank_web_clicks  GROUP BY 1, 2
+                                 )
+                                 binsize('291.633333333333')
+                                 startvalue('1')
+                                 endvalue('8750')
+                                 value_column('cnt')                                          
+                               ) 
+                               PARTITION BY 1 
+                             )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", c("customer_id", "session_id"), 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           by="page", test = TRUE),
+                          "SELECT * 
+                             FROM hist_reduce(
+                               ON hist_map(
+                                 ON (SELECT page, customer_id, session_id, count(*) cnt 
+                                       FROM bank_web_clicks  GROUP BY 1, 2, 3
+                                 )
+                                 binsize('291.633333333333')
+                                 startvalue('1')
+                                 endvalue('8750')
+                                 value_column('cnt')
+                                 GROUP_COLUMNS('page')
+                               ) 
+                               PARTITION BY page
+                          )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", "session_id", 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           binsize = 200, startvalue = 1, endvalue = 25000, 
+                                           test = TRUE),
+                          "SELECT * FROM hist_reduce(
+                             ON hist_map(
+                               ON (SELECT session_id, count(*) cnt 
+                                     FROM bank_web_clicks  GROUP BY 1
+                               )
+                               binsize('200')
+                               startvalue('1')
+                               endvalue('25000')
+                               value_column('cnt')                                          
+                             ) 
+                             PARTITION BY 1 
+                           )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", "session_id", 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           binsize = 200, startvalue = 1, endvalue = 25000, 
+                                           by="page", test = TRUE),
+                          "SELECT * FROM hist_reduce(
+                             ON hist_map(
+                               ON (SELECT page, session_id, count(*) cnt 
+                                     FROM bank_web_clicks  GROUP BY 1, 2
+                               )
+                               binsize('200')
+                               startvalue('1')
+                               endvalue('25000')
+                               value_column('cnt')
+                               GROUP_COLUMNS('page')
+                             ) 
+                             PARTITION BY page
+                           )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", c("customer_id", "session_id"), 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           binsize = 2, startvalue = 1, endvalue = 200, 
+                                           test = TRUE),
+                          "SELECT *  FROM hist_reduce(
+                             ON hist_map(
+                               ON (SELECT customer_id, session_id, count(*) cnt 
+                                   FROM bank_web_clicks  GROUP BY 1, 2
+                               )
+                               binsize('2')
+                               startvalue('1')
+                               endvalue('200')
+                               value_column('cnt')                                          
+                             ) 
+                             PARTITION BY 1 
+                           )")
+  
+  expect_equal_normalized(computeHistogram(channel=NULL, "bank_web_clicks", c("customer_id", "session_id"), 
+                                           tableInfo=pitching_info, columnFrequency = TRUE,
+                                           binsize = 2, startvalue = 1, endvalue = 200, 
+                                           by="page", test = TRUE),
+                          "SELECT *  FROM hist_reduce(
+                             ON hist_map(
+                               ON (SELECT page, customer_id, session_id, count(*) cnt 
+                                   FROM bank_web_clicks  GROUP BY 1, 2, 3
+                               )
+                               binsize('2')
+                               startvalue('1')
+                               endvalue('200')
+                               value_column('cnt')
+                               GROUP_COLUMNS('page')
+                             ) 
+                             PARTITION BY page
+                           )")
+})

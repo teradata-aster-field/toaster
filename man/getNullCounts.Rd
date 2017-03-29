@@ -54,4 +54,3 @@ null_counts = getNullCounts(conn, "baseball.batting",
 
 }
 }
-

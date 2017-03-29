@@ -104,4 +104,3 @@ createCentroidPlot(km)
 \seealso{
 \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}, \code{\link{computeCanopy}}
 }
-

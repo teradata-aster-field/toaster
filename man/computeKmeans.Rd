@@ -166,4 +166,3 @@ createSilhouetteProfile(kmc, title="Cluster Silhouette Histograms (Profiles)")
 \seealso{
 \code{\link{computeClusterSample}}, \code{\link{computeSilhouette}}, \code{\link{computeCanopy}}
 }
-

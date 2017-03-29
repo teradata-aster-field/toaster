@@ -154,4 +154,3 @@ createHistogram(h2000s, fill='teamid', facet='teamid',
 \code{\link{computeHistogram}} and \code{\link{computeBarchart}} to
   compute data for histogram
 }
-

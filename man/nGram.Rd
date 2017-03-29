@@ -41,4 +41,3 @@ pluggable n-gram parser
 \description{
 Tokenize (or split) text and emit multi-grams.
 }
-

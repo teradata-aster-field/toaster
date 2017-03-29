@@ -18,4 +18,3 @@ Good to use with slopegraphs.
 \seealso{
 \code{\link[ggplot2]{theme_void}} \code{\link{createHistogram}} and other visualization functions that start with create.
 }
-

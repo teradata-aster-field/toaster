@@ -62,4 +62,3 @@ data = computeAggregates(channel = conn, "pitching_enh",
 }
   
 }
-

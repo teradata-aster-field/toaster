@@ -59,4 +59,3 @@ km = computeClusterSample(conn, km, 0.01)
 createClusterPairsPlot(km, title="Batters Clustered by G, H, R", ticks=FALSE)
 }
 }
-

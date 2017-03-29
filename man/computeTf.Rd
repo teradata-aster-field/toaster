@@ -115,4 +115,3 @@ tdm3 = computeTf(channel=NULL, tableName="public.dallaspoliceall", docId="offens
 \seealso{
 \code{computeTfIdf}, \code{\link{nGram}}, \code{\link{token}}
 }
-

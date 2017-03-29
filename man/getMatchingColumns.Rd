@@ -28,4 +28,3 @@ Selects columns with names matching regular expression pattern.
 \seealso{
 \code{\link{grep}}, \code{\link{getTableSummary}}
 }
-

@@ -19,4 +19,3 @@ getTemporalTypes()
 \seealso{
 \code{\link{getCharacterTypes}}, \code{\link{getCharacterTypes}}, \code{\link{getTableSummary}}
 }
-

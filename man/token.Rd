@@ -43,4 +43,3 @@ When \code{n=1} simply tokenize text and emit words with counts. When n>1
 tokenized words are combined into permutations of length n within
 each document.
 }
-

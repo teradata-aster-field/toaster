@@ -215,4 +215,3 @@ createMap(data=data[data$decadeid>=2000,],
           geocodeFun=geocodeFun, getmapFun = getMapFun)
 }
 }
-

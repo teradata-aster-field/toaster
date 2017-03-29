@@ -50,4 +50,3 @@ createSilhouetteProfile(km, title="Cluster Silhouette Histograms (Profiles)")
 \seealso{
 \code{\link{computeKmeans}}
 }
-

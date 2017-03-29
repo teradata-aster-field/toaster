@@ -57,4 +57,3 @@ km = computeClusterSample(conn, km, c(0.01, 0.02, 0.03, 0.02, 0.01))
 \seealso{
 \code{\link{computeKmeans}}
 }
-

@@ -208,4 +208,3 @@ showData(conn, 'pitching_enh', format='scatterplot',
          where='yearid between 1980 and 2012')
 }
 }
-

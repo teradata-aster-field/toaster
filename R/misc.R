@@ -278,9 +278,12 @@ getColumns <- function (tableInfo, types, names.only, include, except) {
 }
 
 
-makeSqlColumnList <- function(columns) {
+makeSqlColumnList <- function(columns, quotes=FALSE) {
   
-  paste(columns, collapse=", ")
+  if (quotes) 
+    paste0("\"", columns, "\"", collapse = ", ")
+  else
+    paste(columns, collapse = ", ")
 }
 
 

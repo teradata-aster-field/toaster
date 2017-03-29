@@ -73,4 +73,3 @@ validateGraph(conn, policeGraphDi, weight=TRUE)
 
 }
 }
-

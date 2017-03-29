@@ -12,4 +12,3 @@ running inside Aster's highly scalable parallel and distributed analytical platf
 Then `create` functions visualize results with boxplots, scatterplots, histograms, 
 heatmaps, word clouds, maps, or slope graphs.
 }
-

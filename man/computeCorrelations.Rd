@@ -85,4 +85,3 @@ createBubblechart(cormatByLg, "metric1", "metric2", "value",
 \seealso{
 \code{\link{createBubblechart}} and \code{\link{showData}}.
 }
-

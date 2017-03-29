@@ -56,4 +56,3 @@ km = computeSilhouette(conn, km)
 createSilhouetteProfile(km, title="Cluster Silhouette Histograms (Profiles)")
 }
 }
-

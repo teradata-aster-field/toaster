@@ -76,4 +76,3 @@ createHistogram(h2000s, fill='teamid', facet='teamid',
 \seealso{
 \link{computeBarchart} and \link{createHistogram}
 }
-

@@ -10,10 +10,16 @@ MINOR FEATURES
   clusters, aggregates, and dimensions (all when applicable) to 
   display. You can also label clusters with meaningful names (#71).
   
+* createHistogram option columnFrequency=TRUE now supports 
+  multiple columns (#74).
+  
 BUG FIXES
 
 * Argument clusters with names (cluster aliases) now works in any 
   order and as numierc vector (#72).
+  
+* createHistogram with columnFrequency=TRUE now works default 
+  binning arguments (#75).
   
 toaster 0.5.5
 ----------------------------------------------------------------

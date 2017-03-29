@@ -77,4 +77,3 @@ createHistogram(hshortestpathPolice,
                 xlab = "Distance", ylab = "Count")
 }
 }
-

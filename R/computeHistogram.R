@@ -62,6 +62,9 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
     stop("Must provide table and column names.")
   }
   
+  if (!columnFrequency && length(columnName) > 1) 
+    stop("Multiple columns are allowed only when columnFrequency = TRUE")
+  
   isValidConnection(channel, test)
   
   where_clause = makeWhereClause(where)
@@ -76,14 +79,14 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
     bySelect = " "
   }
   
-  if (columnFrequency) {
-    return (computeHistogramOfFrequencies(channel, tableName, columnName, 
-                                                binsize, startvalue, endvalue, numbins,
-                                                where_clause, by, byClause, byPartition, bySelect, test))
-  }
-  
   if (missing(tableInfo) && test) {
     stop("Must provide tableInfo when test==TRUE.")
+  }
+  
+  if (columnFrequency) {
+    return (computeHistogramOfFrequencies(channel, tableName, columnName, tableInfo,
+                                                binsize, startvalue, endvalue, numbins,
+                                                where_clause, by, byClause, byPartition, bySelect, test))
   }
   
   if (missing(tableInfo) || !all(columnName %in% tableInfo$COLUMN_NAME)) {
@@ -116,7 +119,7 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
   
   # compute histogram parameters if missing
   if (binMethod=='manual') {
-    if (is.null(binsize) | is.null(startvalue) | is.null(endvalue)) {
+    if (is.null(binsize) || is.null(startvalue) || is.null(endvalue)) {
       IQR = column_stats[[1,"IQR"]]
       MIN = column_stats[[1,"minimum"]]
       MAX = column_stats[[1,"maximum"]]
@@ -167,11 +170,11 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
                          ON hist_map(
                            ON (SELECT ", bySelect, " cast(", columnName, " as numeric) ", columnName, 
                                " FROM ", tableName, where_clause,
-                           "  ) as data_input PARTITION BY ANY ",
-                           histPrep,
-                       "   VALUE_COLUMN('", columnName, "') ",
-                           byClause,
-                       "   ) 
+                           "  ) as data_input PARTITION BY ANY 
+                         ",histPrep, "
+                           VALUE_COLUMN('", columnName, "') 
+                         ",byClause," 
+                         ) 
                          partition by ", byPartition,
                       ")")
   
@@ -185,41 +188,60 @@ computeHistogram <- function(channel, tableName, columnName, tableInfo = NULL,
 }
 
 
-computeHistogramOfFrequencies <- function(channel, tableName, columnName, 
+computeHistogramOfFrequencies <- function(channel, tableName, columnName, column_stats,
                                                 binsize, startvalue, endvalue, numbins,
                                                 where_clause, by, byClause, byPartition, bySelect, test) {
+  
+  if (is.null(numbins)) {
+    numbins = 30
+  }
+  
+  if (is.null(binsize) || is.null(startvalue) || is.null(endvalue)) {
+    
+    if (is.null(startvalue)) {
+      startvalue = 1
+    }
+    
+    if (is.null(endvalue)) {
+      endvalue = column_stats[[1,"total_count"]]
+    }
+    
+    if (is.null(binsize)) {
+      binsize = (endvalue - startvalue) / numbins
+    }
+  }
   
   if (is.null(by)) {
      sql = paste0("SELECT * 
              FROM hist_reduce(
                     ON hist_map(
-                      ON (SELECT \"", columnName, "\", count(*) cnt 
+                      ON (SELECT ", makeSqlColumnList(columnName), ", count(*) cnt 
                             FROM ", tableName, where_clause,
-                          " GROUP BY 1 
+                          " GROUP BY ", makeSqlColumnList(1:length(columnName)), "
                         )
                       binsize('", binsize, "')
                       startvalue('", startvalue, "')
                       endvalue('", endvalue, "')
                       value_column('cnt')                                          
                     ) 
-                    partition by 1 
+                    PARTITION BY 1 
                   )")
 
   }else {
      sql = paste0("SELECT * 
              FROM hist_reduce(
                     ON hist_map(                                          
-                      ON (SELECT \"", by, "\", \"", columnName, "\", count(*) cnt 
+                      ON (SELECT ", bySelect, " ", makeSqlColumnList(columnName), ", count(*) cnt 
                             FROM ", tableName, where_clause,
-            "               GROUP BY 1, 2  
+            "               GROUP BY 1, ", makeSqlColumnList(2:(length(columnName)+1)), "
                         )
                       binsize('", binsize, "')
                       startvalue('", startvalue, "')
                       endvalue('", endvalue, "')
                       value_column('cnt')
-                      by('\"", by, "\"')
+                    ",byClause," 
                     ) 
-                    partition by \"", by, "\" 
+                    PARTITION BY ", byPartition," 
                   )")
   }
   

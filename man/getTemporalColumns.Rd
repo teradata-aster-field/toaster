@@ -33,4 +33,3 @@ date_cols_df = getTemporalColumns(masterInfo, names.only=FALSE)
 \seealso{
 \code{\link{getCharacterColumns}}, \code{\link{getNumericColumns}}, \code{\link{getTableSummary}}
 }
-

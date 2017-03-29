@@ -23,4 +23,3 @@ myPalette = paletteMaker(10)
 \seealso{
 \code{\link{getDiscretePaletteFactory}}, \code{\link{colorRampPalette}}
 }
-

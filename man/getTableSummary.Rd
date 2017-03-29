@@ -93,4 +93,3 @@ teamInfo = getTableSummary(channel=conn, 'teams_enh',
 \seealso{
 \link{sqlColumns}
 }
-

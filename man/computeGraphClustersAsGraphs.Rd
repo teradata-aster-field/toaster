@@ -62,4 +62,3 @@ ggnet2(cluster_graphs[[2]], node.label="vertex.names", node.size="offense_count"
 }  
   
 }
-

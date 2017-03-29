@@ -13,4 +13,3 @@ functions for ranking.}
 \description{
 Determine window function to use
 }
-

@@ -96,4 +96,3 @@ createTopMetricPlot(topbetweenness, 'betweenness', ylab='Betweenness',
                          
 }
 }
-

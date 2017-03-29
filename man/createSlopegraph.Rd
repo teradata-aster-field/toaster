@@ -74,4 +74,3 @@ ggplot object
 \description{
 Create plot with Slope Graph visualization.
 }
-

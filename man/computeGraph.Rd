@@ -85,4 +85,3 @@ ggnet2(net3, node.label="vertex.names", node.size="degree",
                          
 }
 }
-

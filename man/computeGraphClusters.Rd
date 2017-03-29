@@ -120,4 +120,3 @@ communities2 = computeGraphClusters(conn, policeGraphUn, type="connected", membe
                                     edgeWhere = "weight > 0.36")
 }
 }
-

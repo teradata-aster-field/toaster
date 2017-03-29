@@ -130,4 +130,3 @@ battersBeforeAfter1960 = computeSample(channel=NULL, tableName = 'batting_enh',
 dim(battersBeforeAfter1960)
 }
 }
-

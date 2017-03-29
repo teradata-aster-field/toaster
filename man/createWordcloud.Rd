@@ -106,4 +106,3 @@ createDallasWordcloud(daypart_tfidf_2gram, 'tf_idf', 0, n=2, maxWords=200, size=
 \seealso{
 \code{\link{wordcloud}}
 }
-

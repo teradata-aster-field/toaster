@@ -31,4 +31,3 @@ tempTableName = makeTempTableName("centroids", 20)
 \seealso{
 \code{\link{getTableSummary}}
 }
-

@@ -108,4 +108,3 @@ createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
 \seealso{
 \code{\link{computeHeatmap}} for computing data for heat map
 }
-

@@ -33,4 +33,3 @@ char_cols_df = getCharacterColumns(pitchingInfo, names.only=FALSE)
 \seealso{
 \code{\link{getNumericColumns}}, \code{\link{getTemporalColumns}}, \code{\link{getTableSummary}}
 }
-

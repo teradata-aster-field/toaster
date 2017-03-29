@@ -75,4 +75,3 @@ policeGraphDi = toaGraph("dallaspolice_officer_vertices", "dallaspolice_officer_
      vertexWhere = "officer ~ '[A-Z].*'")
      
 }
-

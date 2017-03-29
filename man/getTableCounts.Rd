@@ -65,4 +65,3 @@ ggplot(data) +
         legend.position="none")
 }
 }
-

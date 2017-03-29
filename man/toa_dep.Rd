@@ -36,4 +36,3 @@ number, print a message.
 \seealso{
 \link[ggplot2]{gg_dep}
 }
-

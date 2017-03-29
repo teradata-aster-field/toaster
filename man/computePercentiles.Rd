@@ -114,4 +114,3 @@ createBoxplot(playerAllDates, x='column', value='epoch', useIQR=TRUE,
 
 }
 }
-

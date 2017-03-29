@@ -22,4 +22,3 @@ myPalette = paletteMaker(25)
 \seealso{
 \code{\link{getGradientPaletteFactory}}, \code{\link{colorRampPalette}}
 }
-

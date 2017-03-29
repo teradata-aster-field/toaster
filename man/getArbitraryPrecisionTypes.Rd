@@ -19,4 +19,3 @@ getArbitraryPrecisionTypes()
 \seealso{
 \code{\link{getNumericTypes}}, \code{\link{getFloatingPointTypes}}, \code{\link{getIntegerTypes}}
 }
-

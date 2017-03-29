@@ -90,4 +90,3 @@ createHeatmap(hm, 'decadeid', 'franchid', 'wl', divergingColourGradient = TRUE)
 \seealso{
 \code{\link{createHeatmap}}
 }
-

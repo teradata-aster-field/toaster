@@ -19,4 +19,3 @@ a table or a view.}
 \description{
 Make SQL FROM clause
 }
-

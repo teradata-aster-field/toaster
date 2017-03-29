@@ -67,4 +67,3 @@ createClusterPlot(km)
 \seealso{
 \code{\link{computeKmeans}}
 }
-

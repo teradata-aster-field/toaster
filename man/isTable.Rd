@@ -47,4 +47,3 @@ isTable(conn, "public.pitching") # FALSE
 \seealso{
 \code{\link{getTableSummary}}
 }
-

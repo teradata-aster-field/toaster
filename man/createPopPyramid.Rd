@@ -127,4 +127,3 @@ createPopPyramid(data=battingHist, divideBy='lgid', values=c('NL','AL'),
                  title="Batting BA Pyramid by MLB Leages", xlab='BA', ylab='Player Count')
 }
 }
-

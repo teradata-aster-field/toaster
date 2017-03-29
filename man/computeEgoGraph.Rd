@@ -89,4 +89,3 @@ ggnet2(egoGraph, node.label="vertex.names",  node.size="offense_count",
        legend.position="none", color="color")
 }
 }
-

@@ -78,4 +78,3 @@ createCentroidPlot(km, format="bar_dodge",
 createCentroidPlot(km, format="heatmap", coordFlip=TRUE)
 }
 }
-

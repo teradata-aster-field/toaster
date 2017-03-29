@@ -84,4 +84,3 @@ bc = computeBarchart(channel=conn, tablelName="pitching_enh", category="teamid",
 \seealso{
 \code{\link{computeHistogram}}, \code{\link{createHistogram}}
 }
-

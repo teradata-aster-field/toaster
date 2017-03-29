@@ -121,4 +121,3 @@ tdm4 = computeTfIdf(channel=NULL, tableName="public.dallaspoliceall",
 \seealso{
 \code{computeTf}, \code{\link{nGram}}, \code{\link{token}}
 }
-

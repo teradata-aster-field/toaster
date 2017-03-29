@@ -20,4 +20,3 @@ getCharacterTypes()
 \seealso{
 \code{\link{getNumericTypes}}, \code{\link{getTemporalTypes}}, \code{\link{getTableSummary}}
 }
-

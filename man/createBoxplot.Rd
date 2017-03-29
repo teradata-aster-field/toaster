@@ -129,4 +129,3 @@ createBoxplot(bapLgDec, facet=c("lgid", "decadeid"))
 \seealso{
 \code{\link{computePercentiles}} for computing boxplot quartiles
 }
-

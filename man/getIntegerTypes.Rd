@@ -19,4 +19,3 @@ getIntegerTypes()
 \seealso{
 \code{\link{getNumericTypes}}, \code{\link{getFloatingPointTypes}}, \code{\link{getArbitraryPrecisionTypes}}
 }
-

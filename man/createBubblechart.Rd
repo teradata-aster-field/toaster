@@ -132,4 +132,3 @@ createBubblechart(cormat, "metric1", "metric2", "value", label=NULL, fill="sign"
 \seealso{
 \code{\link{computeAggregates}} computes data for the bubble chart.
 }
-
